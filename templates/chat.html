@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}WhatsApp Web Clone{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Chats</h2>
+        </div>
+        <div id="contact-list"></div>
+    </div>
+    <div class="main-chat">
+        <div class="chat-header">
+            <h2 id="current-contact">Select a contact</h2>
+        </div>
+        <div id="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="message-input" placeholder="Type a message">
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentContact = null;
+const BUSINESS_PHONE_NUMBER_ID = "347058841835061";
+
+function loadContacts() {
+    // In a real app, you'd fetch this from the server
+    const contacts = [
+        {id: '905330475085', name: 'John Doe'},
+        {id: '905330475086', name: 'Jane Smith'},
+    ];
+    const contactList = document.getElementById('contact-list');
+    contactList.innerHTML = '';
+    contacts.forEach(contact => {
+        const contactElement = document.createElement('div');
+        contactElement.className = 'contact';
+        contactElement.textContent = contact.name;
+        contactElement.onclick = () => selectContact(contact.id);
+        contactList.appendChild(contactElement);
+    });
+}
+
+function selectContact(contactId) {
+    currentContact = contactId;
+    document.getElementById('current-contact').textContent = `Chat with ${contactId}`;
+    // In a real app, you'd fetch messages for this contact
+    fetchMessages(contactId);
+}
+
+function addMessage(message, isReceived = false) {
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message', isReceived ? 'received' : 'sent');
+    messageElement.textContent = message;
+    document.getElementById('chat-messages').appendChild(messageElement);
+}
+
+async function sendMessage() {
+    if (!currentContact) {
+        alert('Please select a contact first');
+        return;
+    }
+    const messageInput = document.getElementById('message-input');
+    const message = messageInput.value.trim();
+    if (message) {
+        try {
+            const response = await fetch('/send_message', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: `to=${encodeURIComponent(currentContact)}&message=${encodeURIComponent(message)}`
+            });
+            const data = await response.json();
+            if (data.success) {
+                addMessage(message, false);
+                messageInput.value = '';
+            } else {
+                console.error('Failed to send message:', data.error);
+            }
+        } catch (error) {
+            console.error('Error sending message:', error);
+        }
+    }
+}
+
+async function fetchMessages(contactId) {
+    try {
+        const response = await fetch(`/get_messages/${contactId}`);
+        const data = await response.json();
+        const chatMessages = document.getElementById('chat-messages');
+        chatMessages.innerHTML = '';
+        data.messages.forEach(msg => {
+            addMessage(msg.text, msg.from !== BUSINESS_PHONE_NUMBER_ID);
+        });
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+    }
+}
+
+document.getElementById('send-button').onclick = sendMessage;
+document.getElementById('message-input').onkeypress = (e) => {
+    if (e.key === 'Enter') sendMessage();
+};
+
+// Initialize
+loadContacts();
+// Set up WebSocket for real-time updates
+const socket = new WebSocket('ws://' + window.location.host + '/ws');
+socket.onmessage = (event) => {
+    const message = JSON.parse(event.data);
+    if (message.from === currentContact) {
+        addMessage(message.text, true);
+    }
+};
+</script>
+{% endblock %}

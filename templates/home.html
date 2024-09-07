@@ -1,11 +1,14 @@
 {% extends "base.html" %}
 
+{% block title %}WhatsApp Business API - Home{% endblock %}
+
 {% block content %}
-<h1>WhatsApp Business API</h1>
-<ul>
-    <li><a href="{{ url_for('send_message') }}">Send Message</a></li>
-    <li><a href="{{ url_for('show_received') }}">View Received Messages</a></li>
-    <li><a href="{{ url_for('conversation_history') }}">View Conversation History</a></li>
-    <li><a href="{{ url_for('chat') }}">WhatsApp Clone Chat</a></li>
-</ul>
+<div class="container">
+    <h1>WhatsApp Business API</h1>
+    <ul class="menu">
+        <li><a href="{{ url_for('send_message_page') }}">Send Message</a></li>
+        <li><a href="{{ url_for('get_all_messages') }}">View Received Messages</a></li>
+        <li><a href="{{ url_for('chat') }}">WhatsApp Clone Chat</a></li>
+    </ul>
+</div>
 {% endblock %}

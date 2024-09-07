@@ -1,10 +1,11 @@
 import logging
-from fastapi import FastAPI, Request, Query, HTTPException, Body
-from fastapi.responses import PlainTextResponse, JSONResponse, FileResponse
+from fastapi import FastAPI, Request, Query, HTTPException, Body, Form, WebSocket, UploadFile, File
+from fastapi.responses import PlainTextResponse, JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pywa import WhatsApp, filters
 from pywa.types import Message, CallbackButton, CallbackSelection, FlowCompletion, MessageStatus, TemplateStatus, ChatOpened, Button
+from fastapi.websockets import WebSocketDisconnect
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -32,50 +33,14 @@ wa = WhatsApp(
     continue_handling=True
 )
 
-# Serve the HTML file for received messages
+# Update the webhook verification endpoint
 @fastapi_app.get("/")
-async def serve_received_messages(request: Request):
-    return templates.TemplateResponse("received_messages.html", {"request": request})
+async def root(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
 
-# New endpoint to send a message
-@fastapi_app.post("/send_message")
-async def send_message(message: dict = Body(...)):
-    try:
-        response = wa.send_message(
-            to="RECIPIENT_PHONE_NUMBER",  # Replace with actual recipient
-            text=message['message']
-        )
-        return JSONResponse(content={"success": True, "message_id": response})
-    except Exception as e:
-        logger.error(f"Error sending message: {e}")
-        return JSONResponse(content={"success": False, "error": str(e)})
-
-# New endpoint to get new messages
-@fastapi_app.get("/get_messages")
-async def get_messages():
-    # In a real application, you would fetch new messages from your database or message queue
-    return JSONResponse(content={
-        "messages": [
-            {"text": "This is a dummy received message"}
-        ]
-    })
-
-# New endpoint to get all messages (both past and real-time)
-@fastapi_app.get("/get_all_messages")
-async def get_all_messages():
-    # In a real application, you would fetch messages from your database
-    # For this example, we'll return some dummy data
-    return JSONResponse(content={
-        "messages": [
-            {"id": 1, "text": "Past message 1", "timestamp": "2023-05-01T10:00:00Z"},
-            {"id": 2, "text": "Past message 2", "timestamp": "2023-05-01T11:00:00Z"},
-            {"id": 3, "text": "Real-time message", "timestamp": "2023-05-01T12:00:00Z"}
-        ]
-    })
-
-# Webhook verification endpoint
 @fastapi_app.get("/webhook/verify")
 async def verify_webhook(
+    request: Request,
     hub_mode: str = Query(..., alias="hub.mode"),
     hub_verify_token: str = Query(..., alias="hub.verify_token"),
     hub_challenge: str = Query(..., alias="hub.challenge")
@@ -89,7 +54,8 @@ async def verify_webhook(
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=400)
 
-# Endpoint to receive messages from WhatsApp
+# Update the message receiving endpoint
+@fastapi_app.post("/")
 @fastapi_app.post("/webhook/messages")
 async def receive_webhook(request: Request):
     try:
@@ -102,10 +68,79 @@ async def receive_webhook(request: Request):
             hmac_header=request.headers.get("X-Hub-Signature-256")
         )
         logger.info(f"Webhook handler response: {response}, status: {status_code}")
+
+        # Process the incoming message
+        if 'messages' in data['entry'][0]['changes'][0]['value']:
+            message = data['entry'][0]['changes'][0]['value']['messages'][0]
+            # Broadcast the message to all connected WebSocket clients
+            for client in connected_clients:
+                await client.send_json(message)
+
         return PlainTextResponse(content=response, status_code=status_code)
     except Exception as e:
         logger.error(f"Error in receive_webhook: {e}", exc_info=True)
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+# Serve the home page
+@fastapi_app.get("/")
+async def home(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
+
+# Serve the chat page
+@fastapi_app.get("/chat")
+async def chat(request: Request):
+    return templates.TemplateResponse("chat.html", {"request": request})
+
+# Serve the send message page
+@fastapi_app.get("/send_message")
+async def send_message_page(request: Request):
+    return templates.TemplateResponse("send_message.html", {"request": request})
+
+# New endpoint to send a message
+@fastapi_app.post("/send_message")
+async def send_message(to: str = Form(...), message: str = Form(...), image: UploadFile = File(None)):
+    try:
+        if image:
+            # Handle image upload and sending
+            image_data = await image.read()
+            response = wa.send_image(
+                to=to,
+                image=image_data,
+                caption=message
+            )
+        else:
+            # Send text message
+            response = wa.send_message(
+                to=to,
+                text=message
+            )
+        return JSONResponse(content={"success": True, "message_id": response})
+    except Exception as e:
+        logger.error(f"Error sending message: {e}")
+        return JSONResponse(content={"success": False, "error": str(e)})
+
+# Create a global variable to store received messages
+received_messages = []
+
+# New endpoint to get new messages
+@fastapi_app.get("/get_messages")
+async def get_messages():
+    global received_messages
+    messages = [{"text": msg, "from": "unknown"} for msg in received_messages]
+    received_messages = []  # Clear the messages after sending
+    return JSONResponse(content={"messages": messages})
+
+# New endpoint to get all messages (both past and real-time)
+@fastapi_app.get("/get_all_messages")
+async def get_all_messages():
+    # In a real application, you would fetch messages from your database
+    # For this example, we'll return some dummy data
+    return JSONResponse(content={
+        "messages": [
+            {"id": 1, "text": "Past message 1", "timestamp": "2023-05-01T10:00:00Z"},
+            {"id": 2, "text": "Past message 2", "timestamp": "2023-05-01T11:00:00Z"},
+            {"id": 3, "text": "Real-time message", "timestamp": "2023-05-01T12:00:00Z"}
+        ]
+    })
 
 @wa.on_callback_button(filters.startswith("id"))
 def click_me(client: WhatsApp, clb: CallbackButton):
@@ -158,54 +193,23 @@ def handle_chat_opened(client: WhatsApp, chat: ChatOpened):
 
 @wa.on_raw_update()
 def handle_raw_update(client: WhatsApp, update: dict):
+    global received_messages
     logger.info(f"Received raw update: {update}")
     try:
-        # Check if it's a text message
         if 'messages' in update['entry'][0]['changes'][0]['value']:
             message = update['entry'][0]['changes'][0]['value']['messages'][0]
             if message['type'] == 'text':
                 text = message['text']['body']
                 from_id = message['from']
-                logger.info(f"Extracted text message: '{text}' from {from_id}")
-                
-                # Check if it's a question and send welcome message, otherwise echo
-                if '?' in text:
-                    send_welcome_message(client, from_id, text)
-                else:
-                    echo_message(client, from_id, text)
-        # Handle status updates
+                logger.info(f"Received message: '{text}' from {from_id}")
+                received_messages.append(text)
+                send_welcome_message(client, from_id, text)
         elif 'statuses' in update['entry'][0]['changes'][0]['value']:
             status = update['entry'][0]['changes'][0]['value']['statuses'][0]
-            recipient_id = status.pop('recipient_id', None)
-            if recipient_id:
-                logger.info(f"Status update for recipient: {recipient_id}")
-            
-            # Remove 'conversation' and 'pricing' from status dict if present
-            conversation = status.pop('conversation', None)
-            pricing = status.pop('pricing', None)
-            
-            # Prepare the status object with required arguments
-            status_obj = MessageStatus(
-                _client=client,
-                raw=status,
-                tracker=None,
-                conversation=conversation,
-                pricing_model=pricing.get('pricing_model') if pricing else None,
-                error=None,
-                **status
-            )
-            
-            # Log detailed information about the status update
-            logger.info(f"Processed status update: {status_obj}")
-            if conversation:
-                logger.info(f"Conversation details: {conversation}")
-            if pricing:
-                logger.info(f"Pricing details: {pricing}")
-            
-            handle_message_status(client, status_obj)
+            logger.info(f"Received status update: {status}")
+            # Handle status update if needed
     except Exception as e:
         logger.error(f"Error in handle_raw_update: {e}", exc_info=True)
-        # Add more detailed error logging
         logger.error(f"Update that caused the error: {update}")
 
 def echo_message(client: WhatsApp, from_id: str, text: str):
@@ -278,3 +282,21 @@ def send_welcome_message(client: WhatsApp, from_id: str, text: str):
         logger.info(f"Sent welcome response: {response}")
     except Exception as e:
         logger.error(f"Error in send_welcome_message: {e}", exc_info=True)
+
+# Add these imports at the top of the file
+from fastapi import WebSocket
+from fastapi.websockets import WebSocketDisconnect
+
+# Add this global variable
+connected_clients = set()
+
+# Add these WebSocket routes
+@fastapi_app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    connected_clients.add(websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        connected_clients.remove(websocket)

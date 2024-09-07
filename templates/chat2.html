@@ -1,0 +1,780 @@
+{% extends "base.html" %}
+
+{% block title %}WhatsApp Web Clone{% endblock %}
+
+{% block content %}
+<style>
+    body, html { margin: 0; padding: 0; font-family: Segoe UI,Helvetica Neue,Helvetica,Lucida Grande,Arial,Ubuntu,Cantarell,Fira Sans,sans-serif; height: 100%; }
+    body.dark-mode { background-color: #111b21; color: #e9edef; }
+    .container { display: flex; height: 100vh; background-color: #f0f2f5; }
+    body.dark-mode .container { background-color: #111b21; }
+    .sidebar { width: 30%; background-color: #ffffff; border-right: 1px solid #d1d7db; display: flex; flex-direction: column; }
+    body.dark-mode .sidebar { background-color: #111b21; border-right-color: #2a3942; }
+    .sidebar-header { background-color: #f0f2f5; padding: 10px; display: flex; justify-content: space-between; align-items: center; }
+    body.dark-mode .sidebar-header { background-color: #202c33; }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #ddd; }
+    .search-bar { padding: 10px; }
+    .search-bar input { width: 100%; padding: 8px; border-radius: 8px; border: none; background-color: #f0f2f5; }
+    body.dark-mode .search-bar input { background-color: #202c33; color: #e9edef; }
+    #contact-list { flex-grow: 1; overflow-y: auto; }
+    .contact { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #f0f2f5; cursor: pointer; }
+    body.dark-mode .contact { border-bottom-color: #2a3942; }
+    .contact:hover { background-color: #f5f5f5; }
+    body.dark-mode .contact:hover { background-color: #2a3942; }
+    .contact.active { background-color: #e9edef; }
+    body.dark-mode .contact.active { background-color: #2a3942; }
+    .contact-avatar { width: 49px; height: 49px; border-radius: 50%; background-color: #ddd; margin-right: 15px; }
+    .contact-info { flex-grow: 1; }
+    .contact-name { font-weight: bold; }
+    .contact-tag { font-size: 0.8em; color: #667781; }
+    body.dark-mode .contact-tag { color: #8696a0; }
+    .main-chat { flex: 1; display: flex; flex-direction: column; background-color: #efeae2; }
+    body.dark-mode .main-chat { background-color: #0b141a; }
+    .chat-header { background-color: #f0f2f5; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #d1d7db; }
+    body.dark-mode .chat-header { background-color: #202c33; border-bottom-color: #2a3942; }
+    #chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; }
+    .message { max-width: 65%; padding: 8px; border-radius: 7.5px; margin-bottom: 10px; }
+    .message-sent { align-self: flex-end; background-color: #d9fdd3; }
+    body.dark-mode .message-sent { background-color: #005c4b; }
+    .message-received { align-self: flex-start; background-color: white; }
+    body.dark-mode .message-received { background-color: #202c33; }
+    .message-content { margin-bottom: 5px; }
+    .message-time { font-size: 0.75em; color: #667781; text-align: right; }
+    body.dark-mode .message-time { color: #8696a0; }
+    .chat-input { background-color: #f0f2f5; padding: 10px; display: flex; align-items: center; }
+    body.dark-mode .chat-input { background-color: #202c33; }
+    #message-input { flex: 1; padding: 9px 12px; border-radius: 8px; border: none; background-color: #ffffff; }
+    body.dark-mode #message-input { background-color: #2a3942; color: #e9edef; }
+    .send-button { margin-left: 10px; padding: 10px; background-color: #00a884; color: white; border: none; border-radius: 50%; cursor: pointer; }
+    .button { cursor: pointer; padding: 5px; }
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-content { display: none; position: absolute; background-color: #f9f9f9; min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; }
+    body.dark-mode .dropdown-content { background-color: #2a3942; }
+    .dropdown-content a { color: black; padding: 12px 16px; text-decoration: none; display: block; }
+    body.dark-mode .dropdown-content a { color: #e9edef; }
+    .dropdown-content a:hover { background-color: #f1f1f1; }
+    body.dark-mode .dropdown-content a:hover { background-color: #111b21; }
+    .show { display: block; }
+    #search-input { display: none; width: 100%; }
+    .tag-button { background-color: #00a884; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 14px; line-height: 20px; text-align: center; cursor: pointer; margin-left: 10px; padding: 0; }
+    .tag-modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+    .tag-modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 300px; border-radius: 8px; }
+    body.dark-mode .tag-modal-content { background-color: #2a3942; border-color: #8696a0; }
+    .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+    body.dark-mode .close { color: #8696a0; }
+    .close:hover, .close:focus { color: black; text-decoration: none; cursor: pointer; }
+    body.dark-mode .close:hover, body.dark-mode .close:focus { color: #e9edef; }
+    #tagInput { width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd; }
+    body.dark-mode #tagInput { background-color: #111b21; color: #e9edef; border: 1px solid #8696a0; }
+    #addTagButton { background-color: #00a884; color: white; border: none; padding: 8px 12px; cursor: pointer; border-radius: 8px; }
+    body.dark-mode #addTagButton { background-color: #00a884; }
+
+    .tag-sidebar {
+        position: fixed;
+        right: -300px;
+        top: 0;
+        width: 300px;
+        height: 100%;
+        background-color: #f0f2f5;
+        transition: right 0.3s ease-in-out;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+    body.dark-mode .tag-sidebar {
+        background-color: #2a3942;
+    }
+    .tag-sidebar.open {
+        right: 0;
+    }
+    .tag-sidebar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .close-sidebar {
+        cursor: pointer;
+        font-size: 24px;
+    }
+    #tagList {
+        margin-top: 20px;
+    }
+    .tag-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px 0;
+    }
+    .delete-tag {
+        cursor: pointer;
+        color: red;
+    }
+
+    .tag-dropdown {
+        margin-right: 10px;
+    }
+    #tagSelect, #addNoteBtn {
+        padding: 5px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .note {
+        background-color: #ffffd0;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+    }
+
+    body.dark-mode .modal-content {
+        background-color: #2a3942;
+        color: #e9edef;
+    }
+
+    body.dark-mode .note {
+        background-color: #3b4a54;
+        color: #e9edef;
+    }
+
+    .message-status { margin-left: 5px; }
+    .status-sent { color: #999; }
+    .status-delivered { color: #0000FF; }
+    .status-read { color: #0000FF; }
+    .tag { background-color: #e1f3fb; padding: 5px; border-radius: 5px; margin-bottom: 10px; }
+    body.dark-mode .tag { background-color: #1e2a30; }
+    #contactNote { width: 100%; margin-bottom: 10px; }
+    #saveNoteBtn { width: 100%; }
+    .status-sending { color: #999; }
+    .status-sent { color: #999; }
+    .status-delivered { color: #4fc3f7; }
+    .status-read { color: #4fc3f7; }
+    .status-error { color: red; }
+</style>
+
+<div class="container">
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="avatar"></div>
+            <div>
+                <span class="button" id="dark-mode-toggle">🌙</span>
+                <span class="button" id="search-toggle">🔍</span>
+                <div class="dropdown">
+                    <span class="button" id="menu-toggle">⋮</span>
+                    <div class="dropdown-content" id="dropdown-menu">
+                        <a href="{{ url_for('home') }}">Home</a>
+                        <a href="{{ url_for('send_message') }}">Send Message</a>
+                        <a href="{{ url_for('show_received') }}">View Received Messages</a>
+                        <a href="{{ url_for('conversation_history') }}">View Conversation History</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Search or start new chat">
+        </div>
+        <div id="contact-list"></div>
+    </div>
+    <div class="main-chat">
+        <div class="chat-header">
+            <div id="current-contact">Select a contact</div>
+            <div class="tag-dropdown">
+                <select id="tagSelect">
+                    <option value="">Select Tag</option>
+                    <option value="İlk_mesaj">İlk mesaj</option>
+                    <option value="cevaplandı">Cevaplandı</option>
+                    <option value="photoshop bekliyor">Photoshop bekliyor</option>
+                    <option value="teslim bekliyor">Teslim bekliyor</option>
+                    <option value="teslim edildi">Teslim edildi</option>
+                </select>
+            </div>
+            <button id="addNoteBtn">Add Note</button>
+        </div>
+        <div id="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="message-input" placeholder="Type a message">
+            <button class="send-button" onclick="sendMessage()">➤</button>
+        </div>
+    </div>
+</div>
+
+<div id="tagModal" class="tag-modal">
+    <div class="tag-modal-content">
+        <span class="close">&times;</span>
+        <h2>Add Tag</h2>
+        <input type="text" id="tagInput" placeholder="Enter tag">
+        <button id="addTagButton" onclick="addTag()">Add</button>
+    </div>
+</div>
+
+<div class="tag-sidebar" id="tagSidebar">
+    <div class="tag-sidebar-header">
+        <h3>Contact Info</h3>
+        <span class="close-sidebar">&times;</span>
+    </div>
+    <div class="tag-sidebar-content">
+        <div class="contact-info-section">
+            <h4>Tags</h4>
+            <select id="tagSelect">
+                <option value="">Select Tag</option>
+                <option value="İlk_mesaj">İlk mesaj</option>
+                <option value="cevaplandı">Cevaplandı</option>
+                <option value="photoshop bekliyor">Photoshop bekliyor</option>
+                <option value="teslim bekliyor">Teslim bekliyor</option>
+                <option value="teslim edildi">Teslim edildi</option>
+            </select>
+            <button id="addCustomTagBtn">Add Custom Tag</button>
+            <div id="customTagInput" style="display: none;">
+                <input type="text" id="newTagInput" placeholder="Enter new tag">
+                <button id="saveNewTagBtn">Save</button>
+            </div>
+            <div id="contactTags"></div>
+        </div>
+        <div class="contact-info-section">
+            <h4>Notes</h4>
+            <textarea id="contactNote" rows="4" placeholder="Add a note"></textarea>
+            <button id="saveNoteBtn">Save Note</button>
+        </div>
+    </div>
+</div>
+
+<div id="noteModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <textarea id="noteText" rows="4" cols="50"></textarea>
+        <button id="saveNoteBtn">Save Note</button>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+    let currentContact = null;
+    let messages = {};
+    let contactTags = {};
+    let notes = {};
+    const BUSINESS_PHONE_NUMBER_ID = "{{ business_phone_number_id }}";
+
+    let socket = io();
+
+    socket.on('connect', function() {
+        console.log('Connected to WebSocket');
+        loadContacts();
+        loadContactsFromStorage();
+    });
+
+    socket.on('disconnect', function() {
+        console.log('Disconnected from WebSocket');
+    });
+
+    socket.on('connect_error', function(error) {
+        console.log('Connection error:', error);
+        // Attempt to reconnect after a delay
+        setTimeout(function() {
+            socket.connect();
+        }, 5000);
+    });
+
+    function format_phone_number(number) {
+        let digits = number.replace(/\D/g, '');
+        if (digits.startsWith('90')) {
+            return '+' + digits;
+        } else if (digits.startsWith('0')) {
+            return '+90' + digits;
+        } else {
+            return '+90' + digits;
+        }
+    }
+
+    function loadContacts() {
+        $.get('/get_contacts', function(contacts) {
+            $('#contact-list').empty();
+            contacts.forEach(function(contact) {
+                const formattedNumber = format_phone_number(contact.number);
+                $('#contact-list').append(`
+                    <div class="contact" data-number="${formattedNumber}">
+                        <div class="contact-info" onclick="selectContact('${formattedNumber}')">
+                            <div class="contact-avatar"></div>
+                            <div class="contact-details">
+                                <div class="contact-name">${formattedNumber}</div>
+                                <div class="contact-tag">${contact.tag || ''}</div>
+                            </div>
+                        </div>
+                        <button class="tag-button" onclick="openTagSidebar('${formattedNumber}')">+</button>
+                    </div>
+                `);
+            });
+        });
+    }
+
+    function selectContact(contact) {
+        currentContact = format_phone_number(contact);
+        $('#current-contact').text(currentContact);
+        socket.emit('join', {contact: currentContact});
+        updateChat();
+    }
+
+    socket.on('new_message', function(message) {
+        console.log("Received new message:", message);
+        const contact = message.from === BUSINESS_PHONE_NUMBER_ID ? message.to : message.from;
+        if (!messages[contact]) messages[contact] = [];
+        messages[contact].push(message);
+        if (currentContact === contact) {
+            displayMessage(message);
+        }
+        updateContactList(message);
+    });
+
+    socket.on('message_status', function(statusUpdate) {
+        console.log("Received status update:", statusUpdate);
+        updateMessageStatus(statusUpdate.id, statusUpdate.status);
+    });
+
+    function updateChat() {
+        if (!currentContact) return;
+        $.get(`/get_messages/${currentContact}`, function(data) {
+            if (data.messages) {
+                messages[currentContact] = data.messages;
+                notes[currentContact] = data.note;
+                displayMessages();
+                $('#contactNote').val(data.note);
+            }
+        });
+    }
+
+    function displayMessages() {
+        if (!currentContact) return;
+        
+        // Clear existing messages
+        $('#chat-messages').empty();
+        
+        // Display tag
+        const tag = contactTags[currentContact];
+        if (tag) {
+            $('#chat-messages').append(`<div class="tag">Tag: ${tag}</div>`);
+        }
+        
+        // Display note
+        const note = notes[currentContact];
+        if (note) {
+            $('#chat-messages').append(`<div class="note">Note: ${note}</div>`);
+        }
+        
+        const contactMessages = getStoredMessages(currentContact);
+        contactMessages.forEach(function(msg) {
+            displayMessage(msg);
+        });
+        
+        $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
+    }
+
+    function displayMessage(msg) {
+        const messageClass = msg.from === BUSINESS_PHONE_NUMBER_ID ? 'message-sent' : 'message-received';
+        const statusClass = getStatusClass(msg);
+        const messageElement = $(`
+            <div class="message ${messageClass}" id="msg-${msg.id}">
+                <div class="message-content">${msg.text}</div>
+                <div class="message-time">
+                    ${new Date(msg.timestamp * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    ${messageClass === 'message-sent' ? `<span class="message-status ${statusClass}">✓</span>` : ''}
+                </div>
+            </div>
+        `);
+        $('#chat-messages').append(messageElement);
+        $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
+    }
+
+    function getStatusClass(msg) {
+        switch(msg.status) {
+            case 'sent': return 'status-sent';
+            case 'delivered': return 'status-delivered';
+            case 'read': return 'status-read';
+            default: return 'status-sending';
+        }
+    }
+
+    function sendMessage() {
+        if (!currentContact) {
+            alert('Please select a contact first');
+            return;
+        }
+        var message = $('#message-input').val();
+        if (message.trim() === '') return;
+
+        // Generate a temporary ID for the message
+        var tempId = 'temp_' + Date.now();
+
+        // Immediately display the message locally
+        var localMessage = {
+            id: tempId,
+            from: BUSINESS_PHONE_NUMBER_ID,
+            to: currentContact,
+            text: message,
+            timestamp: Math.floor(Date.now() / 1000),
+            type: 'message',
+            status: 'sending'
+        };
+        displayMessage(localMessage);
+        
+        // Store the message in localStorage
+        storeMessage(currentContact, localMessage);
+
+        // Clear the input field immediately
+        $('#message-input').val('');
+
+        // Send the message to the server
+        $.ajax({
+            url: '/send_message',
+            method: 'POST',
+            data: {to: currentContact, message: message},
+            timeout: 30000, // 30 seconds timeout
+            success: function(response) {
+                // Update the temporary message with the actual message ID and status
+                updateMessageId(tempId, response.id);
+                updateMessageStatus(response.id, 'sent');
+            },
+            error: function(xhr, status, error) {
+                console.error("Error sending message:", error);
+                updateMessageStatus(tempId, 'error');
+            }
+        });
+    }
+
+    function storeMessage(contact, message) {
+        let storedMessages = JSON.parse(localStorage.getItem('storedMessages') || '{}');
+        if (!storedMessages[contact]) {
+            storedMessages[contact] = [];
+        }
+        // Check if the message already exists
+        const existingIndex = storedMessages[contact].findIndex(m => m.id === message.id);
+        if (existingIndex !== -1) {
+            // Update existing message
+            storedMessages[contact][existingIndex] = message;
+        } else {
+            // Add new message
+            storedMessages[contact].push(message);
+        }
+        localStorage.setItem('storedMessages', JSON.stringify(storedMessages));
+    }
+
+    function getStoredMessages(contact) {
+        let storedMessages = JSON.parse(localStorage.getItem('storedMessages') || '{}');
+        return storedMessages[contact] || [];
+    }
+
+    function updateMessageId(tempId, actualId) {
+        $(`#msg-${tempId}`).attr('id', `msg-${actualId}`);
+    }
+
+    function updateMessageStatus(messageId, status) {
+        const statusElement = $(`#msg-${messageId} .message-status`);
+        statusElement.removeClass().addClass(`message-status status-${status}`);
+        
+        // Update the status icon
+        switch(status) {
+            case 'sending':
+                statusElement.text('🕒'); // Clock icon for sending
+                break;
+            case 'sent':
+                statusElement.html('&#10004;'); // Single check for sent
+                break;
+            case 'delivered':
+                statusElement.html('&#10004;&#10004;'); // Double check for delivered
+                break;
+            case 'read':
+                statusElement.html('&#10004;&#10004;'); // Double check in blue for read
+                statusElement.css('color', '#4fc3f7');
+                break;
+            case 'error':
+                statusElement.text('!'); // Exclamation mark for error
+                statusElement.css('color', 'red');
+                break;
+        }
+
+        // Update status in localStorage
+        updateStoredMessageStatus(messageId, status);
+    }
+
+    function updateStoredMessageStatus(messageId, status) {
+        let storedMessages = JSON.parse(localStorage.getItem('storedMessages') || '{}');
+        for (let contact in storedMessages) {
+            storedMessages[contact] = storedMessages[contact].map(msg => {
+                if (msg.id === messageId) {
+                    msg.status = status;
+                }
+                return msg;
+            });
+        }
+        localStorage.setItem('storedMessages', JSON.stringify(storedMessages));
+    }
+
+    let tags = JSON.parse(localStorage.getItem('tags') || '[]');
+
+    function openTagSidebar(contact) {
+        currentContact = contact;
+        $('#tagSidebar').addClass('open');
+        loadContactInfo();
+    }
+
+    function closeTagSidebar() {
+        $('#tagSidebar').removeClass('open');
+    }
+
+    function loadContactInfo() {
+        // Load tags
+        $('#tagSelect').val(contactTags[currentContact] || '');
+        displayContactTags();
+
+        // Load note
+        $('#contactNote').val(notes[currentContact] || '');
+
+        // Display messages (which now includes tags and notes)
+        displayMessages();
+    }
+
+    function displayContactTags() {
+        const tagList = $('#contactTags');
+        tagList.empty();
+        if (contactTags[currentContact]) {
+            tagList.append(`<div class="tag-item">${contactTags[currentContact]} <span class="delete-tag" onclick="deleteTag('${currentContact}')">🗑️</span></div>`);
+        }
+    }
+
+    function addTag() {
+        const tag = $('#tagSelect').val();
+        if (tag && currentContact) {
+            contactTags[currentContact] = tag;
+            localStorage.setItem('contactTags', JSON.stringify(contactTags));
+            displayContactTags();
+            $(`.contact[data-number="${currentContact}"] .contact-tag`).text(tag);
+            $.post('/add_tag', {contact: currentContact, tag: tag}, function(response) {
+                if (response.success) {
+                    console.log('Tag added successfully');
+                } else {
+                    console.error('Failed to add tag');
+                }
+            });
+        }
+    }
+
+    function deleteTag(contact) {
+        delete contactTags[contact];
+        localStorage.setItem('contactTags', JSON.stringify(contactTags));
+        displayContactTags();
+        $(`.contact[data-number="${contact}"] .contact-tag`).text('');
+        $.post('/remove_tag', {contact: contact}, function(response) {
+            if (response.success) {
+                console.log('Tag removed successfully');
+            } else {
+                console.error('Failed to remove tag');
+            }
+        });
+    }
+
+    function saveNote() {
+        const note = $('#contactNote').val();
+        notes[currentContact] = note;
+        localStorage.setItem('contactNotes', JSON.stringify(notes));
+        $.post('/save_note', {contact: currentContact, note: note}, function(response) {
+            if (response.success) {
+                console.log('Note saved successfully');
+                alert('Note saved successfully');
+            } else {
+                console.error('Failed to save note');
+                alert('Failed to save note. Please try again.');
+            }
+        });
+    }
+
+    // Event listeners
+    $('.close-sidebar').click(closeTagSidebar);
+    $('#tagSelect').change(addTag);
+    $('#saveNoteBtn').click(saveNote);
+
+    $('#addCustomTagBtn').click(function() {
+        $('#customTagInput').toggle();
+    });
+
+    $('#saveNewTagBtn').click(function() {
+        const newTag = $('#newTagInput').val().trim();
+        if (newTag) {
+            $('#tagSelect').append(`<option value="${newTag}">${newTag}</option>`);
+            $('#tagSelect').val(newTag);
+            addTag();
+            $('#newTagInput').val('');
+            $('#customTagInput').hide();
+        }
+    });
+
+    // Load contact notes from localStorage
+    if (localStorage.getItem('contactNotes')) {
+        notes = JSON.parse(localStorage.getItem('contactNotes'));
+    }
+
+    $('#message-input').keypress(function(e) {
+        if(e.which == 13) {
+            sendMessage();
+        }
+    });
+
+    // Dark mode toggle
+    $('#dark-mode-toggle').click(function() {
+        $('body').toggleClass('dark-mode');
+        if ($('body').hasClass('dark-mode')) {
+            $(this).text('☀️');
+            localStorage.setItem('darkMode', 'enabled');
+        } else {
+            $(this).text('🌙');
+            localStorage.setItem('darkMode', 'disabled');
+        }
+    });
+
+    // Search toggle
+    $('#search-toggle').click(function() {
+        $('#search-input').toggle();
+    });
+
+    // Dropdown menu
+    $('#menu-toggle').click(function() {
+        $('#dropdown-menu').toggleClass('show');
+    });
+
+    // Close the dropdown if the user clicks outside of it
+    window.onclick = function(event) {
+        if (!event.target.matches('#menu-toggle')) {
+            var dropdowns = document.getElementsByClassName("dropdown-content");
+            for (var i = 0; i < dropdowns.length; i++) {
+                var openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+        if (event.target == document.getElementById('tagModal')) {
+            document.getElementById('tagModal').style.display = "none";
+        }
+    }
+
+    // Close button for tag modal
+    $('.close').click(function() {
+        $('#tagModal').css('display', 'none');
+    });
+
+    // Search functionality
+    $('#search-input').on('input', function() {
+        var searchTerm = $(this).val().toLowerCase();
+        $('.contact').each(function() {
+            var contactName = $(this).text().toLowerCase();
+            $(this).toggle(contactName.includes(searchTerm));
+        });
+    });
+
+    // Load dark mode preference
+    if (localStorage.getItem('darkMode') === 'enabled') {
+        document.body.classList.add('dark-mode');
+        $('#dark-mode-toggle').text('☀️');
+    }
+
+    // Load contact tags from localStorage
+    if (localStorage.getItem('contactTags')) {
+        contactTags = JSON.parse(localStorage.getItem('contactTags'));
+    }
+
+    function updateContactList(newMessage) {
+        const contact = newMessage.from === BUSINESS_PHONE_NUMBER_ID ? newMessage.to : newMessage.from;
+        const contactElement = $(`.contact[data-number="${contact}"]`);
+        if (contactElement.length) {
+            // Move the contact to the top of the list
+            contactElement.prependTo('#contact-list');
+            // Update the last message preview
+            contactElement.find('.contact-last-message').text(newMessage.text);
+        } else {
+            // If the contact doesn't exist, add it
+            const newContactElement = $(`
+                <div class="contact" data-number="${contact}">
+                    <div class="contact-info" onclick="selectContact('${contact}')">
+                        <div class="contact-avatar"></div>
+                        <div class="contact-details">
+                            <div class="contact-name">${contact}</div>
+                            <div class="contact-last-message">${newMessage.text}</div>
+                        </div>
+                    </div>
+                    <button class="tag-button" onclick="openTagSidebar('${contact}')">+</button>
+                </div>
+            `);
+            $('#contact-list').prepend(newContactElement);
+        }
+    }
+
+    socket.on('message_update', function(update) {
+        console.log("Received message update:", update);
+        if (update.actual_id) {
+            updateMessageId(update.temp_id, update.actual_id);
+        }
+        updateMessageStatus(update.actual_id || update.temp_id, update.status);
+        
+        // Update the message in localStorage
+        updateStoredMessage(update);
+    });
+
+    function updateStoredMessage(update) {
+        let storedMessages = JSON.parse(localStorage.getItem('storedMessages') || '{}');
+        for (let contact in storedMessages) {
+            storedMessages[contact] = storedMessages[contact].map(msg => {
+                if (msg.id === update.temp_id) {
+                    msg.id = update.actual_id || msg.id;
+                    msg.status = update.status;
+                }
+                return msg;
+            });
+        }
+        localStorage.setItem('storedMessages', JSON.stringify(storedMessages));
+    }
+
+    function loadContactsFromStorage() {
+        let storedMessages = JSON.parse(localStorage.getItem('storedMessages') || '{}');
+        for (let contact in storedMessages) {
+            let lastMessage = storedMessages[contact][storedMessages[contact].length - 1];
+            updateContactList({
+                from: lastMessage.from,
+                to: lastMessage.to,
+                text: lastMessage.text
+            });
+        }
+    }
+
+    // Remove the setInterval for loadContacts
+    // $(document).ready(function() {
+    //     loadContacts();
+    //     loadContactsFromStorage();
+    //     setInterval(loadContacts, 30000);  // Remove this line
+    // });
+</script>
+{% endblock %}
