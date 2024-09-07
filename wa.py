@@ -4,7 +4,7 @@ from fastapi.responses import PlainTextResponse, JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pywa import WhatsApp, filters
-from pywa.types import Message, CallbackButton, CallbackSelection, FlowCompletion, MessageStatus, TemplateStatus, ChatOpened, Button
+from pywa.types import Message, CallbackButton, CallbackSelection, FlowCompletion, MessageStatus, TemplateStatus, ChatOpened, Button, MessageStatusType
 from fastapi.websockets import WebSocketDisconnect
 import datetime
 import asyncio
@@ -187,16 +187,19 @@ def handle_flow_completion(client: WhatsApp, completion: FlowCompletion):
 @wa.on_message_status()
 def handle_message_status(client: WhatsApp, status: MessageStatus):
     try:
-        message_id = getattr(status, 'id', None) or getattr(
-            status, 'message_id', 'Unknown')
-        logger.info(
-            f"Message status update: {status.status} for message {message_id}")
-        logger.info(f"Full status object: {status}")
-
-        if hasattr(status, 'conversation') and status.conversation:
-            logger.info(f"Conversation: {status.conversation}")
-        if hasattr(status, 'pricing_model') and status.pricing_model:
-            logger.info(f"Pricing model: {status.pricing_model}")
+        message_id = status.id
+        status_type = status.status.value  # Convert enum to string
+        logger.info(f"Message status update: {status_type} for message {message_id}")
+        
+        # Broadcast the status update to all connected WebSocket clients
+        asyncio.create_task(broadcast_message(json.dumps({
+            "type": "status_update",
+            "status": {
+                "id": message_id,
+                "status": status_type,
+                "timestamp": status.timestamp.isoformat()
+            }
+        })))
     except Exception as e:
         logger.error(f"Error in handle_message_status: {e}", exc_info=True)
 
@@ -228,7 +231,7 @@ contacts = [
 # Update the get_contacts route
 @fastapi_app.get("/get_contacts")
 async def get_contacts():
-    logger.info(f"Get contacts called. Returning: {contacts}")
+    logger.info(f"Returning contacts: {contacts}")
     return JSONResponse(content=contacts)
 
 # Add a new route to add contacts
@@ -245,8 +248,10 @@ async def get_messages_for_contact(contact_id: str):
     # In a real app, you'd fetch messages for this specific contact from a database
     # For now, we'll return some dummy messages
     messages = [
-        {"id": 1, "text": "Hello", "from": contact_id, "timestamp": datetime.datetime.now().timestamp()},
-        {"id": 2, "text": "Hi there!", "from": wa.phone_id, "timestamp": datetime.datetime.now().timestamp()},
+        {"id": 1, "text": "Hello", "from": contact_id, "timestamp": (datetime.datetime.now() - datetime.timedelta(minutes=5)).isoformat()},
+        {"id": 2, "text": "Hi there!", "from": wa.phone_id, "timestamp": (datetime.datetime.now() - datetime.timedelta(minutes=4)).isoformat()},
+        {"id": 3, "text": "How can I help you?", "from": wa.phone_id, "timestamp": (datetime.datetime.now() - datetime.timedelta(minutes=3)).isoformat()},
+        {"id": 4, "text": "I have a question about your service.", "from": contact_id, "timestamp": (datetime.datetime.now() - datetime.timedelta(minutes=2)).isoformat()},
     ]
     return JSONResponse(content={"messages": messages})
 
@@ -294,12 +299,14 @@ def handle_raw_update(client: WhatsApp, update: dict):
                             if message['type'] == 'text':
                                 text = message['text']['body']
                                 from_id = message['from']
+                                message_id = message['id']
                                 logger.info(f"Received message: '{text}' from {from_id}")
                                 # Broadcast the message to all connected WebSocket clients
                                 asyncio.create_task(broadcast_message(json.dumps({
                                     "type": "new_message",
                                     "from": from_id,
                                     "text": text,
+                                    "id": message_id,
                                     "timestamp": datetime.datetime.now().isoformat()
                                 })))
                                 send_welcome_message(client, from_id, text)
@@ -309,7 +316,11 @@ def handle_raw_update(client: WhatsApp, update: dict):
                             # Broadcast the status update to all connected WebSocket clients
                             asyncio.create_task(broadcast_message(json.dumps({
                                 "type": "status_update",
-                                "status": status
+                                "status": {
+                                    "id": status.get('id'),
+                                    "status": status.get('status'),
+                                    "timestamp": status.get('timestamp')
+                                }
                             })))
     except Exception as e:
         logger.error(f"Error in handle_raw_update: {e}", exc_info=True)

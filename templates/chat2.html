@@ -165,18 +165,15 @@
     }
 
     .message-status { margin-left: 5px; }
-    .status-sent { color: #999; }
-    .status-delivered { color: #0000FF; }
-    .status-read { color: #0000FF; }
+    .status-sending:after { content: "🕒"; }
+    .status-sent:after { content: "✓"; }
+    .status-delivered:after { content: "✓✓"; }
+    .status-read:after { content: "✓✓"; color: #4fc3f7; }
+    .status-failed:after { content: "❌"; color: red; }
     .tag { background-color: #e1f3fb; padding: 5px; border-radius: 5px; margin-bottom: 10px; }
     body.dark-mode .tag { background-color: #1e2a30; }
     #contactNote { width: 100%; margin-bottom: 10px; }
     #saveNoteBtn { width: 100%; }
-    .status-sending { color: #999; }
-    .status-sent { color: #999; }
-    .status-delivered { color: #4fc3f7; }
-    .status-read { color: #4fc3f7; }
-    .status-error { color: red; }
 
     /* Responsive layout */
     @media (max-width: 768px) {
@@ -317,7 +314,7 @@
         if (data.type === "new_message") {
             updateContactList(data);
             if (data.from === currentContact) {
-                addMessageToChat(data.text, true, data.timestamp);
+                addMessageToChat(data.text, true, data.timestamp, data.id);
             }
         } else if (data.type === "status_update") {
             updateMessageStatus(data.status);
@@ -381,17 +378,17 @@
         $.get(`/get_messages/${currentContact}`, function(data) {
             $('#chat-messages').empty();
             data.messages.forEach(function(msg) {
-                addMessageToChat(msg.text, msg.from !== BUSINESS_PHONE_NUMBER_ID, msg.timestamp);
+                addMessageToChat(msg.text, msg.from !== BUSINESS_PHONE_NUMBER_ID, msg.timestamp, msg.id);
             });
         });
     }
 
-    function addMessageToChat(message, isReceived, timestamp) {
+    function addMessageToChat(message, isReceived, timestamp, messageId) {
         const messageElement = $(`
-            <div class="message ${isReceived ? 'message-received' : 'message-sent'}">
+            <div class="message ${isReceived ? 'message-received' : 'message-sent'}" data-message-id="${messageId}">
                 <div class="message-content">${message}</div>
                 <div class="message-time">${new Date(timestamp).toLocaleTimeString()}</div>
-                <div class="message-status">sending</div>
+                <div class="message-status status-sending"></div>
             </div>
         `);
         $('#chat-messages').append(messageElement);
@@ -408,7 +405,7 @@
 
         $.post('/send_message', {to: currentContact, message: message}, function(response) {
             if (response.success) {
-                addMessageToChat(message, false, new Date().toISOString());
+                addMessageToChat(message, false, new Date().toISOString(), response.message_id);
                 $('#message-input').val('');
                 updateContactList({
                     from: BUSINESS_PHONE_NUMBER_ID,
@@ -436,12 +433,11 @@
 
     function updateMessageStatus(status) {
         console.log("Message status update:", status);
-        const messageElement = $(`[data-message-id="${status.id}"]`);
+        const messageElement = $(`.message[data-message-id="${status.id}"]`);
         if (messageElement.length) {
             const statusElement = messageElement.find('.message-status');
             if (statusElement.length) {
-                statusElement.text(status.status);
-                statusElement.removeClass().addClass(`message-status status-${status.status}`);
+                statusElement.removeClass().addClass(`message-status status-${status.status.toLowerCase()}`);
             }
         }
     }
