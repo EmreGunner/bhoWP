@@ -1,21 +1,27 @@
 import logging
+from fastapi import FastAPI, Request, Query, HTTPException, Body
+from fastapi.responses import PlainTextResponse, JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from pywa import WhatsApp, filters
+from pywa.types import Message, CallbackButton, CallbackSelection, FlowCompletion, MessageStatus, TemplateStatus, ChatOpened, Button
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-from pywa import WhatsApp, filters
-from pywa.types import Message, CallbackButton, CallbackSelection, FlowCompletion, MessageStatus, TemplateStatus, ChatOpened, Button
-from fastapi import FastAPI, Request, Query, HTTPException, Body
-from fastapi.responses import PlainTextResponse, JSONResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
-
 # Initialize FastAPI application
 fastapi_app = FastAPI()
 
+# Mount static files
+fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Set up Jinja2 templates
+templates = Jinja2Templates(directory="templates")
+
 # Update the WhatsApp client initialization
 wa = WhatsApp(
-    phone_id="347058841835061",  # Update this to match the incoming messages
+    phone_id="347058841835061",
     token="EAAOxaNntzsEBOwJwyemOEYo6jHvXatZBpwFTwpOuY8EyEQNNrelEdCAdx7kMo1R7Wx7rHCQNQlV7Nbq8dVsALD8o7PjnZBCLMzDXc2Jpa6FZCTp1LpeZAkNqoLZB6J4fD0jeUJgb2josZCdGKgxsGwareDSqojJxazhkXTSh4NGFJmhErZAk1hoCjswFJoq9CiEK0PH8Nce6tAciIiZCwuUZD",
     server=fastapi_app,
     callback_url="https://49ae544d-ebdc-4b20-9445-aa092113c69a-00-1cr1zoiat6wtd.sisko.replit.dev",
@@ -26,20 +32,15 @@ wa = WhatsApp(
     continue_handling=True
 )
 
-# Mount the static files
-fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# Serve the HTML file
+# Serve the HTML file for received messages
 @fastapi_app.get("/")
-async def serve_html():
-    return FileResponse("index.html")
+async def serve_received_messages(request: Request):
+    return templates.TemplateResponse("received_messages.html", {"request": request})
 
 # New endpoint to send a message
 @fastapi_app.post("/send_message")
 async def send_message(message: dict = Body(...)):
     try:
-        # Here you would typically send the message to a specific WhatsApp user
-        # For this example, we'll just echo it back
         response = wa.send_message(
             to="RECIPIENT_PHONE_NUMBER",  # Replace with actual recipient
             text=message['message']
@@ -53,10 +54,22 @@ async def send_message(message: dict = Body(...)):
 @fastapi_app.get("/get_messages")
 async def get_messages():
     # In a real application, you would fetch new messages from your database or message queue
-    # For this example, we'll return a dummy message
     return JSONResponse(content={
         "messages": [
             {"text": "This is a dummy received message"}
+        ]
+    })
+
+# New endpoint to get all messages (both past and real-time)
+@fastapi_app.get("/get_all_messages")
+async def get_all_messages():
+    # In a real application, you would fetch messages from your database
+    # For this example, we'll return some dummy data
+    return JSONResponse(content={
+        "messages": [
+            {"id": 1, "text": "Past message 1", "timestamp": "2023-05-01T10:00:00Z"},
+            {"id": 2, "text": "Past message 2", "timestamp": "2023-05-01T11:00:00Z"},
+            {"id": 3, "text": "Real-time message", "timestamp": "2023-05-01T12:00:00Z"}
         ]
     })
 
@@ -231,11 +244,6 @@ def hello(client: WhatsApp, from_id: str, text: str):
         logger.info(f"Sent response: {response}")
     except Exception as e:
         logger.error(f"Error in hello handler: {e}", exc_info=True)
-
-# Root path handler
-@fastapi_app.get("/")
-async def root():
-    return {"message": "Welcome to the WhatsApp webhook server"}
 
 # Error handler
 @fastapi_app.exception_handler(HTTPException)

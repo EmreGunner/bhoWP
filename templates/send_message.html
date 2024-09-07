@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Send WhatsApp Message{% endblock %}
+
+{% block content %}
+<h1>Send WhatsApp Message</h1>
+<form method="POST">
+    <label for="to">To:</label>
+    <input type="text" id="to" name="to" required><br><br>
+    <label for="message">Message:</label>
+    <textarea id="message" name="message" required></textarea><br><br>
+    <input type="submit" value="Send">
+</form>
+<p>Example curl command:</p>
+<pre>
+curl -X POST http://localhost:5000/send \
+     -H "Content-Type: application/x-www-form-urlencoded" \
+     -d "to=1234567890&message=Hello%20World"
+</pre>
+{% endblock %}

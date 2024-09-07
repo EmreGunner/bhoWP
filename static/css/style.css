@@ -1,0 +1,195 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    height: 100%;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+    background-color: #f0f2f5;
+}
+
+h1 {
+    color: #333;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.chat-container {
+    display: flex;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.contact-list {
+    width: 200px;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    margin-right: 20px;
+}
+
+.chat-area {
+    flex-grow: 1;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+#chat-messages {
+    height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+#message-form {
+    display: flex;
+}
+
+#message-input {
+    flex-grow: 1;
+    padding: 5px;
+    margin-right: 10px;
+}
+
+button {
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+/* Add these styles to your existing CSS */
+
+.tag-sidebar {
+    position: fixed;
+    right: -300px;
+    top: 0;
+    width: 300px;
+    height: 100%;
+    background-color: #f0f2f5;
+    transition: right 0.3s ease-in-out;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+body.dark-mode .tag-sidebar {
+    background-color: #2a3942;
+    color: #e9edef;
+}
+
+.tag-sidebar.open {
+    right: 0;
+}
+
+.tag-sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.close-sidebar {
+    cursor: pointer;
+    font-size: 24px;
+}
+
+.contact-info-section {
+    margin-bottom: 20px;
+}
+
+.contact-info-section h4 {
+    margin-bottom: 10px;
+}
+
+#tagSelect, #contactNote, #newTagInput {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+body.dark-mode #tagSelect,
+body.dark-mode #contactNote,
+body.dark-mode #newTagInput {
+    background-color: #3b4a54;
+    color: #e9edef;
+    border-color: #8696a0;
+}
+
+#addCustomTagBtn, #saveNewTagBtn, #saveNoteBtn {
+    background-color: #00a884;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.tag-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #e9edef;
+    padding: 5px 10px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+}
+
+body.dark-mode .tag-item {
+    background-color: #3b4a54;
+}
+
+.delete-tag {
+    cursor: pointer;
+    color: #ff0000;
+}
+
+/* Update these existing styles */
+
+.contact {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #f0f2f5;
+    cursor: pointer;
+}
+
+.contact-info {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.contact-details {
+    margin-left: 15px;
+}
+
+.tag-button {
+    background-color: #00a884;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+}

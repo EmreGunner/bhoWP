@@ -3,16 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Chat Interface</title>
+    <title>Received Messages</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
 </head>
 <body>
-    <div id="chat-container">
-        <div id="chat-messages"></div>
-        <form id="message-form">
-            <input type="text" id="message-input" placeholder="Type a message...">
-            <button type="submit" id="send-button">Send</button>
-        </form>
+    <div id="messages-container">
+        <h1>Received Messages</h1>
+        <div id="messages-list"></div>
     </div>
     <script src="{{ url_for('static', path='/script.js') }}"></script>
 </body>
