@@ -302,20 +302,41 @@
     const BUSINESS_PHONE_NUMBER_ID = "{{ business_phone_number_id }}";
     let currentContact = null;
     let socket = new WebSocket("wss://" + window.location.host + "/ws");
+    let conversations = {};
+
+    function loadConversations() {
+        const savedConversations = localStorage.getItem('conversations');
+        if (savedConversations) {
+            conversations = JSON.parse(savedConversations);
+            console.log("Loaded conversations:", conversations);
+        }
+    }
+
+    function saveConversations() {
+        localStorage.setItem('conversations', JSON.stringify(conversations));
+        console.log("Saved conversations:", conversations);
+    }
 
     socket.onopen = function(e) {
         console.log("WebSocket connection established");
         loadContacts();
+        loadConversations();
     };
 
     socket.onmessage = function(event) {
         console.log("WebSocket message received:", event.data);
         const data = JSON.parse(event.data);
         if (data.type === "new_message") {
-            updateContactList(data);
-            if (data.from === currentContact) {
-                addMessageToChat(data.text, true, data.timestamp, data.id);
+            const message = data.message;
+            if (!conversations[message.from]) {
+                conversations[message.from] = [];
             }
+            conversations[message.from].push(message);
+            updateContactList(message);
+            if (message.from === currentContact || message.to === currentContact) {
+                addMessageToChat(message);
+            }
+            saveConversations();
         } else if (data.type === "status_update") {
             updateMessageStatus(data.status);
         }
@@ -331,6 +352,10 @@
         } else {
             console.error('WebSocket connection died');
         }
+        // Attempt to reconnect
+        setTimeout(function() {
+            socket = new WebSocket("wss://" + window.location.host + "/ws");
+        }, 5000);
     };
 
     function loadContacts() {
@@ -373,51 +398,6 @@
         updateChat();
     }
 
-    function updateChat() {
-        if (!currentContact) return;
-        $.get(`/get_messages/${currentContact}`, function(data) {
-            $('#chat-messages').empty();
-            data.messages.forEach(function(msg) {
-                addMessageToChat(msg.text, msg.from !== BUSINESS_PHONE_NUMBER_ID, msg.timestamp, msg.id);
-            });
-        });
-    }
-
-    function addMessageToChat(message, isReceived, timestamp, messageId) {
-        const messageElement = $(`
-            <div class="message ${isReceived ? 'message-received' : 'message-sent'}" data-message-id="${messageId}">
-                <div class="message-content">${message}</div>
-                <div class="message-time">${new Date(timestamp).toLocaleTimeString()}</div>
-                <div class="message-status status-sending"></div>
-            </div>
-        `);
-        $('#chat-messages').append(messageElement);
-        $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
-    }
-
-    function sendMessage() {
-        if (!currentContact) {
-            alert('Please select a contact first');
-            return;
-        }
-        const message = $('#message-input').val();
-        if (message.trim() === '') return;
-
-        $.post('/send_message', {to: currentContact, message: message}, function(response) {
-            if (response.success) {
-                addMessageToChat(message, false, new Date().toISOString(), response.message_id);
-                $('#message-input').val('');
-                updateContactList({
-                    from: BUSINESS_PHONE_NUMBER_ID,
-                    to: currentContact,
-                    text: message
-                });
-            } else {
-                console.error('Failed to send message:', response.error);
-            }
-        });
-    }
-
     function updateContactList(message) {
         const contact = message.from === BUSINESS_PHONE_NUMBER_ID ? message.to : message.from;
         let contactElement = $(`.contact[data-number="${contact}"]`);
@@ -431,13 +411,85 @@
         contactElement.find('.contact-last-message').text(message.text);
     }
 
+    function addMessageToChat(message) {
+        const isReceived = message.from !== BUSINESS_PHONE_NUMBER_ID;
+        const messageElement = $(`
+            <div class="message ${isReceived ? 'message-received' : 'message-sent'}" data-message-id="${message.id}">
+                <div class="message-content">${message.text}</div>
+                <div class="message-time">${new Date(message.timestamp).toLocaleTimeString()}</div>
+                <div class="message-status status-${message.status}"></div>
+            </div>
+        `);
+        $('#chat-messages').append(messageElement);
+        $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
+    }
+
+    function updateChat() {
+        if (!currentContact) return;
+        $('#chat-messages').empty();
+        if (conversations[currentContact]) {
+            conversations[currentContact].forEach(addMessageToChat);
+        }
+        $.get(`/get_messages/${currentContact}`, function(data) {
+            data.messages.forEach(function(msg) {
+                if (!conversations[currentContact]) {
+                    conversations[currentContact] = [];
+                }
+                if (!conversations[currentContact].some(m => m.id === msg.id)) {
+                    conversations[currentContact].push(msg);
+                    addMessageToChat(msg);
+                }
+            });
+            saveConversations();
+        });
+    }
+
+    function sendMessage() {
+        if (!currentContact) {
+            alert('Please select a contact first');
+            return;
+        }
+        const message = $('#message-input').val();
+        if (message.trim() === '') return;
+
+        $.post('/send_message', {to: currentContact, message: message}, function(response) {
+            if (response.success) {
+                const newMessage = {
+                    id: response.message_id,
+                    from: BUSINESS_PHONE_NUMBER_ID,
+                    to: currentContact,
+                    text: message,
+                    timestamp: new Date().toISOString(),
+                    status: 'sent'
+                };
+                if (!conversations[currentContact]) {
+                    conversations[currentContact] = [];
+                }
+                conversations[currentContact].push(newMessage);
+                addMessageToChat(newMessage);
+                $('#message-input').val('');
+                updateContactList(newMessage);
+                saveConversations();
+            } else {
+                console.error('Failed to send message:', response.error);
+            }
+        });
+    }
+
     function updateMessageStatus(status) {
         console.log("Message status update:", status);
-        const messageElement = $(`.message[data-message-id="${status.id}"]`);
-        if (messageElement.length) {
-            const statusElement = messageElement.find('.message-status');
-            if (statusElement.length) {
-                statusElement.removeClass().addClass(`message-status status-${status.status.toLowerCase()}`);
+        if (conversations[currentContact]) {
+            const message = conversations[currentContact].find(m => m.id === status.id);
+            if (message) {
+                message.status = status.status;
+                const messageElement = $(`.message[data-message-id="${status.id}"]`);
+                if (messageElement.length) {
+                    const statusElement = messageElement.find('.message-status');
+                    if (statusElement.length) {
+                        statusElement.removeClass().addClass(`message-status status-${status.status.toLowerCase()}`);
+                    }
+                }
+                saveConversations();
             }
         }
     }
@@ -467,6 +519,7 @@
 
     // Initialize UI elements
     $(document).ready(function() {
+        loadConversations();
         loadContacts();
 
         $('#dark-mode-toggle').click(function() {
@@ -496,5 +549,8 @@
 
         $('#add-contact').click(addNewContact);
     });
+
+    // Add an event listener for when the page is about to unload
+    window.addEventListener('beforeunload', saveConversations);
 </script>
 {% endblock %}

@@ -9,6 +9,11 @@ from fastapi.websockets import WebSocketDisconnect
 import datetime
 import asyncio
 import json
+from pywa.errors import (
+    BaseError, APIError, HTTPError, NetworkError, ValidationError, 
+    AuthenticationError, PermissionError, RateLimitError, NotFoundError, 
+    ConflictError, ServerError, TimeoutError, BadRequestError
+)
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -37,6 +42,8 @@ wa = WhatsApp(
     validate_updates=True,
     continue_handling=True)
 
+# Add this line near the top of the file, after the imports
+BUSINESS_PHONE_NUMBER_ID = "347058841835061"
 
 # Update the webhook verification endpoint
 @fastapi_app.get("/")
@@ -107,21 +114,49 @@ async def send_message_page(request: Request):
 
 # New endpoint to send a message
 @fastapi_app.post("/send_message")
-async def send_message(to: str = Form(...),
-                       message: str = Form(...),
-                       image: UploadFile = File(None)):
+async def send_message(to: str = Form(...), message: str = Form(...)):
     try:
-        if image:
-            # Handle image upload and sending
-            image_data = await image.read()
-            response = wa.send_image(to=to, image=image_data, caption=message)
-        else:
-            # Send text message
-            response = wa.send_message(to=to, text=message)
+        response = wa.send_message(to=to, text=message)
+        new_message = {
+            "id": response,
+            "from": BUSINESS_PHONE_NUMBER_ID,
+            "to": to,
+            "text": message,
+            "timestamp": datetime.datetime.now().isoformat(),
+            "status": "sent"
+        }
+        if to not in conversations:
+            conversations[to] = []
+        conversations[to].append(new_message)
+        await broadcast_message(json.dumps({"type": "new_message", "message": new_message}))
         return JSONResponse(content={"success": True, "message_id": response})
+    except AuthenticationError as e:
+        logger.error(f"Authentication error: {e}")
+        return JSONResponse(content={"success": False, "error": "Authentication failed"}, status_code=401)
+    except PermissionError as e:
+        logger.error(f"Permission error: {e}")
+        return JSONResponse(content={"success": False, "error": "Permission denied"}, status_code=403)
+    except RateLimitError as e:
+        logger.error(f"Rate limit error: {e}")
+        return JSONResponse(content={"success": False, "error": "Rate limit exceeded"}, status_code=429)
+    except NotFoundError as e:
+        logger.error(f"Not found error: {e}")
+        return JSONResponse(content={"success": False, "error": "Resource not found"}, status_code=404)
+    except BadRequestError as e:
+        logger.error(f"Bad request error: {e}")
+        return JSONResponse(content={"success": False, "error": str(e)}, status_code=400)
+    except ServerError as e:
+        logger.error(f"Server error: {e}")
+        return JSONResponse(content={"success": False, "error": "Server error occurred"}, status_code=500)
+    except TimeoutError as e:
+        logger.error(f"Timeout error: {e}")
+        return JSONResponse(content={"success": False, "error": "Request timed out"}, status_code=504)
+    except BaseError as e:
+        logger.error(f"WhatsApp API error: {e}")
+        return JSONResponse(content={"success": False, "error": str(e)}, status_code=500)
     except Exception as e:
-        logger.error(f"Error sending message: {e}")
-        return JSONResponse(content={"success": False, "error": str(e)})
+        logger.error(f"Unexpected error in send_message: {e}", exc_info=True)
+        return JSONResponse(content={"success": False, "error": "An unexpected error occurred"}, status_code=500)
 
 
 # Create a global variable to store received messages
@@ -245,15 +280,152 @@ async def add_contact(number: str = Form(...), name: str = Form(...)):
 # Modify the get_messages_for_contact route
 @fastapi_app.get("/get_messages/{contact_id}")
 async def get_messages_for_contact(contact_id: str):
-    # In a real app, you'd fetch messages for this specific contact from a database
-    # For now, we'll return some dummy messages
-    messages = [
-        {"id": 1, "text": "Hello", "from": contact_id, "timestamp": (datetime.datetime.now() - datetime.timedelta(minutes=5)).isoformat()},
-        {"id": 2, "text": "Hi there!", "from": wa.phone_id, "timestamp": (datetime.datetime.now() - datetime.timedelta(minutes=4)).isoformat()},
-        {"id": 3, "text": "How can I help you?", "from": wa.phone_id, "timestamp": (datetime.datetime.now() - datetime.timedelta(minutes=3)).isoformat()},
-        {"id": 4, "text": "I have a question about your service.", "from": contact_id, "timestamp": (datetime.datetime.now() - datetime.timedelta(minutes=2)).isoformat()},
-    ]
-    return JSONResponse(content={"messages": messages})
+    if contact_id not in conversations:
+        conversations[contact_id] = []
+    return JSONResponse(content={"messages": conversations[contact_id]})
+
+# Add this import at the top of the file
+import json
+
+# ... (rest of the code remains the same)
+
+# Create a dictionary to store conversations
+conversations = {}
+
+# Modify the get_messages_for_contact route
+@fastapi_app.get("/get_messages/{contact_id}")
+async def get_messages_for_contact(contact_id: str):
+    if contact_id not in conversations:
+        conversations[contact_id] = []
+    return JSONResponse(content={"messages": conversations[contact_id]})
+
+# Modify the send_message endpoint
+@fastapi_app.post("/send_message")
+async def send_message(to: str = Form(...), message: str = Form(...)):
+    try:
+        response = wa.send_message(to=to, text=message)
+        new_message = {
+            "id": response,
+            "from": BUSINESS_PHONE_NUMBER_ID,
+            "to": to,
+            "text": message,
+            "timestamp": datetime.datetime.now().isoformat(),
+            "status": "sent"
+        }
+        if to not in conversations:
+            conversations[to] = []
+        conversations[to].append(new_message)
+        await broadcast_message(json.dumps({"type": "new_message", "message": new_message}))
+        return JSONResponse(content={"success": True, "message_id": response})
+    except AuthenticationError as e:
+        logger.error(f"Authentication error: {e}")
+        return JSONResponse(content={"success": False, "error": "Authentication failed"}, status_code=401)
+    except PermissionError as e:
+        logger.error(f"Permission error: {e}")
+        return JSONResponse(content={"success": False, "error": "Permission denied"}, status_code=403)
+    except RateLimitError as e:
+        logger.error(f"Rate limit error: {e}")
+        return JSONResponse(content={"success": False, "error": "Rate limit exceeded"}, status_code=429)
+    except NotFoundError as e:
+        logger.error(f"Not found error: {e}")
+        return JSONResponse(content={"success": False, "error": "Resource not found"}, status_code=404)
+    except BadRequestError as e:
+        logger.error(f"Bad request error: {e}")
+        return JSONResponse(content={"success": False, "error": str(e)}, status_code=400)
+    except ServerError as e:
+        logger.error(f"Server error: {e}")
+        return JSONResponse(content={"success": False, "error": "Server error occurred"}, status_code=500)
+    except TimeoutError as e:
+        logger.error(f"Timeout error: {e}")
+        return JSONResponse(content={"success": False, "error": "Request timed out"}, status_code=504)
+    except BaseError as e:
+        logger.error(f"WhatsApp API error: {e}")
+        return JSONResponse(content={"success": False, "error": str(e)}, status_code=500)
+    except Exception as e:
+        logger.error(f"Unexpected error in send_message: {e}", exc_info=True)
+        return JSONResponse(content={"success": False, "error": "An unexpected error occurred"}, status_code=500)
+
+# Add this global variable to keep track of processed message IDs
+processed_message_ids = set()
+
+@wa.on_raw_update()
+def handle_raw_update(client: WhatsApp, update: dict):
+    logger.info(f"Received raw update: {update}")
+    try:
+        if 'entry' in update and len(update['entry']) > 0:
+            changes = update['entry'][0].get('changes', [])
+            for change in changes:
+                if 'value' in change:
+                    value = change['value']
+                    if 'messages' in value:
+                        for message in value['messages']:
+                            if message['type'] == 'text':
+                                message_id = message['id']
+                                if message_id in processed_message_ids:
+                                    logger.info(f"Skipping already processed message: {message_id}")
+                                    continue
+                                processed_message_ids.add(message_id)
+                                
+                                text = message['text']['body']
+                                from_id = message['from']
+                                logger.info(f"Received message: '{text}' from {from_id}")
+                                new_message = {
+                                    "id": message_id,
+                                    "from": from_id,
+                                    "to": BUSINESS_PHONE_NUMBER_ID,
+                                    "text": text,
+                                    "timestamp": datetime.datetime.now().isoformat(),
+                                    "status": "received"
+                                }
+                                if from_id not in conversations:
+                                    conversations[from_id] = []
+                                    send_welcome_message(client, from_id, text)
+                                conversations[from_id].append(new_message)
+                                asyncio.create_task(broadcast_message(json.dumps({
+                                    "type": "new_message",
+                                    "message": new_message
+                                })))
+                    elif 'statuses' in value:
+                        for status in value['statuses']:
+                            logger.info(f"Received status update: {status}")
+                            asyncio.create_task(broadcast_message(json.dumps({
+                                "type": "status_update",
+                                "status": status
+                            })))
+    except ValidationError as e:
+        logger.error(f"Validation error in handle_raw_update: {e}")
+    except KeyError as e:
+        logger.error(f"Key error in handle_raw_update: {e}")
+    except Exception as e:
+        logger.error(f"Unexpected error in handle_raw_update: {e}", exc_info=True)
+
+# Update the send_welcome_message function with better error handling
+def send_welcome_message(client: WhatsApp, from_id: str, text: str):
+    logger.info(f"Sending welcome message to {from_id}")
+    try:
+        response = client.send_message(
+            to=from_id,
+            text="Welcome! How can I assist you today?"
+        )
+        logger.info(f"Sent welcome response: {response}")
+    except AuthenticationError as e:
+        logger.error(f"Authentication error in send_welcome_message: {e}")
+    except PermissionError as e:
+        logger.error(f"Permission error in send_welcome_message: {e}")
+    except RateLimitError as e:
+        logger.error(f"Rate limit error in send_welcome_message: {e}")
+    except NotFoundError as e:
+        logger.error(f"Not found error in send_welcome_message: {e}")
+    except BadRequestError as e:
+        logger.error(f"Bad request error in send_welcome_message: {e}")
+    except ServerError as e:
+        logger.error(f"Server error in send_welcome_message: {e}")
+    except TimeoutError as e:
+        logger.error(f"Timeout error in send_welcome_message: {e}")
+    except BaseError as e:
+        logger.error(f"WhatsApp API error in send_welcome_message: {e}")
+    except Exception as e:
+        logger.error(f"Unexpected error in send_welcome_message: {e}", exc_info=True)
 
 # Add this global variable
 connected_clients = set()
@@ -267,65 +439,34 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_text()
             logger.info(f"Received WebSocket message: {data}")
-            # Process the received data and broadcast to other clients if needed
             await broadcast_message(data)
     except WebSocketDisconnect:
-        connected_clients.remove(websocket)
+        logger.info("WebSocket disconnected")
+    except ConnectionClosedError as e:
+        logger.error(f"WebSocket connection closed unexpectedly: {e}")
     except Exception as e:
-        logger.error(f"WebSocket error: {e}")
+        logger.error(f"Unexpected WebSocket error: {e}", exc_info=True)
+    finally:
         connected_clients.remove(websocket)
 
 async def broadcast_message(message):
     logger.info(f"Broadcasting message: {message}")
+    disconnected_clients = set()
     for client in connected_clients:
         try:
             await client.send_text(message)
+        except ConnectionClosedError as e:
+            logger.error(f"Error sending message to client (connection closed): {e}")
+            disconnected_clients.add(client)
+        except WebSocketDisconnect:
+            logger.error("Error sending message to client (WebSocket disconnected)")
+            disconnected_clients.add(client)
         except Exception as e:
-            logger.error(f"Error sending message to client: {e}")
-            connected_clients.remove(client)
-
-# Update the handle_raw_update function
-@wa.on_raw_update()
-def handle_raw_update(client: WhatsApp, update: dict):
-    logger.info(f"Received raw update: {update}")
-    try:
-        if 'entry' in update and len(update['entry']) > 0:
-            changes = update['entry'][0].get('changes', [])
-            for change in changes:
-                if 'value' in change:
-                    value = change['value']
-                    if 'messages' in value:
-                        for message in value['messages']:
-                            if message['type'] == 'text':
-                                text = message['text']['body']
-                                from_id = message['from']
-                                message_id = message['id']
-                                logger.info(f"Received message: '{text}' from {from_id}")
-                                # Broadcast the message to all connected WebSocket clients
-                                asyncio.create_task(broadcast_message(json.dumps({
-                                    "type": "new_message",
-                                    "from": from_id,
-                                    "text": text,
-                                    "id": message_id,
-                                    "timestamp": datetime.datetime.now().isoformat()
-                                })))
-                                send_welcome_message(client, from_id, text)
-                    elif 'statuses' in value:
-                        for status in value['statuses']:
-                            logger.info(f"Received status update: {status}")
-                            # Broadcast the status update to all connected WebSocket clients
-                            asyncio.create_task(broadcast_message(json.dumps({
-                                "type": "status_update",
-                                "status": {
-                                    "id": status.get('id'),
-                                    "status": status.get('status'),
-                                    "timestamp": status.get('timestamp')
-                                }
-                            })))
-    except Exception as e:
-        logger.error(f"Error in handle_raw_update: {e}", exc_info=True)
-        logger.error(f"Update that caused the error: {update}")
-
+            logger.error(f"Unexpected error sending message to client: {e}", exc_info=True)
+            disconnected_clients.add(client)
+    
+    for client in disconnected_clients:
+        connected_clients.remove(client)
 
 def echo_message(client: WhatsApp, from_id: str, text: str):
     logger.info(f"Echoing message: {text} to {from_id}")
@@ -392,12 +533,11 @@ async def global_exception_handler(request, exc):
 
 
 def send_welcome_message(client: WhatsApp, from_id: str, text: str):
-    logger.info(f"Sending welcome message for question: {text} to {from_id}")
+    logger.info(f"Sending welcome message to {from_id}")
     try:
         response = client.send_message(
             to=from_id,
-            text=
-            f"Welcome! Thank you for your question: '{text}'. How can I assist you today?"
+            text="Welcome! How can I assist you today?"
         )
         logger.info(f"Sent welcome response: {response}")
     except Exception as e:
