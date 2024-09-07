@@ -243,6 +243,8 @@
         </div>
         <div id="chat-messages"></div>
         <div class="chat-input">
+            <input type="file" id="image-upload" accept="image/*" style="display: none;">
+            <button class="image-upload-button" onclick="document.getElementById('image-upload').click()">➕</button>
             <input type="text" id="message-input" placeholder="Type a message">
             <button class="send-button" onclick="sendMessage()">➤</button>
         </div>
@@ -395,7 +397,15 @@
     function selectContact(contact) {
         currentContact = contact;
         $('#current-contact').text(contact);
+        loadConversationFromLocalStorage(contact);
         updateChat();
+    }
+
+    function loadConversationFromLocalStorage(contact) {
+        if (conversations[contact]) {
+            $('#chat-messages').empty();
+            conversations[contact].forEach(addMessageToChat);
+        }
     }
 
     function updateContactList(message) {
@@ -413,9 +423,15 @@
 
     function addMessageToChat(message) {
         const isReceived = message.from !== BUSINESS_PHONE_NUMBER_ID;
+        let messageContent;
+        if (message.image_url) {
+            messageContent = `<img src="${message.image_url}" alt="Sent image" style="max-width: 200px; max-height: 200px;">`;
+        } else {
+            messageContent = message.text;
+        }
         const messageElement = $(`
             <div class="message ${isReceived ? 'message-received' : 'message-sent'}" data-message-id="${message.id}">
-                <div class="message-content">${message.text}</div>
+                <div class="message-content">${messageContent}</div>
                 <div class="message-time">${new Date(message.timestamp).toLocaleTimeString()}</div>
                 <div class="message-status status-${message.status}"></div>
             </div>
@@ -450,8 +466,18 @@
             return;
         }
         const message = $('#message-input').val();
-        if (message.trim() === '') return;
+        const imageFile = $('#image-upload')[0].files[0];
+        
+        if (message.trim() === '' && !imageFile) return;
 
+        if (imageFile) {
+            sendImage(imageFile);
+        } else {
+            sendTextMessage(message);
+        }
+    }
+
+    function sendTextMessage(message) {
         $.post('/send_message', {to: currentContact, message: message}, function(response) {
             if (response.success) {
                 const newMessage = {
@@ -462,18 +488,59 @@
                     timestamp: new Date().toISOString(),
                     status: 'sent'
                 };
-                if (!conversations[currentContact]) {
-                    conversations[currentContact] = [];
-                }
-                conversations[currentContact].push(newMessage);
-                addMessageToChat(newMessage);
-                $('#message-input').val('');
-                updateContactList(newMessage);
-                saveConversations();
+                addMessageToConversation(newMessage);
             } else {
                 console.error('Failed to send message:', response.error);
             }
         });
+    }
+
+    function sendImage(imageFile) {
+        const formData = new FormData();
+        formData.append('to', currentContact);
+        formData.append('image', imageFile);
+
+        $.ajax({
+            url: '/send_image',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const newMessage = {
+                            id: response.message_id,
+                            from: BUSINESS_PHONE_NUMBER_ID,
+                            to: currentContact,
+                            image_url: e.target.result,  // Use the local image data
+                            timestamp: new Date().toISOString(),
+                            status: 'sent'
+                        };
+                        addMessageToConversation(newMessage);
+                    }
+                    reader.readAsDataURL(imageFile);
+                } else {
+                    console.error('Failed to send image:', response.error);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error('Error sending image:', textStatus, errorThrown);
+            }
+        });
+    }
+
+    function addMessageToConversation(message) {
+        if (!conversations[currentContact]) {
+            conversations[currentContact] = [];
+        }
+        conversations[currentContact].push(message);
+        addMessageToChat(message);
+        $('#message-input').val('');
+        $('#image-upload').val('');
+        updateContactList(message);
+        saveConversations();
     }
 
     function updateMessageStatus(status) {
@@ -548,6 +615,12 @@
         });
 
         $('#add-contact').click(addNewContact);
+
+        $('#image-upload').change(function() {
+            if (this.files && this.files[0]) {
+                sendMessage();
+            }
+        });
     });
 
     // Add an event listener for when the page is about to unload

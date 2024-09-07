@@ -9,11 +9,8 @@ from fastapi.websockets import WebSocketDisconnect
 import datetime
 import asyncio
 import json
-from pywa.errors import (
-    APIError, HTTPError, NetworkError, ValidationError, 
-    AuthenticationError, PermissionError, RateLimitError, NotFoundError, 
-    ConflictError, ServerError, TimeoutError, BadRequestError
-)
+from pywa import errors as pywa_errors
+import os
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -130,27 +127,18 @@ async def send_message(to: str = Form(...), message: str = Form(...)):
         conversations[to].append(new_message)
         await broadcast_message(json.dumps({"type": "new_message", "message": new_message}))
         return JSONResponse(content={"success": True, "message_id": response})
-    except AuthenticationError as e:
-        logger.error(f"Authentication error: {e}")
-        return JSONResponse(content={"success": False, "error": "Authentication failed"}, status_code=401)
-    except PermissionError as e:
-        logger.error(f"Permission error: {e}")
-        return JSONResponse(content={"success": False, "error": "Permission denied"}, status_code=403)
-    except RateLimitError as e:
-        logger.error(f"Rate limit error: {e}")
+    except pywa_errors.AuthorizationError as e:
+        logger.error(f"Authorization error: {e}")
+        return JSONResponse(content={"success": False, "error": "Authorization failed"}, status_code=401)
+    except pywa_errors.ThrottlingError as e:
+        logger.error(f"Throttling error: {e}")
         return JSONResponse(content={"success": False, "error": "Rate limit exceeded"}, status_code=429)
-    except NotFoundError as e:
-        logger.error(f"Not found error: {e}")
-        return JSONResponse(content={"success": False, "error": "Resource not found"}, status_code=404)
-    except BadRequestError as e:
-        logger.error(f"Bad request error: {e}")
+    except pywa_errors.SendMessageError as e:
+        logger.error(f"Send message error: {e}")
         return JSONResponse(content={"success": False, "error": str(e)}, status_code=400)
-    except ServerError as e:
-        logger.error(f"Server error: {e}")
-        return JSONResponse(content={"success": False, "error": "Server error occurred"}, status_code=500)
-    except TimeoutError as e:
-        logger.error(f"Timeout error: {e}")
-        return JSONResponse(content={"success": False, "error": "Request timed out"}, status_code=504)
+    except pywa_errors.WhatsAppError as e:
+        logger.error(f"WhatsApp error: {e}")
+        return JSONResponse(content={"success": False, "error": "WhatsApp error occurred"}, status_code=500)
     except Exception as e:
         logger.error(f"Unexpected error in send_message: {e}", exc_info=True)
         return JSONResponse(content={"success": False, "error": "An unexpected error occurred"}, status_code=500)
@@ -279,6 +267,7 @@ async def add_contact(number: str = Form(...), name: str = Form(...)):
 async def get_messages_for_contact(contact_id: str):
     if contact_id not in conversations:
         conversations[contact_id] = []
+    logger.info(f"Returning messages for contact {contact_id}: {conversations[contact_id]}")
     return JSONResponse(content={"messages": conversations[contact_id]})
 
 # Add this import at the top of the file
@@ -294,6 +283,7 @@ conversations = {}
 async def get_messages_for_contact(contact_id: str):
     if contact_id not in conversations:
         conversations[contact_id] = []
+    logger.info(f"Returning messages for contact {contact_id}: {conversations[contact_id]}")
     return JSONResponse(content={"messages": conversations[contact_id]})
 
 # Modify the send_message endpoint
@@ -314,27 +304,18 @@ async def send_message(to: str = Form(...), message: str = Form(...)):
         conversations[to].append(new_message)
         await broadcast_message(json.dumps({"type": "new_message", "message": new_message}))
         return JSONResponse(content={"success": True, "message_id": response})
-    except AuthenticationError as e:
-        logger.error(f"Authentication error: {e}")
-        return JSONResponse(content={"success": False, "error": "Authentication failed"}, status_code=401)
-    except PermissionError as e:
-        logger.error(f"Permission error: {e}")
-        return JSONResponse(content={"success": False, "error": "Permission denied"}, status_code=403)
-    except RateLimitError as e:
-        logger.error(f"Rate limit error: {e}")
+    except pywa_errors.AuthorizationError as e:
+        logger.error(f"Authorization error: {e}")
+        return JSONResponse(content={"success": False, "error": "Authorization failed"}, status_code=401)
+    except pywa_errors.ThrottlingError as e:
+        logger.error(f"Throttling error: {e}")
         return JSONResponse(content={"success": False, "error": "Rate limit exceeded"}, status_code=429)
-    except NotFoundError as e:
-        logger.error(f"Not found error: {e}")
-        return JSONResponse(content={"success": False, "error": "Resource not found"}, status_code=404)
-    except BadRequestError as e:
-        logger.error(f"Bad request error: {e}")
+    except pywa_errors.SendMessageError as e:
+        logger.error(f"Send message error: {e}")
         return JSONResponse(content={"success": False, "error": str(e)}, status_code=400)
-    except ServerError as e:
-        logger.error(f"Server error: {e}")
-        return JSONResponse(content={"success": False, "error": "Server error occurred"}, status_code=500)
-    except TimeoutError as e:
-        logger.error(f"Timeout error: {e}")
-        return JSONResponse(content={"success": False, "error": "Request timed out"}, status_code=504)
+    except pywa_errors.WhatsAppError as e:
+        logger.error(f"WhatsApp error: {e}")
+        return JSONResponse(content={"success": False, "error": "WhatsApp error occurred"}, status_code=500)
     except Exception as e:
         logger.error(f"Unexpected error in send_message: {e}", exc_info=True)
         return JSONResponse(content={"success": False, "error": "An unexpected error occurred"}, status_code=500)
@@ -386,7 +367,7 @@ def handle_raw_update(client: WhatsApp, update: dict):
                                 "type": "status_update",
                                 "status": status
                             })))
-    except ValidationError as e:
+    except pywa_errors.ValidationError as e:
         logger.error(f"Validation error in handle_raw_update: {e}")
     except KeyError as e:
         logger.error(f"Key error in handle_raw_update: {e}")
@@ -402,20 +383,14 @@ def send_welcome_message(client: WhatsApp, from_id: str, text: str):
             text="Welcome! How can I assist you today?"
         )
         logger.info(f"Sent welcome response: {response}")
-    except AuthenticationError as e:
-        logger.error(f"Authentication error in send_welcome_message: {e}")
-    except PermissionError as e:
-        logger.error(f"Permission error in send_welcome_message: {e}")
-    except RateLimitError as e:
-        logger.error(f"Rate limit error in send_welcome_message: {e}")
-    except NotFoundError as e:
-        logger.error(f"Not found error in send_welcome_message: {e}")
-    except BadRequestError as e:
-        logger.error(f"Bad request error in send_welcome_message: {e}")
-    except ServerError as e:
-        logger.error(f"Server error in send_welcome_message: {e}")
-    except TimeoutError as e:
-        logger.error(f"Timeout error in send_welcome_message: {e}")
+    except pywa_errors.AuthorizationError as e:
+        logger.error(f"Authorization error in send_welcome_message: {e}")
+    except pywa_errors.ThrottlingError as e:
+        logger.error(f"Throttling error in send_welcome_message: {e}")
+    except pywa_errors.SendMessageError as e:
+        logger.error(f"Send message error in send_welcome_message: {e}")
+    except pywa_errors.WhatsAppError as e:
+        logger.error(f"WhatsApp error in send_welcome_message: {e}")
     except Exception as e:
         logger.error(f"Unexpected error in send_welcome_message: {e}", exc_info=True)
 
@@ -534,3 +509,32 @@ def send_welcome_message(client: WhatsApp, from_id: str, text: str):
         logger.info(f"Sent welcome response: {response}")
     except Exception as e:
         logger.error(f"Error in send_welcome_message: {e}", exc_info=True)
+
+# Add this near the top of the file, after the FastAPI app initialization
+fastapi_app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+# Ensure the uploads directory exists
+os.makedirs("uploads", exist_ok=True)
+
+@fastapi_app.post("/send_image")
+async def send_image(to: str = Form(...), image: UploadFile = File(...)):
+    try:
+        # Save the image
+        file_location = f"uploads/{image.filename}"
+        with open(file_location, "wb+") as file_object:
+            file_object.write(await image.read())
+        
+        # Send the image using PyWa
+        response = wa.send_image(
+            to=to,
+            image=file_location,
+            caption="Sent from WhatsApp Web Clone"
+        )
+        
+        # Generate the URL for the uploaded image
+        image_url = f"{fastapi_app.url_path_for('static', path=image.filename)}"
+        
+        return JSONResponse(content={"success": True, "message_id": response, "image_url": image_url})
+    except Exception as e:
+        logger.error(f"Error sending image: {e}", exc_info=True)
+        return JSONResponse(content={"success": False, "error": str(e)}, status_code=500)
