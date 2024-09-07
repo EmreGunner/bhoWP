@@ -177,6 +177,34 @@
     .status-delivered { color: #4fc3f7; }
     .status-read { color: #4fc3f7; }
     .status-error { color: red; }
+
+    /* Responsive layout */
+    @media (max-width: 768px) {
+        .container {
+            flex-direction: column;
+        }
+        .sidebar {
+            width: 100%;
+            height: 30vh;
+        }
+        .main-chat {
+            height: 70vh;
+        }
+    }
+
+    /* Improve button styles */
+    .button {
+        cursor: pointer;
+        padding: 8px 12px;
+        background-color: #25D366;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        margin: 0 5px;
+    }
+    .button:hover {
+        background-color: #128C7E;
+    }
 </style>
 
 <div class="container">
@@ -184,15 +212,14 @@
         <div class="sidebar-header">
             <div class="avatar"></div>
             <div>
-                <span class="button" id="dark-mode-toggle">🌙</span>
-                <span class="button" id="search-toggle">🔍</span>
+                <button class="button" id="dark-mode-toggle">🌙</button>
+                <button class="button" id="search-toggle">🔍</button>
+                <button class="button" id="add-contact">➕</button>
                 <div class="dropdown">
-                    <span class="button" id="menu-toggle">⋮</span>
+                    <button class="button" id="menu-toggle">⋮</button>
                     <div class="dropdown-content" id="dropdown-menu">
                         <a href="{{ url_for('home') }}">Home</a>
-                        <a href="{{ url_for('send_message') }}">Send Message</a>
-                        <a href="{{ url_for('show_received') }}">View Received Messages</a>
-                        <a href="{{ url_for('conversation_history') }}">View Conversation History</a>
+                        <a href="{{ url_for('send_message_page') }}">Send Message</a>
                     </div>
                 </div>
             </div>
@@ -274,150 +301,101 @@
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
 <script>
-    let currentContact = null;
-    let messages = {};
-    let contactTags = {};
-    let notes = {};
     const BUSINESS_PHONE_NUMBER_ID = "{{ business_phone_number_id }}";
+    let currentContact = null;
+    let socket = new WebSocket("wss://" + window.location.host + "/ws");
 
-    let socket = io();
-
-    socket.on('connect', function() {
-        console.log('Connected to WebSocket');
+    socket.onopen = function(e) {
+        console.log("WebSocket connection established");
         loadContacts();
-        loadContactsFromStorage();
-    });
+    };
 
-    socket.on('disconnect', function() {
-        console.log('Disconnected from WebSocket');
-    });
-
-    socket.on('connect_error', function(error) {
-        console.log('Connection error:', error);
-        // Attempt to reconnect after a delay
-        setTimeout(function() {
-            socket.connect();
-        }, 5000);
-    });
-
-    function format_phone_number(number) {
-        let digits = number.replace(/\D/g, '');
-        if (digits.startsWith('90')) {
-            return '+' + digits;
-        } else if (digits.startsWith('0')) {
-            return '+90' + digits;
-        } else {
-            return '+90' + digits;
+    socket.onmessage = function(event) {
+        console.log("WebSocket message received:", event.data);
+        const data = JSON.parse(event.data);
+        if (data.type === "new_message") {
+            updateContactList(data);
+            if (data.from === currentContact) {
+                addMessageToChat(data.text, true, data.timestamp);
+            }
+        } else if (data.type === "status_update") {
+            updateMessageStatus(data.status);
         }
-    }
+    };
+
+    socket.onerror = function(error) {
+        console.error(`WebSocket Error: ${error}`);
+    };
+
+    socket.onclose = function(event) {
+        if (event.wasClean) {
+            console.log(`WebSocket connection closed cleanly, code=${event.code}, reason=${event.reason}`);
+        } else {
+            console.error('WebSocket connection died');
+        }
+    };
 
     function loadContacts() {
+        console.log("Loading contacts...");
         $.get('/get_contacts', function(contacts) {
+            console.log("Contacts received:", contacts);
             $('#contact-list').empty();
-            contacts.forEach(function(contact) {
-                const formattedNumber = format_phone_number(contact.number);
-                $('#contact-list').append(`
-                    <div class="contact" data-number="${formattedNumber}">
-                        <div class="contact-info" onclick="selectContact('${formattedNumber}')">
-                            <div class="contact-avatar"></div>
-                            <div class="contact-details">
-                                <div class="contact-name">${formattedNumber}</div>
-                                <div class="contact-tag">${contact.tag || ''}</div>
-                            </div>
-                        </div>
-                        <button class="tag-button" onclick="openTagSidebar('${formattedNumber}')">+</button>
-                    </div>
-                `);
-            });
+            if (contacts.length === 0) {
+                $('#contact-list').append('<div>No contacts available</div>');
+            } else {
+                contacts.forEach(function(contact) {
+                    addContactToList(contact);
+                });
+            }
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error("Error loading contacts:", textStatus, errorThrown);
+            $('#contact-list').append('<div>Error loading contacts</div>');
         });
     }
 
-    function selectContact(contact) {
-        currentContact = format_phone_number(contact);
-        $('#current-contact').text(currentContact);
-        socket.emit('join', {contact: currentContact});
-        updateChat();
+    function addContactToList(contact) {
+        const contactElement = $(`
+            <div class="contact" data-number="${contact.number}">
+                <div class="contact-info" onclick="selectContact('${contact.number}')">
+                    <div class="contact-avatar"></div>
+                    <div class="contact-details">
+                        <div class="contact-name">${contact.name || contact.number}</div>
+                        <div class="contact-last-message"></div>
+                    </div>
+                </div>
+                <button class="tag-button" onclick="openTagSidebar('${contact.number}')">+</button>
+            </div>
+        `);
+        $('#contact-list').append(contactElement);
     }
 
-    socket.on('new_message', function(message) {
-        console.log("Received new message:", message);
-        const contact = message.from === BUSINESS_PHONE_NUMBER_ID ? message.to : message.from;
-        if (!messages[contact]) messages[contact] = [];
-        messages[contact].push(message);
-        if (currentContact === contact) {
-            displayMessage(message);
-        }
-        updateContactList(message);
-    });
-
-    socket.on('message_status', function(statusUpdate) {
-        console.log("Received status update:", statusUpdate);
-        updateMessageStatus(statusUpdate.id, statusUpdate.status);
-    });
+    function selectContact(contact) {
+        currentContact = contact;
+        $('#current-contact').text(contact);
+        updateChat();
+    }
 
     function updateChat() {
         if (!currentContact) return;
         $.get(`/get_messages/${currentContact}`, function(data) {
-            if (data.messages) {
-                messages[currentContact] = data.messages;
-                notes[currentContact] = data.note;
-                displayMessages();
-                $('#contactNote').val(data.note);
-            }
+            $('#chat-messages').empty();
+            data.messages.forEach(function(msg) {
+                addMessageToChat(msg.text, msg.from !== BUSINESS_PHONE_NUMBER_ID, msg.timestamp);
+            });
         });
     }
 
-    function displayMessages() {
-        if (!currentContact) return;
-        
-        // Clear existing messages
-        $('#chat-messages').empty();
-        
-        // Display tag
-        const tag = contactTags[currentContact];
-        if (tag) {
-            $('#chat-messages').append(`<div class="tag">Tag: ${tag}</div>`);
-        }
-        
-        // Display note
-        const note = notes[currentContact];
-        if (note) {
-            $('#chat-messages').append(`<div class="note">Note: ${note}</div>`);
-        }
-        
-        const contactMessages = getStoredMessages(currentContact);
-        contactMessages.forEach(function(msg) {
-            displayMessage(msg);
-        });
-        
-        $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
-    }
-
-    function displayMessage(msg) {
-        const messageClass = msg.from === BUSINESS_PHONE_NUMBER_ID ? 'message-sent' : 'message-received';
-        const statusClass = getStatusClass(msg);
+    function addMessageToChat(message, isReceived, timestamp) {
         const messageElement = $(`
-            <div class="message ${messageClass}" id="msg-${msg.id}">
-                <div class="message-content">${msg.text}</div>
-                <div class="message-time">
-                    ${new Date(msg.timestamp * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                    ${messageClass === 'message-sent' ? `<span class="message-status ${statusClass}">✓</span>` : ''}
-                </div>
+            <div class="message ${isReceived ? 'message-received' : 'message-sent'}">
+                <div class="message-content">${message}</div>
+                <div class="message-time">${new Date(timestamp).toLocaleTimeString()}</div>
+                <div class="message-status">sending</div>
             </div>
         `);
         $('#chat-messages').append(messageElement);
         $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
-    }
-
-    function getStatusClass(msg) {
-        switch(msg.status) {
-            case 'sent': return 'status-sent';
-            case 'delivered': return 'status-delivered';
-            case 'read': return 'status-read';
-            default: return 'status-sending';
-        }
     }
 
     function sendMessage() {
@@ -425,217 +403,64 @@
             alert('Please select a contact first');
             return;
         }
-        var message = $('#message-input').val();
+        const message = $('#message-input').val();
         if (message.trim() === '') return;
 
-        // Generate a temporary ID for the message
-        var tempId = 'temp_' + Date.now();
-
-        // Immediately display the message locally
-        var localMessage = {
-            id: tempId,
-            from: BUSINESS_PHONE_NUMBER_ID,
-            to: currentContact,
-            text: message,
-            timestamp: Math.floor(Date.now() / 1000),
-            type: 'message',
-            status: 'sending'
-        };
-        displayMessage(localMessage);
-        
-        // Store the message in localStorage
-        storeMessage(currentContact, localMessage);
-
-        // Clear the input field immediately
-        $('#message-input').val('');
-
-        // Send the message to the server
-        $.ajax({
-            url: '/send_message',
-            method: 'POST',
-            data: {to: currentContact, message: message},
-            timeout: 30000, // 30 seconds timeout
-            success: function(response) {
-                // Update the temporary message with the actual message ID and status
-                updateMessageId(tempId, response.id);
-                updateMessageStatus(response.id, 'sent');
-            },
-            error: function(xhr, status, error) {
-                console.error("Error sending message:", error);
-                updateMessageStatus(tempId, 'error');
+        $.post('/send_message', {to: currentContact, message: message}, function(response) {
+            if (response.success) {
+                addMessageToChat(message, false, new Date().toISOString());
+                $('#message-input').val('');
+                updateContactList({
+                    from: BUSINESS_PHONE_NUMBER_ID,
+                    to: currentContact,
+                    text: message
+                });
+            } else {
+                console.error('Failed to send message:', response.error);
             }
         });
     }
 
-    function storeMessage(contact, message) {
-        let storedMessages = JSON.parse(localStorage.getItem('storedMessages') || '{}');
-        if (!storedMessages[contact]) {
-            storedMessages[contact] = [];
-        }
-        // Check if the message already exists
-        const existingIndex = storedMessages[contact].findIndex(m => m.id === message.id);
-        if (existingIndex !== -1) {
-            // Update existing message
-            storedMessages[contact][existingIndex] = message;
+    function updateContactList(message) {
+        const contact = message.from === BUSINESS_PHONE_NUMBER_ID ? message.to : message.from;
+        let contactElement = $(`.contact[data-number="${contact}"]`);
+        if (contactElement.length) {
+            contactElement.find('.contact-last-message').text(message.text);
+            contactElement.prependTo('#contact-list');
         } else {
-            // Add new message
-            storedMessages[contact].push(message);
+            addContactToList({number: contact, name: contact});
+            contactElement = $(`.contact[data-number="${contact}"]`);
         }
-        localStorage.setItem('storedMessages', JSON.stringify(storedMessages));
+        contactElement.find('.contact-last-message').text(message.text);
     }
 
-    function getStoredMessages(contact) {
-        let storedMessages = JSON.parse(localStorage.getItem('storedMessages') || '{}');
-        return storedMessages[contact] || [];
-    }
-
-    function updateMessageId(tempId, actualId) {
-        $(`#msg-${tempId}`).attr('id', `msg-${actualId}`);
-    }
-
-    function updateMessageStatus(messageId, status) {
-        const statusElement = $(`#msg-${messageId} .message-status`);
-        statusElement.removeClass().addClass(`message-status status-${status}`);
-        
-        // Update the status icon
-        switch(status) {
-            case 'sending':
-                statusElement.text('🕒'); // Clock icon for sending
-                break;
-            case 'sent':
-                statusElement.html('&#10004;'); // Single check for sent
-                break;
-            case 'delivered':
-                statusElement.html('&#10004;&#10004;'); // Double check for delivered
-                break;
-            case 'read':
-                statusElement.html('&#10004;&#10004;'); // Double check in blue for read
-                statusElement.css('color', '#4fc3f7');
-                break;
-            case 'error':
-                statusElement.text('!'); // Exclamation mark for error
-                statusElement.css('color', 'red');
-                break;
-        }
-
-        // Update status in localStorage
-        updateStoredMessageStatus(messageId, status);
-    }
-
-    function updateStoredMessageStatus(messageId, status) {
-        let storedMessages = JSON.parse(localStorage.getItem('storedMessages') || '{}');
-        for (let contact in storedMessages) {
-            storedMessages[contact] = storedMessages[contact].map(msg => {
-                if (msg.id === messageId) {
-                    msg.status = status;
-                }
-                return msg;
-            });
-        }
-        localStorage.setItem('storedMessages', JSON.stringify(storedMessages));
-    }
-
-    let tags = JSON.parse(localStorage.getItem('tags') || '[]');
-
-    function openTagSidebar(contact) {
-        currentContact = contact;
-        $('#tagSidebar').addClass('open');
-        loadContactInfo();
-    }
-
-    function closeTagSidebar() {
-        $('#tagSidebar').removeClass('open');
-    }
-
-    function loadContactInfo() {
-        // Load tags
-        $('#tagSelect').val(contactTags[currentContact] || '');
-        displayContactTags();
-
-        // Load note
-        $('#contactNote').val(notes[currentContact] || '');
-
-        // Display messages (which now includes tags and notes)
-        displayMessages();
-    }
-
-    function displayContactTags() {
-        const tagList = $('#contactTags');
-        tagList.empty();
-        if (contactTags[currentContact]) {
-            tagList.append(`<div class="tag-item">${contactTags[currentContact]} <span class="delete-tag" onclick="deleteTag('${currentContact}')">🗑️</span></div>`);
+    function updateMessageStatus(status) {
+        console.log("Message status update:", status);
+        const messageElement = $(`[data-message-id="${status.id}"]`);
+        if (messageElement.length) {
+            const statusElement = messageElement.find('.message-status');
+            if (statusElement.length) {
+                statusElement.text(status.status);
+                statusElement.removeClass().addClass(`message-status status-${status.status}`);
+            }
         }
     }
 
-    function addTag() {
-        const tag = $('#tagSelect').val();
-        if (tag && currentContact) {
-            contactTags[currentContact] = tag;
-            localStorage.setItem('contactTags', JSON.stringify(contactTags));
-            displayContactTags();
-            $(`.contact[data-number="${currentContact}"] .contact-tag`).text(tag);
-            $.post('/add_tag', {contact: currentContact, tag: tag}, function(response) {
+    function addNewContact() {
+        const number = prompt("Enter contact number:");
+        const name = prompt("Enter contact name:");
+        if (number && name) {
+            $.post('/add_contact', { number: number, name: name }, function(response) {
                 if (response.success) {
-                    console.log('Tag added successfully');
+                    addContactToList(response.contact);
+                    alert("Contact added successfully");
                 } else {
-                    console.error('Failed to add tag');
+                    alert("Failed to add contact");
                 }
+            }).fail(function() {
+                alert("Error adding contact");
             });
         }
-    }
-
-    function deleteTag(contact) {
-        delete contactTags[contact];
-        localStorage.setItem('contactTags', JSON.stringify(contactTags));
-        displayContactTags();
-        $(`.contact[data-number="${contact}"] .contact-tag`).text('');
-        $.post('/remove_tag', {contact: contact}, function(response) {
-            if (response.success) {
-                console.log('Tag removed successfully');
-            } else {
-                console.error('Failed to remove tag');
-            }
-        });
-    }
-
-    function saveNote() {
-        const note = $('#contactNote').val();
-        notes[currentContact] = note;
-        localStorage.setItem('contactNotes', JSON.stringify(notes));
-        $.post('/save_note', {contact: currentContact, note: note}, function(response) {
-            if (response.success) {
-                console.log('Note saved successfully');
-                alert('Note saved successfully');
-            } else {
-                console.error('Failed to save note');
-                alert('Failed to save note. Please try again.');
-            }
-        });
-    }
-
-    // Event listeners
-    $('.close-sidebar').click(closeTagSidebar);
-    $('#tagSelect').change(addTag);
-    $('#saveNoteBtn').click(saveNote);
-
-    $('#addCustomTagBtn').click(function() {
-        $('#customTagInput').toggle();
-    });
-
-    $('#saveNewTagBtn').click(function() {
-        const newTag = $('#newTagInput').val().trim();
-        if (newTag) {
-            $('#tagSelect').append(`<option value="${newTag}">${newTag}</option>`);
-            $('#tagSelect').val(newTag);
-            addTag();
-            $('#newTagInput').val('');
-            $('#customTagInput').hide();
-        }
-    });
-
-    // Load contact notes from localStorage
-    if (localStorage.getItem('contactNotes')) {
-        notes = JSON.parse(localStorage.getItem('contactNotes'));
     }
 
     $('#message-input').keypress(function(e) {
@@ -644,137 +469,36 @@
         }
     });
 
-    // Dark mode toggle
-    $('#dark-mode-toggle').click(function() {
-        $('body').toggleClass('dark-mode');
-        if ($('body').hasClass('dark-mode')) {
-            $(this).text('☀️');
-            localStorage.setItem('darkMode', 'enabled');
-        } else {
-            $(this).text('🌙');
-            localStorage.setItem('darkMode', 'disabled');
-        }
-    });
+    // Initialize UI elements
+    $(document).ready(function() {
+        loadContacts();
 
-    // Search toggle
-    $('#search-toggle').click(function() {
-        $('#search-input').toggle();
-    });
-
-    // Dropdown menu
-    $('#menu-toggle').click(function() {
-        $('#dropdown-menu').toggleClass('show');
-    });
-
-    // Close the dropdown if the user clicks outside of it
-    window.onclick = function(event) {
-        if (!event.target.matches('#menu-toggle')) {
-            var dropdowns = document.getElementsByClassName("dropdown-content");
-            for (var i = 0; i < dropdowns.length; i++) {
-                var openDropdown = dropdowns[i];
-                if (openDropdown.classList.contains('show')) {
-                    openDropdown.classList.remove('show');
-                }
-            }
-        }
-        if (event.target == document.getElementById('tagModal')) {
-            document.getElementById('tagModal').style.display = "none";
-        }
-    }
-
-    // Close button for tag modal
-    $('.close').click(function() {
-        $('#tagModal').css('display', 'none');
-    });
-
-    // Search functionality
-    $('#search-input').on('input', function() {
-        var searchTerm = $(this).val().toLowerCase();
-        $('.contact').each(function() {
-            var contactName = $(this).text().toLowerCase();
-            $(this).toggle(contactName.includes(searchTerm));
+        $('#dark-mode-toggle').click(function() {
+            $('body').toggleClass('dark-mode');
         });
+
+        $('#search-toggle').click(function() {
+            $('#search-input').toggle();
+        });
+
+        $('#menu-toggle').click(function() {
+            $('#dropdown-menu').toggleClass('show');
+        });
+
+        $('#addNoteBtn').click(function() {
+            $('#noteModal').show();
+        });
+
+        $('.close').click(function() {
+            $('.modal').hide();
+        });
+
+        $('#saveNoteBtn').click(function() {
+            // Implement note saving logic here
+            $('.modal').hide();
+        });
+
+        $('#add-contact').click(addNewContact);
     });
-
-    // Load dark mode preference
-    if (localStorage.getItem('darkMode') === 'enabled') {
-        document.body.classList.add('dark-mode');
-        $('#dark-mode-toggle').text('☀️');
-    }
-
-    // Load contact tags from localStorage
-    if (localStorage.getItem('contactTags')) {
-        contactTags = JSON.parse(localStorage.getItem('contactTags'));
-    }
-
-    function updateContactList(newMessage) {
-        const contact = newMessage.from === BUSINESS_PHONE_NUMBER_ID ? newMessage.to : newMessage.from;
-        const contactElement = $(`.contact[data-number="${contact}"]`);
-        if (contactElement.length) {
-            // Move the contact to the top of the list
-            contactElement.prependTo('#contact-list');
-            // Update the last message preview
-            contactElement.find('.contact-last-message').text(newMessage.text);
-        } else {
-            // If the contact doesn't exist, add it
-            const newContactElement = $(`
-                <div class="contact" data-number="${contact}">
-                    <div class="contact-info" onclick="selectContact('${contact}')">
-                        <div class="contact-avatar"></div>
-                        <div class="contact-details">
-                            <div class="contact-name">${contact}</div>
-                            <div class="contact-last-message">${newMessage.text}</div>
-                        </div>
-                    </div>
-                    <button class="tag-button" onclick="openTagSidebar('${contact}')">+</button>
-                </div>
-            `);
-            $('#contact-list').prepend(newContactElement);
-        }
-    }
-
-    socket.on('message_update', function(update) {
-        console.log("Received message update:", update);
-        if (update.actual_id) {
-            updateMessageId(update.temp_id, update.actual_id);
-        }
-        updateMessageStatus(update.actual_id || update.temp_id, update.status);
-        
-        // Update the message in localStorage
-        updateStoredMessage(update);
-    });
-
-    function updateStoredMessage(update) {
-        let storedMessages = JSON.parse(localStorage.getItem('storedMessages') || '{}');
-        for (let contact in storedMessages) {
-            storedMessages[contact] = storedMessages[contact].map(msg => {
-                if (msg.id === update.temp_id) {
-                    msg.id = update.actual_id || msg.id;
-                    msg.status = update.status;
-                }
-                return msg;
-            });
-        }
-        localStorage.setItem('storedMessages', JSON.stringify(storedMessages));
-    }
-
-    function loadContactsFromStorage() {
-        let storedMessages = JSON.parse(localStorage.getItem('storedMessages') || '{}');
-        for (let contact in storedMessages) {
-            let lastMessage = storedMessages[contact][storedMessages[contact].length - 1];
-            updateContactList({
-                from: lastMessage.from,
-                to: lastMessage.to,
-                text: lastMessage.text
-            });
-        }
-    }
-
-    // Remove the setInterval for loadContacts
-    // $(document).ready(function() {
-    //     loadContacts();
-    //     loadContactsFromStorage();
-    //     setInterval(loadContacts, 30000);  // Remove this line
-    // });
 </script>
 {% endblock %}
