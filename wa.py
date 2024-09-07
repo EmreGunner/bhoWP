@@ -6,8 +6,9 @@ logger = logging.getLogger(__name__)
 
 from pywa import WhatsApp, filters
 from pywa.types import Message, CallbackButton, CallbackSelection, FlowCompletion, MessageStatus, TemplateStatus, ChatOpened, Button
-from fastapi import FastAPI, Request, Query, HTTPException
-from fastapi.responses import PlainTextResponse, JSONResponse
+from fastapi import FastAPI, Request, Query, HTTPException, Body
+from fastapi.responses import PlainTextResponse, JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
 # Initialize FastAPI application
 fastapi_app = FastAPI()
@@ -24,6 +25,40 @@ wa = WhatsApp(
     validate_updates=True,
     continue_handling=True
 )
+
+# Mount the static files
+fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Serve the HTML file
+@fastapi_app.get("/")
+async def serve_html():
+    return FileResponse("index.html")
+
+# New endpoint to send a message
+@fastapi_app.post("/send_message")
+async def send_message(message: dict = Body(...)):
+    try:
+        # Here you would typically send the message to a specific WhatsApp user
+        # For this example, we'll just echo it back
+        response = wa.send_message(
+            to="RECIPIENT_PHONE_NUMBER",  # Replace with actual recipient
+            text=message['message']
+        )
+        return JSONResponse(content={"success": True, "message_id": response})
+    except Exception as e:
+        logger.error(f"Error sending message: {e}")
+        return JSONResponse(content={"success": False, "error": str(e)})
+
+# New endpoint to get new messages
+@fastapi_app.get("/get_messages")
+async def get_messages():
+    # In a real application, you would fetch new messages from your database or message queue
+    # For this example, we'll return a dummy message
+    return JSONResponse(content={
+        "messages": [
+            {"text": "This is a dummy received message"}
+        ]
+    })
 
 # Webhook verification endpoint
 @fastapi_app.get("/webhook/verify")
@@ -83,10 +118,14 @@ def handle_flow_completion(client: WhatsApp, completion: FlowCompletion):
 @wa.on_message_status()
 def handle_message_status(client: WhatsApp, status: MessageStatus):
     try:
-        # Use 'id' instead of 'message_id', and handle the case where it might not exist
         message_id = getattr(status, 'id', None) or getattr(status, 'message_id', 'Unknown')
         logger.info(f"Message status update: {status.status} for message {message_id}")
         logger.info(f"Full status object: {status}")
+        
+        if hasattr(status, 'conversation') and status.conversation:
+            logger.info(f"Conversation: {status.conversation}")
+        if hasattr(status, 'pricing_model') and status.pricing_model:
+            logger.info(f"Pricing model: {status.pricing_model}")
     except Exception as e:
         logger.error(f"Error in handle_message_status: {e}", exc_info=True)
         
@@ -124,9 +163,37 @@ def handle_raw_update(client: WhatsApp, update: dict):
         # Handle status updates
         elif 'statuses' in update['entry'][0]['changes'][0]['value']:
             status = update['entry'][0]['changes'][0]['value']['statuses'][0]
-            handle_message_status(client, MessageStatus(**status))
+            recipient_id = status.pop('recipient_id', None)
+            if recipient_id:
+                logger.info(f"Status update for recipient: {recipient_id}")
+            
+            # Remove 'conversation' and 'pricing' from status dict if present
+            conversation = status.pop('conversation', None)
+            pricing = status.pop('pricing', None)
+            
+            # Prepare the status object with required arguments
+            status_obj = MessageStatus(
+                _client=client,
+                raw=status,
+                tracker=None,
+                conversation=conversation,
+                pricing_model=pricing.get('pricing_model') if pricing else None,
+                error=None,
+                **status
+            )
+            
+            # Log detailed information about the status update
+            logger.info(f"Processed status update: {status_obj}")
+            if conversation:
+                logger.info(f"Conversation details: {conversation}")
+            if pricing:
+                logger.info(f"Pricing details: {pricing}")
+            
+            handle_message_status(client, status_obj)
     except Exception as e:
         logger.error(f"Error in handle_raw_update: {e}", exc_info=True)
+        # Add more detailed error logging
+        logger.error(f"Update that caused the error: {update}")
 
 def echo_message(client: WhatsApp, from_id: str, text: str):
     logger.info(f"Echoing message: {text} to {from_id}")
