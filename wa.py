@@ -10,7 +10,7 @@ import datetime
 import asyncio
 import json
 from pywa.errors import (
-    BaseError, APIError, HTTPError, NetworkError, ValidationError, 
+    APIError, HTTPError, NetworkError, ValidationError, 
     AuthenticationError, PermissionError, RateLimitError, NotFoundError, 
     ConflictError, ServerError, TimeoutError, BadRequestError
 )
@@ -151,9 +151,6 @@ async def send_message(to: str = Form(...), message: str = Form(...)):
     except TimeoutError as e:
         logger.error(f"Timeout error: {e}")
         return JSONResponse(content={"success": False, "error": "Request timed out"}, status_code=504)
-    except BaseError as e:
-        logger.error(f"WhatsApp API error: {e}")
-        return JSONResponse(content={"success": False, "error": str(e)}, status_code=500)
     except Exception as e:
         logger.error(f"Unexpected error in send_message: {e}", exc_info=True)
         return JSONResponse(content={"success": False, "error": "An unexpected error occurred"}, status_code=500)
@@ -338,9 +335,6 @@ async def send_message(to: str = Form(...), message: str = Form(...)):
     except TimeoutError as e:
         logger.error(f"Timeout error: {e}")
         return JSONResponse(content={"success": False, "error": "Request timed out"}, status_code=504)
-    except BaseError as e:
-        logger.error(f"WhatsApp API error: {e}")
-        return JSONResponse(content={"success": False, "error": str(e)}, status_code=500)
     except Exception as e:
         logger.error(f"Unexpected error in send_message: {e}", exc_info=True)
         return JSONResponse(content={"success": False, "error": "An unexpected error occurred"}, status_code=500)
@@ -422,8 +416,6 @@ def send_welcome_message(client: WhatsApp, from_id: str, text: str):
         logger.error(f"Server error in send_welcome_message: {e}")
     except TimeoutError as e:
         logger.error(f"Timeout error in send_welcome_message: {e}")
-    except BaseError as e:
-        logger.error(f"WhatsApp API error in send_welcome_message: {e}")
     except Exception as e:
         logger.error(f"Unexpected error in send_welcome_message: {e}", exc_info=True)
 
