@@ -1,9 +1,9 @@
 body, html {
     margin: 0;
     padding: 0;
-    font-family: Segoe UI, Helvetica Neue, Helvetica, Lucida Grande, Arial, Ubuntu, Cantarell, Fira Sans, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     height: 100%;
-    background-color: #d7dbd6;
+    background-color: #f0f2f5;
 }
 
 .container {
@@ -11,18 +11,31 @@ body, html {
     height: 100vh;
     max-width: 1600px;
     margin: 0 auto;
-    box-shadow: 0 1px 1px 0 rgba(0,0,0,.06), 0 2px 5px 0 rgba(0,0,0,.2);
+    background-color: #fff;
 }
 
 .sidebar {
     width: 30%;
-    background-color: #ffffff;
-    border-right: 1px solid #dadada;
+    min-width: 300px;
+    background-color: #fff;
+    border-right: 1px solid #e9edef;
     display: flex;
     flex-direction: column;
 }
 
-.sidebar-header {
+.main-chat {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #efeae2;
+    transition: margin-right 0.3s ease-in-out;
+}
+
+.main-chat.sidebar-open {
+    margin-right: 30%;
+}
+
+.sidebar-header, .chat-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -31,7 +44,7 @@ body, html {
     height: 59px;
 }
 
-.user-avatar {
+.user-avatar, .contact-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -40,13 +53,12 @@ body, html {
 
 .header-icons {
     display: flex;
-    gap: 10px;
+    gap: 24px;
     color: #54656f;
 }
 
 .search-container {
     padding: 7px 10px;
-    background-color: #ffffff;
 }
 
 .search-box {
@@ -82,16 +94,9 @@ body, html {
     background-color: #f5f5f5;
 }
 
-.contact-avatar {
-    width: 49px;
-    height: 49px;
-    border-radius: 50%;
-    background-color: #dfe5e7;
-    margin-right: 15px;
-}
-
-.contact-details {
+.contact-info {
     flex-grow: 1;
+    margin-left: 15px;
 }
 
 .contact-name {
@@ -104,37 +109,28 @@ body, html {
     color: #667781;
 }
 
-.main-chat {
-    flex-grow: 1;
+.contact-tags {
     display: flex;
-    flex-direction: column;
-    background-color: #efeae2;
+    flex-wrap: wrap;
+    margin-top: 5px;
 }
 
-.chat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 16px;
-    background-color: #f0f2f5;
-    height: 59px;
-}
-
-.chat-contact-info {
-    display: flex;
-    align-items: center;
-}
-
-.chat-header-icons {
-    display: flex;
-    gap: 10px;
-    color: #54656f;
+.contact-tag {
+    background-color: #e1f3fb;
+    color: #06a884;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 5px;
+    margin-bottom: 5px;
 }
 
 #chat-messages {
     flex-grow: 1;
     overflow-y: auto;
     padding: 20px;
+    background-image: url('https://web.whatsapp.com/img/bg-chat-tile-dark_a4be512e7195b6b733d9110b408f075d.png');
+    background-repeat: repeat;
 }
 
 .chat-input-container {
@@ -168,7 +164,7 @@ body, html {
 }
 
 .message-received {
-    background-color: #ffffff;
+    background-color: #fff;
     align-self: flex-start;
 }
 
@@ -197,95 +193,117 @@ body, html {
     margin-left: 4px;
 }
 
-/* Dark mode styles */
-body.dark-mode {
-    background-color: #0c1317;
+.contact-sidebar {
+    position: fixed;
+    right: -30%;
+    top: 0;
+    width: 30%;
+    height: 100%;
+    background-color: #fff;
+    transition: right 0.3s ease-in-out;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.26);
+    z-index: 1000;
+    overflow-y: auto;
 }
 
-body.dark-mode .sidebar,
-body.dark-mode .main-chat {
-    background-color: #111b21;
+.contact-sidebar.open {
+    right: 0;
 }
 
-body.dark-mode .sidebar-header,
-body.dark-mode .chat-header,
-body.dark-mode .chat-input-container {
-    background-color: #202c33;
+.sidebar-content {
+    padding: 20px;
 }
 
-body.dark-mode .search-box,
-body.dark-mode #message-input {
-    background-color: #2a3942;
+.tags-section, .notes-section {
+    margin-bottom: 30px;
 }
 
-body.dark-mode .contact:hover {
-    background-color: #2a3942;
-}
-
-body.dark-mode .contact-name {
-    color: #e9edef;
-}
-
-body.dark-mode .contact-last-message,
-body.dark-mode .material-icons {
-#addCustomTagBtn, #saveNewTagBtn, #saveNoteBtn {
-    background-color: #00a884;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 8px;
-}
-
-.tag-item {
+.tag-input-container {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #e9edef;
-    padding: 5px 10px;
-    border-radius: 8px;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
 }
 
-body.dark-mode .tag-item {
-    background-color: #3b4a54;
+#tagInput {
+    flex-grow: 1;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px;
+    margin-right: 10px;
+}
+
+#tagList {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.tag {
+    background-color: #e1f3fb;
+    color: #06a884;
+    padding: 5px 10px;
+    border-radius: 15px;
+    margin: 5px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
 }
 
 .delete-tag {
     cursor: pointer;
-    color: #ff0000;
+    margin-left: 5px;
+    color: #06a884;
 }
 
-/* Update these existing styles */
-
-.contact {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid #f0f2f5;
-    cursor: pointer;
+#noteInput {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 10px;
+    resize: vertical;
 }
 
-.contact-info {
-    display: flex;
-    align-items: center;
-    flex-grow: 1;
-}
-
-.contact-details {
-    margin-left: 15px;
-}
-
-.tag-button {
-    background-color: #00a884;
+.button {
+    background-color: #06a884;
     color: white;
     border: none;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    font-size: 18px;
-    line-height: 24px;
-    text-align: center;
+    padding: 8px 12px;
+    border-radius: 4px;
     cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.button:hover {
+    background-color: #05876a;
+}
+
+.note {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .main-chat {
+        width: 100%;
+    }
+
+    .contact-sidebar {
+        width: 100%;
+        right: -100%;
+    }
+
+    .main-chat.sidebar-open {
+        margin-right: 0;
+    }
 }

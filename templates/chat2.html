@@ -229,17 +229,7 @@
     <div class="main-chat">
         <div class="chat-header">
             <div id="current-contact">Select a contact</div>
-            <div class="tag-dropdown">
-                <select id="tagSelect">
-                    <option value="">Select Tag</option>
-                    <option value="İlk_mesaj">İlk mesaj</option>
-                    <option value="cevaplandı">Cevaplandı</option>
-                    <option value="photoshop bekliyor">Photoshop bekliyor</option>
-                    <option value="teslim bekliyor">Teslim bekliyor</option>
-                    <option value="teslim edildi">Teslim edildi</option>
-                </select>
-            </div>
-            <button id="addNoteBtn">Add Note</button>
+            <button id="open-sidebar-btn" class="button">Contact Info</button>
         </div>
         <div id="chat-messages"></div>
         <div class="chat-input">
@@ -249,53 +239,32 @@
             <button class="send-button" onclick="sendMessage()">➤</button>
         </div>
     </div>
-</div>
-
-<div id="tagModal" class="tag-modal">
-    <div class="tag-modal-content">
-        <span class="close">&times;</span>
-        <h2>Add Tag</h2>
-        <input type="text" id="tagInput" placeholder="Enter tag">
-        <button id="addTagButton" onclick="addTag()">Add</button>
-    </div>
-</div>
-
-<div class="tag-sidebar" id="tagSidebar">
-    <div class="tag-sidebar-header">
-        <h3>Contact Info</h3>
-        <span class="close-sidebar">&times;</span>
-    </div>
-    <div class="tag-sidebar-content">
-        <div class="contact-info-section">
-            <h4>Tags</h4>
-            <select id="tagSelect">
-                <option value="">Select Tag</option>
-                <option value="İlk_mesaj">İlk mesaj</option>
-                <option value="cevaplandı">Cevaplandı</option>
-                <option value="photoshop bekliyor">Photoshop bekliyor</option>
-                <option value="teslim bekliyor">Teslim bekliyor</option>
-                <option value="teslim edildi">Teslim edildi</option>
-            </select>
-            <button id="addCustomTagBtn">Add Custom Tag</button>
-            <div id="customTagInput" style="display: none;">
-                <input type="text" id="newTagInput" placeholder="Enter new tag">
-                <button id="saveNewTagBtn">Save</button>
+    <div class="contact-sidebar">
+        <div class="sidebar-header">
+            <h3>Contact Info</h3>
+            <button id="close-sidebar-btn" class="button">✕</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="tags-section">
+                <h4>Tags</h4>
+                <select id="tagSelect">
+                    <option value="">Select Tag</option>
+                    <option value="İlk_mesaj">İlk mesaj</option>
+                    <option value="cevaplandı">Cevaplandı</option>
+                    <option value="photoshop bekliyor">Photoshop bekliyor</option>
+                    <option value="teslim bekliyor">Teslim bekliyor</option>
+                    <option value="teslim edildi">Teslim edildi</option>
+                </select>
+                <button id="addTagBtn" class="button">Add Tag</button>
+                <div id="tagList"></div>
             </div>
-            <div id="contactTags"></div>
+            <div class="notes-section">
+                <h4>Notes</h4>
+                <textarea id="noteInput" rows="4" placeholder="Add a note"></textarea>
+                <button id="saveNoteBtn" class="button">Save Note</button>
+                <div id="noteList"></div>
+            </div>
         </div>
-        <div class="contact-info-section">
-            <h4>Notes</h4>
-            <textarea id="contactNote" rows="4" placeholder="Add a note"></textarea>
-            <button id="saveNoteBtn">Save Note</button>
-        </div>
-    </div>
-</div>
-
-<div id="noteModal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <textarea id="noteText" rows="4" cols="50"></textarea>
-        <button id="saveNoteBtn">Save Note</button>
     </div>
 </div>
 
@@ -399,6 +368,7 @@
         $('#current-contact').text(contact);
         loadConversationFromLocalStorage(contact);
         updateChat();
+        loadContactInfo(contact);
     }
 
     function loadConversationFromLocalStorage(contact) {
@@ -578,6 +548,45 @@
         }
     }
 
+    function loadContactInfo(contact) {
+        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { tags: [], notes: [] };
+        
+        // Load tags
+        $('#tagList').empty();
+        contactInfo.tags.forEach(tag => {
+            $('#tagList').append(`<div class="tag">${tag} <span class="delete-tag" onclick="deleteTag('${contact}', '${tag}')">✕</span></div>`);
+        });
+
+        // Load notes
+        $('#noteList').empty();
+        contactInfo.notes.forEach(note => {
+            $('#noteList').append(`<div class="note">${note}</div>`);
+        });
+    }
+
+    function addTag(contact, tag) {
+        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { tags: [], notes: [] };
+        if (!contactInfo.tags.includes(tag)) {
+            contactInfo.tags.push(tag);
+            localStorage.setItem(`contactInfo_${contact}`, JSON.stringify(contactInfo));
+            loadContactInfo(contact);
+        }
+    }
+
+    function deleteTag(contact, tag) {
+        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { tags: [], notes: [] };
+        contactInfo.tags = contactInfo.tags.filter(t => t !== tag);
+        localStorage.setItem(`contactInfo_${contact}`, JSON.stringify(contactInfo));
+        loadContactInfo(contact);
+    }
+
+    function addNote(contact, note) {
+        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { tags: [], notes: [] };
+        contactInfo.notes.push(note);
+        localStorage.setItem(`contactInfo_${contact}`, JSON.stringify(contactInfo));
+        loadContactInfo(contact);
+    }
+
     $('#message-input').keypress(function(e) {
         if(e.which == 13) {
             sendMessage();
@@ -601,24 +610,34 @@
             $('#dropdown-menu').toggleClass('show');
         });
 
-        $('#addNoteBtn').click(function() {
-            $('#noteModal').show();
-        });
-
-        $('.close').click(function() {
-            $('.modal').hide();
-        });
-
-        $('#saveNoteBtn').click(function() {
-            // Implement note saving logic here
-            $('.modal').hide();
-        });
-
         $('#add-contact').click(addNewContact);
 
         $('#image-upload').change(function() {
             if (this.files && this.files[0]) {
                 sendMessage();
+            }
+        });
+
+        $('#open-sidebar-btn').click(function() {
+            $('.contact-sidebar').addClass('open');
+        });
+
+        $('#close-sidebar-btn').click(function() {
+            $('.contact-sidebar').removeClass('open');
+        });
+
+        $('#addTagBtn').click(function() {
+            const tag = $('#tagSelect').val();
+            if (tag && currentContact) {
+                addTag(currentContact, tag);
+            }
+        });
+
+        $('#saveNoteBtn').click(function() {
+            const note = $('#noteInput').val().trim();
+            if (note && currentContact) {
+                addNote(currentContact, note);
+                $('#noteInput').val('');
             }
         });
     });
