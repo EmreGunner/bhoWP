@@ -199,105 +199,39 @@ body, html {
     top: 0;
     width: 30%;
     height: 100%;
-    background-color: #fff;
-    transition: right 0.3s ease-in-out;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.26);
+    background-color: #ffffff;
+    transition: right 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    box-shadow: none;
     z-index: 1000;
     overflow-y: auto;
 }
 
 .contact-sidebar.open {
     right: 0;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
 }
 
+.main-chat {
+    transition: margin-right 0.3s ease-in-out;
+}
+
+.main-chat.sidebar-open {
+    margin-right: 30%;
+}
+
+/* Add a subtle animation for the sidebar content */
 .sidebar-content {
-    padding: 20px;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
 
-.tags-section, .notes-section {
-    margin-bottom: 30px;
-}
-
-.tag-input-container {
-    display: flex;
-    margin-bottom: 10px;
-}
-
-#tagInput {
-    flex-grow: 1;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 8px;
-    margin-right: 10px;
-}
-
-#tagList {
-    display: flex;
-    flex-wrap: wrap;
-}
-
-.tag {
-    background-color: #e1f3fb;
-    color: #06a884;
-    padding: 5px 10px;
-    border-radius: 15px;
-    margin: 5px;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-}
-
-.delete-tag {
-    cursor: pointer;
-    margin-left: 5px;
-    color: #06a884;
-}
-
-#noteInput {
-    width: 100%;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 8px;
-    margin-bottom: 10px;
-    resize: vertical;
-}
-
-.button {
-    background-color: #06a884;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.button:hover {
-    background-color: #05876a;
-}
-
-.note {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 10px;
-    margin-bottom: 10px;
+.contact-sidebar.open .sidebar-content {
+    opacity: 1;
+    transform: translateX(0);
 }
 
 @media (max-width: 768px) {
-    .container {
-        flex-direction: column;
-    }
-
-    .sidebar {
-        width: 100%;
-        min-width: unset;
-    }
-
-    .main-chat {
-        width: 100%;
-    }
-
     .contact-sidebar {
         width: 100%;
         right: -100%;
@@ -306,4 +240,13 @@ body, html {
     .main-chat.sidebar-open {
         margin-right: 0;
     }
+}
+
+/* Dark mode styles */
+body.dark-mode #toggle-sidebar-btn {
+    color: #00a884;
+}
+
+body.dark-mode #toggle-sidebar-btn:hover {
+    background-color: rgba(0, 168, 132, 0.2);
 }

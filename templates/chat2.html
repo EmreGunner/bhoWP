@@ -226,10 +226,10 @@
         </div>
         <div id="contact-list"></div>
     </div>
-    <div class="main-chat">
+    <div class="main-chat" id="main-chat">
         <div class="chat-header">
             <div id="current-contact">Select a contact</div>
-            <button id="open-sidebar-btn" class="button">Contact Info</button>
+            <button id="toggle-sidebar-btn" class="button">Contact Info</button>
         </div>
         <div id="chat-messages"></div>
         <div class="chat-input">
@@ -239,24 +239,24 @@
             <button class="send-button" onclick="sendMessage()">➤</button>
         </div>
     </div>
-    <div class="contact-sidebar">
+    <div class="contact-sidebar" id="contact-sidebar">
         <div class="sidebar-header">
             <h3>Contact Info</h3>
             <button id="close-sidebar-btn" class="button">✕</button>
         </div>
         <div class="sidebar-content">
-            <div class="tags-section">
-                <h4>Tags</h4>
-                <select id="tagSelect">
-                    <option value="">Select Tag</option>
+            <div class="status-section">
+                <h4>Status</h4>
+                <select id="statusSelect">
+                    <option value="">Select Status</option>
                     <option value="İlk_mesaj">İlk mesaj</option>
                     <option value="cevaplandı">Cevaplandı</option>
                     <option value="photoshop bekliyor">Photoshop bekliyor</option>
                     <option value="teslim bekliyor">Teslim bekliyor</option>
                     <option value="teslim edildi">Teslim edildi</option>
                 </select>
-                <button id="addTagBtn" class="button">Add Tag</button>
-                <div id="tagList"></div>
+                <button id="updateStatusBtn" class="button">Update Status</button>
+                <div id="currentStatus"></div>
             </div>
             <div class="notes-section">
                 <h4>Notes</h4>
@@ -355,12 +355,14 @@
                     <div class="contact-details">
                         <div class="contact-name">${contact.name || contact.number}</div>
                         <div class="contact-last-message"></div>
+                        <div class="contact-status"></div>
                     </div>
                 </div>
-                <button class="tag-button" onclick="openTagSidebar('${contact.number}')">+</button>
+                <button class="details-button" onclick="toggleSidebar('${contact.number}')">Details</button>
             </div>
         `);
         $('#contact-list').append(contactElement);
+        updateContactStatus(contact.number);
     }
 
     function selectContact(contact) {
@@ -548,43 +550,64 @@
         }
     }
 
-    function loadContactInfo(contact) {
-        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { tags: [], notes: [] };
-        
-        // Load tags
-        $('#tagList').empty();
-        contactInfo.tags.forEach(tag => {
-            $('#tagList').append(`<div class="tag">${tag} <span class="delete-tag" onclick="deleteTag('${contact}', '${tag}')">✕</span></div>`);
-        });
-
-        // Load notes
-        $('#noteList').empty();
-        contactInfo.notes.forEach(note => {
-            $('#noteList').append(`<div class="note">${note}</div>`);
-        });
-    }
-
-    function addTag(contact, tag) {
-        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { tags: [], notes: [] };
-        if (!contactInfo.tags.includes(tag)) {
-            contactInfo.tags.push(tag);
-            localStorage.setItem(`contactInfo_${contact}`, JSON.stringify(contactInfo));
-            loadContactInfo(contact);
+    function toggleSidebar() {
+        const sidebar = document.getElementById('contact-sidebar');
+        const mainChat = document.getElementById('main-chat');
+        sidebar.classList.toggle('open');
+        mainChat.classList.toggle('sidebar-open');
+        if (sidebar.classList.contains('open')) {
+            loadContactInfo(currentContact);
         }
     }
 
-    function deleteTag(contact, tag) {
-        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { tags: [], notes: [] };
-        contactInfo.tags = contactInfo.tags.filter(t => t !== tag);
+    function loadContactInfo(contact) {
+        currentContact = contact;
+        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { status: '', notes: [] };
+        
+        // Load status
+        $('#currentStatus').text(contactInfo.status || 'No status set');
+        $('#statusSelect').val(contactInfo.status);
+
+        // Load notes
+        $('#noteList').empty();
+        contactInfo.notes.forEach((note, index) => {
+            $('#noteList').append(`
+                <div class="note">
+                    ${note}
+                    <span class="delete-note" onclick="deleteNote('${contact}', ${index})">✕</span>
+                </div>
+            `);
+        });
+
+        updateContactStatus(contact);
+    }
+
+    function updateStatus(contact, status) {
+        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { status: '', notes: [] };
+        contactInfo.status = status;
         localStorage.setItem(`contactInfo_${contact}`, JSON.stringify(contactInfo));
         loadContactInfo(contact);
     }
 
     function addNote(contact, note) {
-        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { tags: [], notes: [] };
+        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { status: '', notes: [] };
         contactInfo.notes.push(note);
         localStorage.setItem(`contactInfo_${contact}`, JSON.stringify(contactInfo));
         loadContactInfo(contact);
+    }
+
+    function deleteNote(contact, index) {
+        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { status: '', notes: [] };
+        contactInfo.notes.splice(index, 1);
+        localStorage.setItem(`contactInfo_${contact}`, JSON.stringify(contactInfo));
+        loadContactInfo(contact);
+    }
+
+    function updateContactStatus(contact) {
+        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { status: '', notes: [] };
+        const contactElement = $(`.contact[data-number="${contact}"]`);
+        const statusElement = contactElement.find('.contact-status');
+        statusElement.text(contactInfo.status || '');
     }
 
     $('#message-input').keypress(function(e) {
@@ -618,18 +641,12 @@
             }
         });
 
-        $('#open-sidebar-btn').click(function() {
-            $('.contact-sidebar').addClass('open');
-        });
+        $('#close-sidebar-btn').click(toggleSidebar);
 
-        $('#close-sidebar-btn').click(function() {
-            $('.contact-sidebar').removeClass('open');
-        });
-
-        $('#addTagBtn').click(function() {
-            const tag = $('#tagSelect').val();
-            if (tag && currentContact) {
-                addTag(currentContact, tag);
+        $('#updateStatusBtn').click(function() {
+            const status = $('#statusSelect').val();
+            if (currentContact) {
+                updateStatus(currentContact, status);
             }
         });
 
@@ -640,6 +657,8 @@
                 $('#noteInput').val('');
             }
         });
+
+        $('#toggle-sidebar-btn').click(toggleSidebar);
     });
 
     // Add an event listener for when the page is about to unload
