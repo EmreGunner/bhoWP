@@ -200,15 +200,14 @@ body, html {
     width: 30%;
     height: 100%;
     background-color: #ffffff;
-    transition: right 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-    box-shadow: none;
+    transition: right 0.3s ease-in-out;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
     z-index: 1000;
     overflow-y: auto;
 }
 
 .contact-sidebar.open {
     right: 0;
-    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
 }
 
 .main-chat {

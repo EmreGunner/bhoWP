@@ -202,6 +202,31 @@
     .button:hover {
         background-color: #128C7E;
     }
+
+    .contact-sidebar {
+        position: fixed;
+        right: -30%;
+        top: 0;
+        width: 30%;
+        height: 100%;
+        background-color: #ffffff;
+        transition: right 0.3s ease-in-out;
+        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        overflow-y: auto;
+    }
+
+    .contact-sidebar.open {
+        right: 0;
+    }
+
+    .main-chat {
+        transition: margin-right 0.3s ease-in-out;
+    }
+
+    .main-chat.sidebar-open {
+        margin-right: 30%;
+    }
 </style>
 
 <div class="container">
@@ -242,7 +267,6 @@
     <div class="contact-sidebar" id="contact-sidebar">
         <div class="sidebar-header">
             <h3>Contact Info</h3>
-            <button id="close-sidebar-btn" class="button">✕</button>
         </div>
         <div class="sidebar-content">
             <div class="status-section">
@@ -553,10 +577,16 @@
     function toggleSidebar() {
         const sidebar = document.getElementById('contact-sidebar');
         const mainChat = document.getElementById('main-chat');
+        const toggleBtn = document.getElementById('toggle-sidebar-btn');
+        
         sidebar.classList.toggle('open');
         mainChat.classList.toggle('sidebar-open');
+        
         if (sidebar.classList.contains('open')) {
+            toggleBtn.textContent = 'Close Info';
             loadContactInfo(currentContact);
+        } else {
+            toggleBtn.textContent = 'Contact Info';
         }
     }
 
@@ -641,7 +671,7 @@
             }
         });
 
-        $('#close-sidebar-btn').click(toggleSidebar);
+        $('#toggle-sidebar-btn').click(toggleSidebar);
 
         $('#updateStatusBtn').click(function() {
             const status = $('#statusSelect').val();
@@ -657,8 +687,6 @@
                 $('#noteInput').val('');
             }
         });
-
-        $('#toggle-sidebar-btn').click(toggleSidebar);
     });
 
     // Add an event listener for when the page is about to unload
