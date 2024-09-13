@@ -1,6 +1,5 @@
 {% extends "base.html" %}
-
-{% block title %}WhatsApp Web Clone{% endblock %}
+{% block title %}Bir hediyen olsun {% endblock %}
 
 {% block content %}
 <style>
@@ -226,6 +225,99 @@
 
     .main-chat.sidebar-open {
         margin-right: 30%;
+    }
+
+    /* Add or update these specific styles */
+
+    .container {
+        display: flex;
+        height: 100vh;
+        max-width: 1600px;
+        margin: 0 auto;
+        background-color: #fff;
+        overflow: hidden; /* Prevent scrolling on the main container */
+    }
+
+    .main-chat {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+    }
+
+    .chat-input {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background-color: #f0f2f5;
+        border-top: 1px solid #e9edef;
+    }
+
+    #message-input {
+        flex: 1;
+        border: none;
+        border-radius: 8px;
+        padding: 9px 12px;
+        margin: 0 8px;
+        outline: none;
+    }
+
+    .send-button {
+        margin-left: 8px;
+        padding: 8px;
+        background-color: #00a884;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+        .container {
+            flex-direction: column;
+        }
+
+        .sidebar {
+            width: 100%;
+            height: 30vh;
+        }
+
+        .main-chat {
+            height: 70vh;
+        }
+
+        .contact-sidebar {
+            width: 100%;
+            right: -100%;
+        }
+
+        .main-chat.sidebar-open {
+            margin-right: 0;
+        }
+    }
+
+    /* Adjust the chat input for better mobile experience */
+    @media (max-width: 480px) {
+        .chat-input {
+            padding: 5px;
+        }
+
+        #message-input {
+            margin: 0 5px;
+        }
+
+        .send-button {
+            padding: 6px;
+        }
     }
 </style>
 
