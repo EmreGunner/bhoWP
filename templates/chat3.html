@@ -1,0 +1,993 @@
+{% extends "base.html" %}
+{% block title %}WhatsApp Web Clone{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/chat.css') }}">
+<div class="app-wrapper">
+    <div class="two">
+        <div class="pane-side">
+            <header class="pane-header">
+                <div class="avatar"></div>
+                <div class="header-buttons">
+                    <button class="icon-button" id="status-button">
+                        <span data-icon="status-v3" class="">
+                            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24" xml:space="preserve"><path fill="currentColor" d="M12,20.664c-2.447,0.006-4.795-0.966-6.521-2.702c-0.381-0.381-0.381-1,0-1.381 c0.381-0.381,1-0.381,1.381,0c2.872,2.882,7.408,2.882,10.28,0c0.381-0.381,1-0.381,1.381,0s0.381,1,0,1.381 C16.795,19.698,14.447,20.67,12,20.664z M12,3.336c2.447-0.006,4.795,0.966,6.521,2.702c0.381,0.381,0.381,1,0,1.381 s-1,0.381-1.381,0c-2.872-2.882-7.408-2.882-10.28,0C6.479,7.8,5.86,7.8,5.479,7.419s-0.381-1,0-1.381 C7.205,4.302,9.553,3.33,12,3.336z M12,7.331c1.898-0.008,3.683,0.737,5.032,2.088c0.381,0.381,0.381,1,0,1.381 c-0.381,0.381-1,0.381-1.381,0c-1.977-1.98-5.324-1.98-7.301,0c-0.381,0.381-1,0.381-1.381,0c-0.381-0.381-0.381-1,0-1.381 C8.317,8.068,10.102,7.323,12,7.331z"></path></svg>
+                        </span>
+                    </button>
+                    <button class="icon-button" id="new-chat-button">
+                        <span data-icon="chat" class="">
+                            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24" xml:space="preserve"><path fill="currentColor" d="M19.005,3.175H4.674C3.642,3.175,3,3.789,3,4.821V21.02 l3.544-3.514h12.461c1.033,0,2.064-1.06,2.064-2.093V4.821C21.068,3.789,20.037,3.175,19.005,3.175z M14.016,13.044H7.041V11.1 h6.975V13.044z M17.016,9.044H7.041V7.1h9.975V9.044z"></path></svg>
+                        </span>
+                    </button>
+                    <button class="icon-button" id="menu-button">
+                        <span data-icon="menu" class="">
+                            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24" xml:space="preserve"><path fill="currentColor" d="M12,7c1.104,0,2-0.896,2-2c0-1.105-0.895-2-2-2c-1.104,0-2,0.894-2,2 C10,6.105,10.895,7,12,7z M12,9c-1.104,0-2,0.894-2,2c0,1.104,0.895,2,2,2c1.104,0,2-0.896,2-2C13.999,9.895,13.104,9,12,9z M12,15 c-1.104,0-2,0.894-2,2c0,1.104,0.895,2,2,2c1.104,0,2-0.896,2-2C13.999,15.895,13.104,15,12,15z"></path></svg>
+                        </span>
+                    </button>
+                </div>
+            </header>
+            <div class="search-container">
+                <div class="search-input-container">
+                    <span data-icon="search" class="">
+                        <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24" xml:space="preserve"><path fill="currentColor" d="M15.009,13.805h-0.636l-0.22-0.219c0.781-0.911,1.256-2.092,1.256-3.386 c0-2.876-2.332-5.207-5.207-5.207c-2.876,0-5.208,2.331-5.208,5.207s2.331,5.208,5.208,5.208c1.293,0,2.474-0.474,3.385-1.255 l0.221,0.22v0.635l4.004,3.999l1.194-1.195L15.009,13.805z M10.201,13.805c-1.991,0-3.605-1.614-3.605-3.605 s1.614-3.605,3.605-3.605s3.605,1.614,3.605,3.605S12.192,13.805,10.201,13.805z"></path></svg>
+                    </span>
+                    <input type="text" id="search-input" placeholder="Search or start new chat" />
+                </div>
+            </div>
+            <div id="contact-list" class="chat-list"></div>
+        </div>
+        <div class="pane-chat">
+            <header class="pane-chat-header">
+                <div class="chat-info">
+                    <div class="chat-avatar"></div>
+                    <div class="chat-name" id="current-contact">Select a contact</div>
+                </div>
+                <div class="chat-actions">
+                    <button class="icon-button" id="search-chat-button">
+                        <span data-icon="search" class="">
+                            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24" xml:space="preserve"><path fill="currentColor" d="M15.9,14.3H15L14.7,14c1-1.1,1.6-2.7,1.6-4.3c0-3.7-3-6.7-6.7-6.7S3,6,3,9.7 s3,6.7,6.7,6.7c1.6,0,3.2-0.6,4.3-1.6l0.3,0.3v0.8l5.1,5.1l1.5-1.5L15.9,14.3z M9.7,14.3c-2.6,0-4.6-2.1-4.6-4.6s2.1-4.6,4.6-4.6 s4.6,2.1,4.6,4.6S12.3,14.3,9.7,14.3z"></path></svg>
+                        </span>
+                    </button>
+                    <button class="icon-button" id="menu-chat-button">
+                        <span data-icon="menu" class="">
+                            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24" xml:space="preserve"><path fill="currentColor" d="M12,7c1.104,0,2-0.896,2-2c0-1.105-0.895-2-2-2c-1.104,0-2,0.894-2,2 C10,6.105,10.895,7,12,7z M12,9c-1.104,0-2,0.894-2,2c0,1.104,0.895,2,2,2c1.104,0,2-0.896,2-2C13.999,9.895,13.104,9,12,9z M12,15 c-1.104,0-2,0.894-2,2c0,1.104,0.895,2,2,2c1.104,0,2-0.896,2-2C13.999,15.894,13.104,15,12,15z"></path></svg>
+                        </span>
+                    </button>
+                </div>
+            </header>
+            <div id="chat-messages" class="conversation-panel-messages"></div>
+            <footer class="chat-footer">
+                <div class="chat-input-container">
+                    <button class="icon-button" id="emoji-button">
+                        <span data-icon="smiley" class="">
+                            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24" xml:space="preserve"><path fill="currentColor" d="M12,17c-1.99,0-3.5-1.5-3.5-3.5S10.01,10,12,10S15.5,11.5,15.5,13.5S13.99,17,12,17z M12,13 c-1.104,0-2,0.896-2,2c0,1.104,0.896,2,2,2c1.104,0,2-0.896,2-2C13.999,13.896,13.104,13,12,13z M12,4c-1.104,0-2,0.896-2,2 c0,1.104,0.896,2,2,2c1.104,0,2-0.896,2-2C13.999,4.896,13.104,4,12,4z"></path></svg>
+                        </span>
+                    </button>
+                    <button class="icon-button" id="attach-button">
+                        <span data-icon="clip" class="">
+                            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24" xml:space="preserve"><path fill="currentColor" d="M16.5,6v11.5c0,2.21-1.79,4-4,4s-4-1.79-4-4V5c0-1.103,0.897-2,2-2s2,0.897,2,2v11.5 c0,1.381,1.119,2.5,2.5,2.5s2.5-1.119,2.5-2.5V6h-5V5h5V6z"></path></svg>
+                        </span>
+                    </button>
+                    <input type="text" id="message-input" placeholder="Type a message" />
+                    <button class="icon-button" id="voice-button">
+                        <span data-icon="ptt" class="">
+                            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24" xml:space="preserve"><path fill="currentColor" d="M12,2C6.486,2,2,6.486,2,12s4.486,10,10,10s10-4.486,10-10S17.515,2,12,2z M7,11h2v2H7V11z M11,11h2v2h-2V11z M15,11h2v2h-2V11z M9,11h2v2H9V11z M13,11h2v2h-2V11z M9,15h2v2H9V15z M13,15h2v2h-2V15z M7,15h2v2H7V15z M15,15h2v2h-2V15z"></path></svg>
+                        </span>
+                    </button>
+                    <button class="send-button" id="send-button">
+                        <span data-icon="send" class="">
+                            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24" xml:space="preserve"><path fill="currentColor" d="M2.01,21L23,12L2.01,3L2,10l15,2-15,2L2,14l15,2-15,2L2.01,21z"></path></svg>
+                        </span>
+                    </button>
+                </div>
+            </footer>
+        </div>
+    </div>
+</div>
+
+<div class="contact-sidebar" id="contact-sidebar">
+    <div class="sidebar-header">
+        <h3>Contact Info</h3>
+    </div>
+    <div class="sidebar-content">
+        <div class="status-section">
+            <h4>Status</h4>
+            <select id="statusSelect">
+                <option value="">Select Status</option>
+            </select>
+        </div>
+        <div class="notes-section">
+            <h4>Notes</h4>
+            <textarea id="noteInput" placeholder="Add a note"></textarea>
+            <button id="saveNoteBtn">Save Note</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const BUSINESS_PHONE_NUMBER_ID = '{{ BUSINESS_PHONE_NUMBER_ID }}';
+    let currentContact = null;
+    let conversations = JSON.parse(localStorage.getItem('conversations')) || {};
+    let socket = new WebSocket('{{ request.url_root }}ws');
+
+    function saveConversations() {
+        localStorage.setItem('conversations', JSON.stringify(conversations));
+    }
+
+    function loadContacts() {
+        $.get('/get_contacts', function(contacts) {
+            $('#contact-list').empty();
+            contacts.forEach(function(contact) {
+                addContactToList(contact);
+            });
+        });
+    }
+
+    function addContactToList(contact) {
+        const contactElement = $(`
+            <div class="contact" data-number="${contact.number}">
+                <div class="contact-avatar"></div>
+                <div class="contact-info">
+                    <div class="contact-name">${contact.name || contact.number}</div>
+                    <div class="contact-status"></div>
+                </div>
+            </div>
+        `);
+        contactElement.click(function() {
+            selectContact(contact.number);
+        });
+        $('#contact-list').append(contactElement);
+    }
+
+    function selectContact(number) {
+        currentContact = number;
+        $('.contact').removeClass('active');
+        $(`.contact[data-number="${number}"]`).addClass('active');
+        $('#current-contact').text(number);
+        loadContactMessages(number);
+    }
+
+    function loadContactMessages(number) {
+        $('#chat-messages').empty();
+        if (conversations[number]) {
+            conversations[number].forEach(addMessageToChat);
+        }
+        $.get(`/get_messages/${number}`, function(data) {
+            data.messages.forEach(function(msg) {
+                if (!conversations[number]) {
+                    conversations[number] = [];
+                }
+                if (!conversations[number].some(m => m.id === msg.id)) {
+                    conversations[number].push(msg);
+                    addMessageToChat(msg);
+                }
+            });
+            saveConversations();
+        });
+    }
+
+    function sendMessage() {
+        if (!currentContact) {
+            alert('Please select a contact first');
+            return;
+        }
+        const message = $('#message-input').val().trim();
+        if (message === '') return;
+
+        $.post('/send_message', {to: currentContact, message: message}, function(response) {
+            if (response.success) {
+                const newMessage = {
+                    id: response.message_id,
+                    from: BUSINESS_PHONE_NUMBER_ID,
+                    to: currentContact,
+                    text: message,
+                    timestamp: new Date().toISOString(),
+                    status: 'sent'
+                };
+                addMessageToConversation(newMessage);
+                $('#message-input').val('');
+            } else {
+                console.error('Failed to send message:', response.error);
+            }
+        });
+    }
+
+    function addMessageToConversation(message) {
+        if (!conversations[currentContact]) {
+            conversations[currentContact] = [];
+        }
+        conversations[currentContact].push(message);
+        addMessageToChat(message);
+        updateContactList(message);
+        saveConversations();
+    }
+
+    function addMessageToChat(message) {
+        const messageElement = $(`
+            <div class="message ${message.from === BUSINESS_PHONE_NUMBER_ID ? 'message-sent' : 'message-received'}">
+                <div class="message-content">${message.text}</div>
+                <div class="message-time">${new Date(message.timestamp).toLocaleTimeString()}</div>
+                ${message.from === BUSINESS_PHONE_NUMBER_ID ? `<div class="message-status status-${message.status}"></div>` : ''}
+            </div>
+        `);
+        $('#chat-messages').append(messageElement);
+        $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
+    }
+
+    function updateContactList(message) {
+        const contactElement = $(`.contact[data-number="${message.from === BUSINESS_PHONE_NUMBER_ID ? message.to : message.from}"]`);
+        if (contactElement.length) {
+            $('#contact-list').prepend(contactElement);
+        }
+    }
+
+    socket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        if (data.type === 'new_message') {
+            const message = data.message;
+            if (!conversations[message.from]) {
+                conversations[message.from] = [];
+            }
+            conversations[message.from].push(message);
+            if (currentContact === message.from) {
+                addMessageToChat(message);
+            }
+            updateContactList(message);
+            saveConversations();
+        }
+    };
+
+    $(document).ready(function() {
+        loadConversations();
+        loadContacts();
+
+        $('#message-input').keypress(function(e) {
+            if(e.which == 13) {
+                sendMessage();
+                e.preventDefault();
+            }
+        });
+
+        $('#attach-button').click(function() {
+            // Implement file attachment functionality
+        });
+
+        $('#emoji-button').click(function() {
+            // Implement emoji picker functionality
+        });
+
+        $('#voice-button').click(function() {
+            // Implement voice message functionality
+        });
+    });
+
+    window.addEventListener('beforeunload', saveConversations);
+</script>
+{% endblock %}
+
+    .chat-input {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background-color: #f0f2f5;
+        border-top: 1px solid #e9edef;
+    }
+
+    #message-input {
+        flex: 1;
+        border: none;
+        border-radius: 8px;
+        padding: 9px 12px;
+        margin: 0 8px;
+        outline: none;
+    }
+
+    .send-button {
+        margin-left: 8px;
+        padding: 8px;
+        background-color: #00a884;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+        .two {
+            flex-direction: column;
+        }
+        .pane-side {
+            width: 100%;
+            height: 30vh;
+        }
+        .pane-chat {
+            height: 70vh;
+        }
+    .contact-sidebar {
+            width: 100%;
+            right: -100%;
+        }
+    }
+
+    /* Adjust the chat input for better mobile experience */
+    @media (max-width: 480px) {
+        .chat-input-container {
+            padding: 5px;
+        }
+        #message-input {
+            margin: 0 5px;
+        }
+        .send-button {
+            padding: 6px;
+        }
+    }
+</style>
+
+<div class="app-wrapper">
+    <div class="two">
+        <div class="pane-side">
+            <header class="pane-header">
+                <div class="avatar"></div>
+                <div class="header-buttons">
+                    <button class="icon-button" id="status-button">
+                        <span data-icon="status-v3" class="">
+                            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24" xml:space="preserve"><path fill="currentColor" d="M12,20.664c-2.447,0.006-4.795-0.966-6.521-2.702c-0.381-0.381-0.381-1,0-1.381 c0.381-0.381,1-0.381,1.381,0c2.872,2.882,7.408,2.882,10.28,0c0.381-0.381,1-0.381,1.381,0s0.381,1,0,1.381 C16.795,19.698,14.447,20.67,12,20.664z M12,3.336c2.447-0.006,4.795,0.966,6.521,2.702c0.381,0.381,0.381,1,0,1.381 s-1,0.381-1.381,0c-2.872-2.882-7.408-2.882-10.28,0C6.479,7.8,5.86,7.8,5.479,7.419s-0.381-1,0-1.381 C7.205,4.302,9.553,3.33,12,3.336z M12,7.331c1.898-0.008,3.683,0.737,5.032,2.088c0.381,0.381,0.381,1,0,1.381 c-0.381,0.381-1,0.381-1.381,0c-1.977-1.98-5.324-1.98-7.301,0c-0.381,0.381-1,0.381-1.381,0c-0.381-0.381-0.381-1,0-1.381 C8.317,8.068,10.102,7.323,12,7.331z"></path></svg>
+                        </span>
+                    </button>
+                    <button class="icon-button" id="new-chat-button">
+                        <span data-icon="chat" class="">
+                            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24" xml:space="preserve"><path fill="currentColor" d="M19.005,3.175H4.674C3.642,3.175,3,3.789,3,4.821V21.02 l3.544-3.514h12.461c1.033,0,2.064-1.06,2.064-2.093V4.821C21.068,3.789,20.037,3.175,19.005,3.175z M14.016,13.044H7.041V11.1 h6.975V13.044z M17.016,9.044H7.041V7.1h9.975V9.044z"></path></svg>
+                        </span>
+                    </button>
+                    <button class="icon-button" id="menu-button">
+                        <span data-icon="menu" class="">
+                        </span>
+                    </button>
+                </div>
+            </header>
+            <div class="search-container">
+                <div class="search-input-container">
+                    <span data-icon="search" class="">
+                        <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24" xml:space="preserve"><path fill="currentColor" d="M15.009,13.805h-0.636l-0.22-0.219c0.781-0.911,1.256-2.092,1.256-3.386 c0-2.876-2.332-5.207-5.207-5.207c-2.876,0-5.208,2.331-5.208,5.207s2.331,5.208,5.208,5.208c1.293,0,2.474-0.474,3.385-1.255 l0.221,0.22v0.635l4.004,3.999l1.194-1.195L15.009,13.805z M10.201,13.805c-1.991,0-3.605-1.614-3.605-3.605 s1.614-3.605,3.605-3.605s3.605,1.614,3.605,3.605S12.192,13.805,10.201,13.805z"></path></svg>
+                    </span>
+                    <input type="text" id="search-input" placeholder="Search or start new chat" />
+                </div>
+            </div>
+            <div id="contact-list" class="chat-list"></div>
+        </div>
+        <div class="pane-chat">
+            <header class="pane-chat-header">
+                <div class="chat-info">
+                    <div class="chat-avatar"></div>
+                    <div class="chat-name" id="current-contact">Select a contact</div>
+                </div>
+                <div class="chat-actions">
+                    <button class="icon-button" id="search-chat-button">
+                        <span data-icon="search" class="">
+                            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24" xml:space="preserve"><path fill="currentColor" d="M15.9,14.3H15L14.7,14c1-1.1,1.6-2.7,1.6-4.3c0-3.7-3-6.7-6.7-6.7S3,6,3,9.7 s3,6.7,6.7,6.7c1.6,0,3.2-0.6,4.3-1.6l0.3,0.3v0.8l5.1,5.1l1.5-1.5L15.9,14.3z M9.7,14.3c-2.6,0-4.6-2.1-4.6-4.6s2.1-4.6,4.6-4.6 s4.6,2.1,4.6,4.6S12.3,14.3,9.7,14.3z"></path></svg>
+                        </span>
+                    </button>
+                    <button class="icon-button" id="menu-chat-button">
+                        <span data-icon="menu" class="">
+                            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24" xml:space="preserve"><path fill="currentColor" d="M12,7c1.104,0,2-0.896,2-2c0-1.105-0.895-2-2-2c-1.104,0-2,0.894-2,2 C10,6.105,10.895,7,12,7z M12,9c-1.104,0-2,0.894-2,2c0,1.104,0.895,2,2,2c1.104,0,2-0.896,2-2C13.999,9.895,13.104,9,12,9z M12,15 c-1.104,0-2,0.894-2,2c0,1.104,0.895,2,2,2c1.104,0,2-0.896,2-2C13.999,15.894,13.104,15,12,15z"></path></svg>
+                        </span>
+                    </button>
+                </div>
+            </header>
+            <div id="chat-messages" class="conversation-panel-messages"></div>
+            <footer class="chat-footer">
+                <div class="chat-input-container">
+                    <button class="icon-button" id="emoji-button">
+                        <span data-icon="smiley" class="">
+                            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24" xml:space="preserve"><path fill="currentColor" d="M9.153,11.603c0.795,0,1.439-0.879,1.439-1.962S9.948,7.679,9.153,7.679 S7.714,8.558,7.714,9.641S8.358,11.603,9.153,11.603z M5.949,12.965c-0.026-0.307-0.131,5.218,6.063,5.551 c6.066-0.25,6.066-5.551,6.066-5.551C12,14.381,5.949,12.965,5.949,12.965z M17.312,14.073c0,0-0.669,1.959-5.051,1.959 c-3.505,0-5.388-1.164-5.607-1.959C6.654,14.073,12.566,15.128,17.312,14.073z M11.804,1.011c-6.195,0-10.826,5.022-10.826,11.217 s4.826,10.761,11.021,10.761S23.02,18.423,23.02,12.228C23.021,6.033,17.999,1.011,11.804,1.011z M12,21.354 c-5.273,0-9.381-3.886-9.381-9.159s3.942-9.548,9.215-9.548s9.548,4.275,9.548,9.548C21.381,17.467,17.
+                        </span>
+                    </button>
+                    <input type="text" id="message-input" placeholder="Type a message" />
+                    <button class="icon-button" id="voice-button">
+                        <span data-icon="ptt" class="">
+    .chat-input {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background-color: #f0f2f5;
+        border-top: 1px solid #e9edef;
+    }
+
+    #message-input {
+        flex: 1;
+        border: none;
+        border-radius: 8px;
+        padding: 9px 12px;
+        margin: 0 8px;
+        outline: none;
+    }
+
+    .send-button {
+        margin-left: 8px;
+        padding: 8px;
+        background-color: #00a884;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+        .container {
+            flex-direction: column;
+        }
+
+        .sidebar {
+            width: 100%;
+            height: 30vh;
+        }
+
+        .main-chat {
+            height: 70vh;
+        }
+
+        .contact-sidebar {
+            width: 100%;
+            right: -100%;
+        }
+
+        .main-chat.sidebar-open {
+            margin-right: 0;
+        }
+    }
+
+    /* Adjust the chat input for better mobile experience */
+    @media (max-width: 480px) {
+        .chat-input {
+            padding: 5px;
+        }
+
+        #message-input {
+            margin: 0 5px;
+        }
+
+        .send-button {
+            padding: 6px;
+        }
+    }
+
+    /* WhatsApp-like styles */
+    .container {
+        background-color: #eae6df;
+        background-image: url('https://web.whatsapp.com/img/bg-chat-tile-dark_a4be512e7195b6b733d9110b408f075d.png');
+    }
+    body.dark-mode .container {
+        background-color: #0b141a;
+        background-image: url('https://web.whatsapp.com/img/bg-chat-tile-dark_a4be512e7195b6b733d9110b408f075d.png');
+    }
+    .sidebar {
+        background-color: #ffffff;
+    }
+    body.dark-mode .sidebar {
+        background-color: #111b21;
+    }
+    .main-chat {
+        background-color: transparent;
+    }
+    .chat-header {
+        background-color: #f0f2f5;
+        height: 60px;
+    }
+    body.dark-mode .chat-header {
+        background-color: #202c33;
+    }
+    .chat-input {
+        background-color: #f0f2f5;
+        padding: 10px 16px;
+    }
+    body.dark-mode .chat-input {
+        background-color: #202c33;
+    }
+    #message-input {
+        background-color: #ffffff;
+        border-radius: 8px;
+        padding: 9px 12px;
+        margin-right: 8px;
+    }
+    body.dark-mode #message-input {
+        background-color: #2a3942;
+        color: #d1d7db;
+    }
+    .send-button {
+        background-color: #00a884;
+        width: 40px;
+        height: 40px;
+    }
+    .message {
+        border-radius: 7.5px;
+        padding: 6px 7px 8px 9px;
+        max-width: 65%;
+    }
+    .message-sent {
+        background-color: #d9fdd3;
+    }
+    body.dark-mode .message-sent {
+        background-color: #005c4b;
+    }
+    .message-received {
+        background-color: #ffffff;
+    }
+    body.dark-mode .message-received {
+        background-color: #202c33;
+    }
+</style>
+
+<div class="container">
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="avatar"></div>
+            <div>
+                <button class="button" id="dark-mode-toggle">🌙</button>
+                <button class="button" id="search-toggle">🔍</button>
+                <button class="button" id="add-contact">➕</button>
+                <div class="dropdown">
+                    <button class="button" id="menu-toggle">⋮</button>
+                    <div class="dropdown-content" id="dropdown-menu">
+                        <a href="{{ url_for('home') }}">Home</a>
+                        <a href="{{ url_for('send_message_page') }}">Send Message</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Search or start new chat">
+        </div>
+        <div id="contact-list"></div>
+    </div>
+    <div class="main-chat" id="main-chat">
+        <div class="chat-header">
+            <div id="current-contact">Select a contact</div>
+            <button id="toggle-sidebar-btn" class="button">Contact Info</button>
+        </div>
+        <div id="chat-messages"></div>
+        <div class="chat-input">
+            <input type="file" id="image-upload" accept="image/*" style="display: none;">
+            <button class="image-upload-button" onclick="document.getElementById('image-upload').click()">➕</button>
+            <input type="text" id="message-input" placeholder="Type a message">
+            <button class="send-button" id="send-button">➤</button>
+        </div>
+    </div>
+    <div class="contact-sidebar" id="contact-sidebar">
+        <div class="sidebar-header">
+            <h3>Contact Info</h3>
+        </div>
+        <div class="sidebar-content">
+            <div class="status-section">
+                <h4>Status</h4>
+                <select id="statusSelect">
+                    <option value="">Select Status</option>
+                    <option value="İlk_mesaj">İlk mesaj</option>
+                    <option value="cevaplandı">Cevaplandı</option>
+                    <option value="photoshop bekliyor">Photoshop bekliyor</option>
+                    <option value="teslim bekliyor">Teslim bekliyor</option>
+                    <option value="teslim edildi">Teslim edildi</option>
+                </select>
+                <button id="updateStatusBtn" class="button">Update Status</button>
+                <div id="currentStatus"></div>
+            </div>
+            <div class="notes-section">
+                <h4>Notes</h4>
+                <textarea id="noteInput" rows="4" placeholder="Add a note"></textarea>
+                <button id="saveNoteBtn" class="button">Save Note</button>
+                <div id="noteList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    const BUSINESS_PHONE_NUMBER_ID = "{{ business_phone_number_id }}";
+    let currentContact = null;
+    let socket = new WebSocket("wss://" + window.location.host + "/ws");
+    let conversations = {};
+
+    function loadConversations() {
+        const savedConversations = localStorage.getItem('conversations');
+        if (savedConversations) {
+            conversations = JSON.parse(savedConversations);
+            console.log("Loaded conversations:", conversations);
+        }
+    }
+
+    function saveConversations() {
+        localStorage.setItem('conversations', JSON.stringify(conversations));
+        console.log("Saved conversations:", conversations);
+    }
+
+    socket.onopen = function(e) {
+        console.log("WebSocket connection established");
+        loadContacts();
+        loadConversations();
+    };
+
+    socket.onmessage = function(event) {
+        console.log("WebSocket message received:", event.data);
+        const data = JSON.parse(event.data);
+        if (data.type === "new_message") {
+            const message = data.message;
+            if (!conversations[message.from]) {
+                conversations[message.from] = [];
+            }
+            conversations[message.from].push(message);
+            updateContactList(message);
+            if (message.from === currentContact || message.to === currentContact) {
+                addMessageToChat(message);
+            }
+            saveConversations();
+        } else if (data.type === "status_update") {
+            updateMessageStatus(data.status);
+        }
+    };
+
+    socket.onerror = function(error) {
+        console.error(`WebSocket Error: ${error}`);
+    };
+
+    socket.onclose = function(event) {
+        if (event.wasClean) {
+            console.log(`WebSocket connection closed cleanly, code=${event.code}, reason=${event.reason}`);
+        } else {
+            console.error('WebSocket connection died');
+        }
+        // Attempt to reconnect
+        setTimeout(function() {
+            socket = new WebSocket("wss://" + window.location.host + "/ws");
+        }, 5000);
+    };
+
+    function loadContacts() {
+        console.log("Loading contacts...");
+        $.get('/get_contacts', function(contacts) {
+            console.log("Contacts received:", contacts);
+            $('#contact-list').empty();
+            if (contacts.length === 0) {
+                $('#contact-list').append('<div>No contacts available</div>');
+            } else {
+                contacts.forEach(function(contact) {
+                    addContactToList(contact);
+                });
+            }
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error("Error loading contacts:", textStatus, errorThrown);
+            $('#contact-list').append('<div>Error loading contacts</div>');
+        });
+    }
+
+    function addContactToList(contact) {
+        const contactElement = $(`
+            <div class="contact" data-number="${contact.number}">
+                <div class="contact-info" onclick="selectContact('${contact.number}')">
+                    <div class="contact-avatar"></div>
+                    <div class="contact-details">
+                        <div class="contact-name">${contact.name || contact.number}</div>
+                        <div class="contact-last-message"></div>
+                        <div class="contact-status"></div>
+                    </div>
+                </div>
+                <button class="details-button" onclick="toggleSidebar('${contact.number}')">Details</button>
+            </div>
+        `);
+        $('#contact-list').append(contactElement);
+        updateContactStatus(contact.number);
+    }
+
+    function selectContact(contact) {
+        currentContact = contact;
+        $('#current-contact').text(contact);
+        loadConversationFromLocalStorage(contact);
+        updateChat();
+        loadContactInfo(contact);
+    }
+
+    function loadConversationFromLocalStorage(contact) {
+        if (conversations[contact]) {
+            $('#chat-messages').empty();
+            conversations[contact].forEach(addMessageToChat);
+        }
+    }
+
+    function updateContactList(message) {
+        const contact = message.from === BUSINESS_PHONE_NUMBER_ID ? message.to : message.from;
+        let contactElement = $(`.contact[data-number="${contact}"]`);
+        if (contactElement.length) {
+            contactElement.find('.contact-last-message').text(message.text);
+            contactElement.prependTo('#contact-list');
+        } else {
+            addContactToList({number: contact, name: contact});
+            contactElement = $(`.contact[data-number="${contact}"]`);
+        }
+        contactElement.find('.contact-last-message').text(message.text);
+    }
+
+    function addMessageToChat(message) {
+        const isReceived = message.from !== BUSINESS_PHONE_NUMBER_ID;
+        let messageContent;
+        if (message.image_url) {
+            messageContent = `<img src="${message.image_url}" alt="Sent image" style="max-width: 200px; max-height: 200px;">`;
+        } else {
+            messageContent = message.text;
+        }
+        const messageElement = $(`
+            <div class="message ${isReceived ? 'message-received' : 'message-sent'}" data-message-id="${message.id}">
+                <div class="message-content">${messageContent}</div>
+                <div class="message-time">${new Date(message.timestamp).toLocaleTimeString()}</div>
+                <div class="message-status status-${message.status}"></div>
+            </div>
+        `);
+        $('#chat-messages').append(messageElement);
+        $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
+    }
+
+    function updateChat() {
+        if (!currentContact) return;
+        $('#chat-messages').empty();
+        if (conversations[currentContact]) {
+            conversations[currentContact].forEach(addMessageToChat);
+        }
+        $.get(`/get_messages/${currentContact}`, function(data) {
+            data.messages.forEach(function(msg) {
+                if (!conversations[currentContact]) {
+                    conversations[currentContact] = [];
+                }
+                if (!conversations[currentContact].some(m => m.id === msg.id)) {
+                    conversations[currentContact].push(msg);
+                    addMessageToChat(msg);
+                }
+            });
+            saveConversations();
+        });
+    }
+
+    function sendMessage() {
+        if (!currentContact) {
+            alert('Please select a contact first');
+            return;
+        }
+        const message = $('#message-input').val().trim();
+        const imageFile = $('#image-upload')[0].files[0];
+        
+        if (message === '' && !imageFile) return;
+
+        if (imageFile) {
+            sendImage(imageFile);
+        } else {
+            sendTextMessage(message);
+        }
+    }
+
+    function sendTextMessage(message) {
+        $.post('/send_message', {to: currentContact, message: message}, function(response) {
+            if (response.success) {
+                const newMessage = {
+                    id: response.message_id,
+                    from: BUSINESS_PHONE_NUMBER_ID,
+                    to: currentContact,
+                    text: message,
+                    timestamp: new Date().toISOString(),
+                    status: 'sent'
+                };
+                addMessageToConversation(newMessage);
+            } else {
+                console.error('Failed to send message:', response.error);
+            }
+        });
+    }
+
+    function sendImage(imageFile) {
+        const formData = new FormData();
+        formData.append('to', currentContact);
+        formData.append('image', imageFile);
+
+        $.ajax({
+            url: '/send_image',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const newMessage = {
+                            id: response.message_id,
+                            from: BUSINESS_PHONE_NUMBER_ID,
+                            to: currentContact,
+                            image_url: e.target.result,  // Use the local image data
+                            timestamp: new Date().toISOString(),
+                            status: 'sent'
+                        };
+                        addMessageToConversation(newMessage);
+                    }
+                    reader.readAsDataURL(imageFile);
+                } else {
+                    console.error('Failed to send image:', response.error);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error('Error sending image:', textStatus, errorThrown);
+            }
+        });
+    }
+
+    function addMessageToConversation(message) {
+        if (!conversations[currentContact]) {
+            conversations[currentContact] = [];
+        }
+        conversations[currentContact].push(message);
+        addMessageToChat(message);
+        $('#message-input').val('');
+        $('#image-upload').val('');
+        updateContactList(message);
+        saveConversations();
+    }
+
+    function updateMessageStatus(status) {
+        console.log("Message status update:", status);
+        if (conversations[currentContact]) {
+            const message = conversations[currentContact].find(m => m.id === status.id);
+            if (message) {
+                message.status = status.status;
+                const messageElement = $(`.message[data-message-id="${status.id}"]`);
+                if (messageElement.length) {
+                    const statusElement = messageElement.find('.message-status');
+                    if (statusElement.length) {
+                        statusElement.removeClass().addClass(`message-status status-${status.status.toLowerCase()}`);
+                    }
+                }
+                saveConversations();
+            }
+        }
+    }
+
+    function addNewContact() {
+        const number = prompt("Enter contact number:");
+        const name = prompt("Enter contact name:");
+        if (number && name) {
+            $.post('/add_contact', { number: number, name: name }, function(response) {
+                if (response.success) {
+                    addContactToList(response.contact);
+                    alert("Contact added successfully");
+                } else {
+                    alert("Failed to add contact");
+                }
+            }).fail(function() {
+                alert("Error adding contact");
+            });
+        }
+    }
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('contact-sidebar');
+        const mainChat = document.getElementById('main-chat');
+        const toggleBtn = document.getElementById('toggle-sidebar-btn');
+        
+        sidebar.classList.toggle('open');
+        mainChat.classList.toggle('sidebar-open');
+        
+        if (sidebar.classList.contains('open')) {
+            toggleBtn.textContent = 'Close Info';
+            loadContactInfo(currentContact);
+        } else {
+            toggleBtn.textContent = 'Contact Info';
+        }
+    }
+
+    function loadContactInfo(contact) {
+        currentContact = contact;
+        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { status: '', notes: [] };
+        
+        // Load status
+        $('#currentStatus').text(contactInfo.status || 'No status set');
+        $('#statusSelect').val(contactInfo.status);
+
+        // Load notes
+        $('#noteList').empty();
+        contactInfo.notes.forEach((note, index) => {
+            $('#noteList').append(`
+                <div class="note">
+                    ${note}
+                    <span class="delete-note" onclick="deleteNote('${contact}', ${index})">✕</span>
+                </div>
+            `);
+        });
+
+        updateContactStatus(contact);
+    }
+
+    function updateStatus(contact, status) {
+        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { status: '', notes: [] };
+        contactInfo.status = status;
+        localStorage.setItem(`contactInfo_${contact}`, JSON.stringify(contactInfo));
+        loadContactInfo(contact);
+    }
+
+    function addNote(contact, note) {
+        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { status: '', notes: [] };
+        contactInfo.notes.push(note);
+        localStorage.setItem(`contactInfo_${contact}`, JSON.stringify(contactInfo));
+        loadContactInfo(contact);
+    }
+
+    function deleteNote(contact, index) {
+        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { status: '', notes: [] };
+        contactInfo.notes.splice(index, 1);
+        localStorage.setItem(`contactInfo_${contact}`, JSON.stringify(contactInfo));
+        loadContactInfo(contact);
+    }
+
+    function updateContactStatus(contact) {
+        const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { status: '', notes: [] };
+        const contactElement = $(`.contact[data-number="${contact}"]`);
+        const statusElement = contactElement.find('.contact-status');
+        statusElement.text(contactInfo.status || '');
+    }
+
+    // Initialize UI elements
+    $(document).ready(function() {
+        loadConversations();
+        loadContacts();
+
+        $('#dark-mode-toggle').click(function() {
+            $('body').toggleClass('dark-mode');
+        });
+
+        $('#search-toggle').click(function() {
+            $('#search-input').toggle();
+        });
+
+        $('#menu-toggle').click(function() {
+            $('#dropdown-menu').toggleClass('show');
+        });
+
+        $('#add-contact').click(addNewContact);
+
+        $('#image-upload').change(function() {
+            if (this.files && this.files[0]) {
+                sendMessage();
+            }
+        });
+
+        $('#toggle-sidebar-btn').click(toggleSidebar);
+
+        $('#updateStatusBtn').click(function() {
+            const status = $('#statusSelect').val();
+            if (currentContact) {
+                updateStatus(currentContact, status);
+            }
+        });
+
+        $('#saveNoteBtn').click(function() {
+            const note = $('#noteInput').val().trim();
+            if (note && currentContact) {
+                addNote(currentContact, note);
+                $('#noteInput').val('');
+            }
+        });
+
+        $('#send-button').click(sendMessage);
+
+        $('#message-input').keypress(function(e) {
+            if(e.which == 13) {
+                sendMessage();
+                e.preventDefault(); // Prevent default form submission
+            }
+        });
+    });
+
+    // Add an event listener for when the page is about to unload
+    window.addEventListener('beforeunload', saveConversations);
+</script>

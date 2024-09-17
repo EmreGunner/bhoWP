@@ -1,68 +1,101 @@
 {% extends "base.html" %}
-{% block title %}Bir hediyen olsun {% endblock %}
+{% block title %}WhatsApp Web Replica{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', path='/css/test.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', path='/css/chat.css') }}">
 
-<div class="container">
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <div class="avatar"></div>
-            <div class="sidebar-header-buttons">
-                <button class="icon-button" id="dark-mode-toggle">🌙</button>
-                <button class="icon-button" id="search-toggle">🔍</button>
-                <button class="icon-button" id="add-contact">➕</button>
-                <div class="dropdown">
-                    <button class="icon-button" id="menu-toggle">⋮</button>
-                    <div class="dropdown-content" id="dropdown-menu">
-                        <a href="{{ url_for('home') }}">Home</a>
-                        <a href="{{ url_for('send_message_page') }}">Send Message</a>
+<div class="app-wrapper">
+    <div class="app two">
+        <div class="container">
+            <div class="_aigs">
+                <div class="_aigv">
+                    <div class="_aigw">
+                        <!-- Sidebar -->
+                        <div class="sidebar">
+                            <header class="sidebar-header">
+                                <div class="avatar"></div>
+                                <div class="sidebar-header-buttons">
+                                    <button class="icon-button" id="dark-mode-toggle" title="Toggle dark mode">🌙</button>
+                                    <button class="icon-button" id="status-button" title="Status">◯</button>
+                                    <button class="icon-button" id="new-chat-button" title="New chat">+</button>
+                                    <div class="dropdown">
+                                        <button class="icon-button" id="menu-toggle" title="Menu">⋮</button>
+                                        <div class="dropdown-content" id="dropdown-menu">
+                                            <a href="#">New group</a>
+                                            <a href="#">Starred messages</a>
+                                            <a href="#">Settings</a>
+                                            <a href="#">Log out</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </header>
+                            <div class="search-bar">
+                                <div class="search-icon">🔍</div>
+                                <input type="text" id="search-input" placeholder="Search or start new chat">
+                            </div>
+                            <div id="contact-list" class="_ak9y"></div>
+                        </div>
+                    </div>
+                    <!-- Main Chat Area -->
+                    <div class="_aig-">
+                        <div class="main-chat" id="main-chat">
+                            <header class="chat-header">
+                                <div class="chat-contact-info">
+                                    <div class="chat-contact-avatar"></div>
+                                    <div class="chat-contact-name" id="current-contact">Select a contact</div>
+                                </div>
+                                <div class="chat-header-buttons">
+                                    <button class="icon-button" id="search-chat-button" title="Search">🔍</button>
+                                    <button class="icon-button" id="toggle-sidebar-btn" title="Contact Info">ℹ</button>
+                                </div>
+                            </header>
+                            <div id="chat-messages" class="_ak9z"></div>
+                            <footer class="chat-input">
+                                <button class="icon-button" id="emoji-button" title="Emoji">😊</button>
+                                <button class="icon-button" id="attach-button" title="Attach">📎</button>
+                                <input type="text" id="message-input" placeholder="Type a message">
+                                <input type="file" id="image-upload" accept="image/*" style="display: none;">
+                                <button class="icon-button" id="voice-button" title="Voice message">🎤</button>
+                                <button class="send-button" id="send-button">➤</button>
+                            </footer>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="search-bar">
-            <input type="text" id="search-input" placeholder="Search or start new chat">
-        </div>
-        <div id="contact-list"></div>
     </div>
-    <div class="main-chat" id="main-chat">
-        <div class="chat-header">
-            <div id="current-contact">Select a contact</div>
-            <button id="toggle-sidebar-btn" class="button">Contact Info</button>
+</div>
+
+<!-- Right Sidebar for Contact Info -->
+<div class="contact-sidebar" id="contact-sidebar">
+    <header class="sidebar-header">
+        <h3>Contact Info</h3>
+        <button class="icon-button" id="close-sidebar-btn">✕</button>
+    </header>
+    <div class="sidebar-content">
+        <div class="contact-info-section">
+            <div class="contact-avatar large"></div>
+            <h2 id="sidebar-contact-name"></h2>
+            <p id="sidebar-contact-number"></p>
         </div>
-        <div id="chat-messages"></div>
-        <div class="chat-input">
-            <input type="file" id="image-upload" accept="image/*" style="display: none;">
-            <button class="image-upload-button" onclick="document.getElementById('image-upload').click()">➕</button>
-            <input type="text" id="message-input" placeholder="Type a message">
-            <button class="send-button" id="send-button">➤</button>
+        <div class="status-section">
+            <h4>Status</h4>
+            <select id="statusSelect">
+                <option value="">Select Status</option>
+                <option value="İlk_mesaj">İlk mesaj</option>
+                <option value="cevaplandı">Cevaplandı</option>
+                <option value="photoshop bekliyor">Photoshop bekliyor</option>
+                <option value="teslim bekliyor">Teslim bekliyor</option>
+                <option value="teslim edildi">Teslim edildi</option>
+            </select>
+            <button id="updateStatusBtn" class="button">Update Status</button>
+            <div id="currentStatus"></div>
         </div>
-    </div>
-    <div class="contact-sidebar" id="contact-sidebar">
-        <div class="sidebar-header">
-            <h3>Contact Info</h3>
-        </div>
-        <div class="sidebar-content">
-            <div class="status-section">
-                <h4>Status</h4>
-                <select id="statusSelect">
-                    <option value="">Select Status</option>
-                    <option value="İlk_mesaj">İlk mesaj</option>
-                    <option value="cevaplandı">Cevaplandı</option>
-                    <option value="photoshop bekliyor">Photoshop bekliyor</option>
-                    <option value="teslim bekliyor">Teslim bekliyor</option>
-                    <option value="teslim edildi">Teslim edildi</option>
-                </select>
-                <button id="updateStatusBtn" class="button">Update Status</button>
-                <div id="currentStatus"></div>
-            </div>
-            <div class="notes-section">
-                <h4>Notes</h4>
-                <textarea id="noteInput" rows="4" placeholder="Add a note"></textarea>
-                <button id="saveNoteBtn" class="button">Save Note</button>
-                <div id="noteList"></div>
-            </div>
+        <div class="notes-section">
+            <h4>Notes</h4>
+            <textarea id="noteInput" rows="4" placeholder="Add a note"></textarea>
+            <button id="saveNoteBtn" class="button">Save Note</button>
+            <div id="noteList"></div>
         </div>
     </div>
 </div>
@@ -122,7 +155,6 @@
         } else {
             console.error('WebSocket connection died');
         }
-        // Attempt to reconnect
         setTimeout(function() {
             socket = new WebSocket("wss://" + window.location.host + "/ws");
         }, 5000);
@@ -285,7 +317,7 @@
                             id: response.message_id,
                             from: BUSINESS_PHONE_NUMBER_ID,
                             to: currentContact,
-                            image_url: e.target.result,  // Use the local image data
+                            image_url: e.target.result,
                             timestamp: new Date().toISOString(),
                             status: 'sent'
                         };
@@ -369,11 +401,9 @@
         currentContact = contact;
         const contactInfo = JSON.parse(localStorage.getItem(`contactInfo_${contact}`)) || { status: '', notes: [] };
         
-        // Load status
         $('#currentStatus').text(contactInfo.status || 'No status set');
         $('#statusSelect').val(contactInfo.status);
 
-        // Load notes
         $('#noteList').empty();
         contactInfo.notes.forEach((note, index) => {
             $('#noteList').append(`
@@ -415,7 +445,6 @@
         statusElement.text(contactInfo.status || '');
     }
 
-    // Initialize UI elements
     $(document).ready(function() {
         loadConversations();
         loadContacts();
@@ -424,15 +453,15 @@
             $('body').toggleClass('dark-mode');
         });
 
-        $('#search-toggle').click(function() {
-            $('#search-input').toggle();
+        $('#search-input').on('input', function() {
+            // Implement search functionality
         });
 
         $('#menu-toggle').click(function() {
             $('#dropdown-menu').toggleClass('show');
         });
 
-        $('#add-contact').click(addNewContact);
+        $('#new-chat-button').click(addNewContact);
 
         $('#image-upload').change(function() {
             if (this.files && this.files[0]) {
@@ -440,7 +469,7 @@
             }
         });
 
-        $('#toggle-sidebar-btn').click(toggleSidebar);
+        $('#toggle-sidebar-btn, #close-sidebar-btn').click(toggleSidebar);
 
         $('#updateStatusBtn').click(function() {
             const status = $('#statusSelect').val();
@@ -462,12 +491,15 @@
         $('#message-input').keypress(function(e) {
             if(e.which == 13) {
                 sendMessage();
-                e.preventDefault(); // Prevent default form submission
+                e.preventDefault();
             }
+        });
+
+        $('#attach-button').click(function() {
+            $('#image-upload').click();
         });
     });
 
-    // Add an event listener for when the page is about to unload
     window.addEventListener('beforeunload', saveConversations);
 </script>
 {% endblock %}

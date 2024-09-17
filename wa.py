@@ -29,7 +29,7 @@ templates = Jinja2Templates(directory="templates")
 wa = WhatsApp(
     phone_id="347058841835061",
     token=
-    "EAAOxaNntzsEBO4w0gqjoylgybDBYS9MvZAJxZBZAYOEy1bzZBEtDCP6uZBmPMcUvhK0ewyRLEITywjb3RNOe2nzJpeXa7ZBZAuwi8jBgqRShm37dzjMt2mlclFEqGaEDdIdUoWjWbz7QHjpaV3YUK5aBWlgQfPa4GoOY5hmMInK3p2YMOLVZBlUWTSl9QvXUbbY1RkMJH8s8ljbjNpamVdRJ5kJI050ZD",
+    "EAAOxaNntzsEBOxnB9DqZB6kv4k1UIudF3RyeFvv7bwxz9Cpxjd2ahfCKm628X4FZCZBSZCLdBZCyr1cWO0TSNybefpHAil1HhBrU7m3VQHHlN8nU8sqpPCqIBG7zIyiPsTC1zXXqfOG4Wlg0pCbWYWgXzIhYd7qonoSp7BUjFkCZCUAeKYv4jXjMCaub3RNanbtMGHYmXvzBzoZCFPo6NLrVYBdMYMR",
     server=fastapi_app,
     callback_url=
     "https://49ae544d-ebdc-4b20-9445-aa092113c69a-00-1cr1zoiat6wtd.sisko.replit.dev",
@@ -113,7 +113,7 @@ async def home(request: Request):
 # Serve the chat page
 @fastapi_app.get("/chat")
 async def chat(request: Request):
-    return templates.TemplateResponse("chat2.html", {
+    return templates.TemplateResponse("chat5.html", {
         "request": request,
         "business_phone_number_id": wa.phone_id
     })
