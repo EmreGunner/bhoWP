@@ -93,48 +93,34 @@ function updateContactList() {
 
 function selectContact(contact) {
     console.log("Selecting contact:", contact);
-    
-    // Remove active class from all contacts
-    $('.chat-list').removeClass('active');
-    
-    // Add active class to selected contact
-    $(`.chat-list[data-contact="${contact}"]`).addClass('active');
-    
     currentContact = contact;
-    updateChatWindow();
-    openRightSide(); // Ensure the right side panel is opened
-}
-
-function updateChatWindow() {
-    const chatWindow = $('.chat-window');
-    chatWindow.empty();
-    
-    if (currentContact && conversations[currentContact]) {
-        conversations[currentContact].forEach(message => {
-            addMessageToChat(message);
-        });
+    $('#current-contact').text(contact);
+    $('#chat-messages').empty();
+    if (conversations[contact]) {
+        conversations[contact].forEach(addMessageToChat);
     }
+    openRightSide();
 }
 
 function addMessageToChat(message) {
-    const chatWindow = $('.chat-window');
     const messageElement = $(`
         <div class="message">
             <div class="message-content">
-                <p>${message.text}</p>
+                ${message.text || `<img src="${message.image_url}" alt="Image">`}
             </div>
         </div>
     `);
-    chatWindow.append(messageElement);
-    chatWindow.scrollTop(chatWindow.prop("scrollHeight"));
+    $('#chat-messages').append(messageElement);
 }
 
 function sendMessage() {
-    const messageInput = document.querySelector('.send-message');
+    console.log("sendMessage function called");
+    const messageInput = document.getElementById('message-input');
     const message = messageInput.value.trim();
-    
-    if (message === '') {
-        console.log("Message is empty, not sending");
+    const imageFile = document.getElementById('image-upload').files[0];
+
+    if (message === '' && !imageFile) {
+        console.log("Message is empty and no image selected, not sending");
         return;
     }
 
@@ -144,6 +130,14 @@ function sendMessage() {
         return;
     }
 
+    if (imageFile) {
+        uploadImage(imageFile);
+    } else {
+        sendTextMessage(message);
+    }
+}
+
+function sendTextMessage(message) {
     console.log("Sending message:", message, "to:", currentContact);
     messageInput.value = ''; // Clear the input field immediately
 
@@ -173,22 +167,52 @@ function sendMessage() {
     });
 }
 
+function uploadImage(file) {
+    const formData = new FormData();
+    formData.append('to', currentContact);
+    formData.append('image', file);
+
+    $.ajax({
+        url: '/send_image',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.success) {
+                console.log("Image sent successfully:", response);
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const newMessage = {
+                        id: response.message_id,
+                        from: BUSINESS_PHONE_NUMBER_ID,
+                        to: currentContact,
+                        image_url: e.target.result,  // Use the local image data
+                        timestamp: new Date().toISOString(),
+                        status: 'sent'
+                    };
+                    if (!conversations[currentContact]) {
+                        conversations[currentContact] = [];
+                    }
+                    conversations[currentContact].push(newMessage);
+                    addMessageToChat(newMessage);
+                    updateContactList();
+                    saveConversations();
+                }
+                reader.readAsDataURL(file);
+            } else {
+                console.error('Failed to send image:', response.error);
+            }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error('Error sending image:', textStatus, errorThrown);
+        }
+    });
+}
+
 $(document).ready(function() {
     console.log("Document ready, loading conversations");
     loadConversations();
-
-    // Add event listener for image upload button
-    $('#uploadImageButton').on('click', function() {
-        $('#imageInput').click();
-    });
-
-    // Handle image input change
-    $('#imageInput').on('change', function() {
-        const file = this.files[0];
-        if (file) {
-            uploadImage(file);
-        }
-    });
 });
 
 window.addEventListener('beforeunload', saveConversations);
@@ -215,75 +239,3 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error("Message input field not found");
     }
 });
-
-function sendAutomatedResponse(to) {
-    const automatedMessage = "Yes, the test is received. How can I help?";
-    console.log("Sending automated response:", automatedMessage, "to:", to);
-
-    $.post('/send_message', { to: to, message: automatedMessage }, function(response) {
-        if (response.success) {
-            console.log("Automated response sent successfully:", response);
-            const newMessage = {
-                id: response.message_id,
-                from: BUSINESS_PHONE_NUMBER_ID,
-                to: to,
-                text: automatedMessage,
-                timestamp: new Date().toISOString(),
-                status: 'sent'
-            };
-            if (!conversations[to]) {
-                conversations[to] = [];
-            }
-            conversations[to].push(newMessage);
-            if (to === currentContact) {
-                addMessageToChat(newMessage);
-            }
-            updateContactList();
-            saveConversations();
-        } else {
-            console.error('Failed to send automated response:', response.error);
-        }
-    }).fail(function(jqXHR, textStatus, errorThrown) {
-        console.error('Error sending automated response:', textStatus, errorThrown);
-    });
-}
-
-function uploadImage(file) {
-    const formData = new FormData();
-    formData.append('to', currentContact);
-    formData.append('image', file);
-
-    $.ajax({
-        url: '/send_image',
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(response) {
-            if (response.success) {
-                console.log("Image sent successfully:", response);
-                const newMessage = {
-                    id: response.message_id,
-                    from: BUSINESS_PHONE_NUMBER_ID,
-                    to: currentContact,
-                    text: 'Image',
-                    timestamp: new Date().toISOString(),
-                    status: 'sent',
-                    image_url: response.image_url
-                };
-                if (!conversations[currentContact]) {
-                    conversations[currentContact] = [];
-                }
-                conversations[currentContact].push(newMessage);
-                addMessageToChat(newMessage);
-                updateContactList();
-                saveConversations();
-            } else {
-                console.error('Failed to send image:', response.error);
-            }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            console.error('Error sending image:', textStatus, errorThrown);
-        }
-    });
-}
