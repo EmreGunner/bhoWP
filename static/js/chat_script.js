@@ -32,7 +32,7 @@ socket.onmessage = function(event) {
         }
         conversations[message.from].push(message);
         updateContactList();
-        if (message.from === currentContact) {
+        if (message.from === currentContact || message.to === currentContact) {
             addMessageToChat(message);
         }
         saveConversations();
@@ -47,57 +47,96 @@ function updateContactList() {
     
     Object.keys(conversations).forEach(contact => {
         const lastMessage = conversations[contact][conversations[contact].length - 1];
-        const existingContact = contactList.find(`[data-contact="${contact}"]`);
+        let contactElement = contactList.find(`[data-contact="${contact}"]`);
         
-        if (existingContact.length) {
-            existingContact.remove();
-        }
-        
-        const contactElement = $(`
-            <div class="block chat-list" data-contact="${contact}" onclick="selectContact('${contact}')">
-                <div class="imgBox">
-                    <img src="{{ url_for('static', path='/images/Avatar-1.png') }}" class="cover">
-                </div>
-                <div class="h-text">
-                    <div class="head">
-                        <h4 title="${contact}" aria-label="${contact}">${contact}</h4>
-                        <p class="time">${new Date(lastMessage.timestamp).toLocaleTimeString()}</p>
+        if (contactElement.length === 0) {
+            contactElement = $(`
+                <div class="block chat-list" data-contact="${contact}" onclick="selectContact('${contact}')">
+                    <div class="imgBox">
+                        <img src="{{ url_for('static', path='/images/Avatar-1.png') }}" class="cover">
                     </div>
-                    <div class="message-chat">
-                        <div class="chat-text-icon">
-                            <span class="thanks">${lastMessage.text}</span>
+                    <div class="h-text">
+                        <div class="head">
+                            <h4 title="${contact}" aria-label="${contact}">${contact}</h4>
+                            <p class="time"></p>
+                        </div>
+                        <div class="message-chat">
+                            <div class="chat-text-icon">
+                                <span class="thanks"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        `);
-        contactList.prepend(contactElement);
+            `);
+            contactList.prepend(contactElement);
+        }
+        
+        contactElement.find('.head h4').text(contact);
+        contactElement.find('.time').text(new Date(lastMessage.timestamp).toLocaleTimeString());
+        contactElement.find('.thanks').text(lastMessage.text);
     });
 }
 
 function selectContact(contact) {
     console.log("Selecting contact:", contact);
+    
+    // Remove active class from all contacts
+    $('.chat-list').removeClass('active');
+    
+    // Add active class to selected contact
+    $(`.chat-list[data-contact="${contact}"]`).addClass('active');
+    
     currentContact = contact;
-    $('#current-contact').text(contact);
-    updateChat();
+    
+    // Update header
+    $('.rightSide .header .imgText h4').text(contact);
+    $('.rightSide .header .imgText span').text('online'); // You might want to make this dynamic
+    $('.rightSide .header .imgText img').attr('src', `{{ url_for('static', path='/images/Avatar-1.png') }}`);
+    
+    // Show right side and hide intro
     $('#rightSide').show();
     $('#Intro-Left').hide();
+    
+    // Reset message input
+    $('#message-input').val('').attr('placeholder', `Type a message to ${contact}`);
+    
+    // Update chat
+    updateChat();
 }
 
 function updateChat() {
     console.log("Updating chat for contact:", currentContact);
-    const chatBox = $('#chat-messages');
+    const chatBox = $('.chatBox');
+    if (chatBox.length === 0) {
+        console.error("Chat box not found");
+        return;
+    }
     chatBox.empty();
     if (conversations[currentContact]) {
         conversations[currentContact].forEach(addMessageToChat);
     }
     chatBox.scrollTop(chatBox[0].scrollHeight);
+
+    // Fetch new messages from the server
+    $.get(`/get_messages/${currentContact}`, function(data) {
+        data.messages.forEach(function(msg) {
+            if (!conversations[currentContact]) {
+                conversations[currentContact] = [];
+            }
+            if (!conversations[currentContact].some(m => m.id === msg.id)) {
+                conversations[currentContact].push(msg);
+                addMessageToChat(msg);
+            }
+        });
+        saveConversations();
+    });
 }
 
 function addMessageToChat(message) {
     console.log("Adding message to chat:", message);
     const isReceived = message.from !== BUSINESS_PHONE_NUMBER_ID;
     const messageElement = $(`
+        <div class="chat__date-wrapper"><span class="chat__date">${new Date(message.timestamp).toLocaleDateString()}</span></div>
         <p class="chatMessage ${isReceived ? 'frnd-chat' : 'my-chat'}">
             <span>${message.text}</span>
             <span class="chat__msg-filler"> </span>
@@ -107,7 +146,8 @@ function addMessageToChat(message) {
             </span>
         </p>
     `);
-    $('#chat-messages').append(messageElement);
+    $('.chatBox').append(messageElement);
+    $('.chatBox').scrollTop($('.chatBox')[0].scrollHeight);
 }
 
 function updateMessageStatus(status) {
@@ -174,3 +214,8 @@ $(document).ready(function() {
 });
 
 window.addEventListener('beforeunload', saveConversations);
+
+function openRightSide() {
+    $('#rightSide').show();
+    $('#Intro-Left').hide();
+}
