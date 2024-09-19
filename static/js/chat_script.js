@@ -102,6 +102,7 @@ function selectContact(contact) {
     
     currentContact = contact;
     updateChatWindow();
+    openRightSide(); // Ensure the right side panel is opened
 }
 
 function updateChatWindow() {
