@@ -29,7 +29,7 @@ templates = Jinja2Templates(directory="templates")
 wa = WhatsApp(
     phone_id="347058841835061",
     token=
-    "EAAOxaNntzsEBO36pkDY4rgkQYIW5vSmMUOZAHx1h2ZBGkgwe9TerLdYGdaQn8POhvq6ioGjYyQgRg1M0gRgxYAwlMYeb9Jul8G4WfaXMCwL87DABwgW7BZCSM9bHlJBgKDwT6qujgVK9Ev2U6juzeZBcrUkn27DeafwOz6ZBYQMnfUXZCEp7RzYpz3kumiiKVZBMlJhA35nwI0I6rGwwRcnbRKKjtAZD",
+    "EAAOxaNntzsEBOz1tBYmDmuZBs0ZA7ZA9wbIayW8F5m4YYJZBM76MCjiX9etMLl4dgIl4ZCJDfuahUXFjuGYEcvOTl5i0ki0Qb8k6nw3VqnfBPpTypQ32OfBXKKbZAGNtMMCydNwtUlp37xDbP0G0jfCKUNQiTLICxG7wUnMGzKDrX4ZAmTgeSDOi9ZAoAqwNm1kvCgZCk0Imgv8feZAD8ZBS2obSjBt87ZBl",
     server=fastapi_app,
     callback_url=
     "https://49ae544d-ebdc-4b20-9445-aa092113c69a-00-1cr1zoiat6wtd.sisko.replit.dev",

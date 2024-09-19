@@ -101,98 +101,37 @@ function selectContact(contact) {
     $(`.chat-list[data-contact="${contact}"]`).addClass('active');
     
     currentContact = contact;
-    
-    // Update header
-    $('.rightSide .header .imgText h4').text(contact);
-    $('.rightSide .header .imgText span').text('online'); // You might want to make this dynamic
-    $('.rightSide .header .imgText img').attr('src', `{{ url_for('static', path='/images/Avatar-1.png') }}`);
-    
-    // Show right side and hide intro
-    $('#rightSide').show();
-    $('#Intro-Left').hide();
-    
-    // Reset message input
-    $('#message-input').val('').attr('placeholder', `Type a message to ${contact}`);
-    
-    // Update chat
-    updateChat();
+    updateChatWindow();
 }
 
-function updateChat() {
-    console.log("Updating chat for contact:", currentContact);
-    const chatBox = $('.chatBox');
-    if (chatBox.length === 0) {
-        console.error("Chat box not found");
-        return;
-    }
-    chatBox.empty();
-    if (conversations[currentContact]) {
-        conversations[currentContact].forEach(addMessageToChat);
-    }
-    chatBox.scrollTop(chatBox[0].scrollHeight);
-
-    // Fetch new messages from the server
-    $.get(`/get_messages/${currentContact}`, function(data) {
-        data.messages.forEach(function(msg) {
-            if (!conversations[currentContact]) {
-                conversations[currentContact] = [];
-            }
-            if (!conversations[currentContact].some(m => m.id === msg.id)) {
-                conversations[currentContact].push(msg);
-                addMessageToChat(msg);
-            }
+function updateChatWindow() {
+    const chatWindow = $('.chat-window');
+    chatWindow.empty();
+    
+    if (currentContact && conversations[currentContact]) {
+        conversations[currentContact].forEach(message => {
+            addMessageToChat(message);
         });
-        saveConversations();
-    });
+    }
 }
 
 function addMessageToChat(message) {
-    console.log("Adding message to chat:", message);
-    const isReceived = message.from !== BUSINESS_PHONE_NUMBER_ID;
+    const chatWindow = $('.chat-window');
     const messageElement = $(`
-        <div class="chat__date-wrapper"><span class="chat__date">${new Date(message.timestamp).toLocaleDateString()}</span></div>
-        <p class="chatMessage ${isReceived ? 'frnd-chat' : 'my-chat'}">
-            <span>${message.text}</span>
-            <span class="chat__msg-filler"> </span>
-            <span class="msg-footer">
-                <span>${new Date(message.timestamp).toLocaleTimeString()}</span>
-                ${!isReceived ? `<div class="message-status status-${message.status || 'sent'}"></div>` : ''}
-            </span>
-        </p>
+        <div class="message">
+            <div class="message-content">
+                <p>${message.text}</p>
+            </div>
+        </div>
     `);
-    $('.chatBox').append(messageElement);
-    $('.chatBox').scrollTop($('.chatBox')[0].scrollHeight);
+    chatWindow.append(messageElement);
+    chatWindow.scrollTop(chatWindow.prop("scrollHeight"));
 }
-
-function updateMessageStatus(status) {
-    console.log("Updating message status:", status);
-    if (conversations[currentContact]) {
-        const message = conversations[currentContact].find(m => m.id === status.id);
-        if (message) {
-            message.status = status.status;
-            $(`.message[data-message-id="${status.id}"] .message-status`)
-                .removeClass()
-                .addClass(`message-status status-${status.status.toLowerCase()}`);
-            saveConversations();
-        }
-    }
-}
-
-$('#send-button').click(debounce(sendMessage, 300));
-
-$('#message-input').keypress(function(e) {
-    if(e.which == 13) {
-        console.log("Enter key pressed in message input");
-        e.preventDefault();
-        debounce(sendMessage, 300)();
-    }
-});
 
 function sendMessage() {
-    console.log("sendMessage function called");
-    const messageInput = document.getElementById('message-input');
+    const messageInput = document.querySelector('.send-message');
     const message = messageInput.value.trim();
-
+    
     if (message === '') {
         console.log("Message is empty, not sending");
         return;
@@ -236,6 +175,19 @@ function sendMessage() {
 $(document).ready(function() {
     console.log("Document ready, loading conversations");
     loadConversations();
+
+    // Add event listener for image upload button
+    $('#uploadImageButton').on('click', function() {
+        $('#imageInput').click();
+    });
+
+    // Handle image input change
+    $('#imageInput').on('change', function() {
+        const file = this.files[0];
+        if (file) {
+            uploadImage(file);
+        }
+    });
 });
 
 window.addEventListener('beforeunload', saveConversations);
@@ -292,5 +244,45 @@ function sendAutomatedResponse(to) {
         }
     }).fail(function(jqXHR, textStatus, errorThrown) {
         console.error('Error sending automated response:', textStatus, errorThrown);
+    });
+}
+
+function uploadImage(file) {
+    const formData = new FormData();
+    formData.append('to', currentContact);
+    formData.append('image', file);
+
+    $.ajax({
+        url: '/send_image',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.success) {
+                console.log("Image sent successfully:", response);
+                const newMessage = {
+                    id: response.message_id,
+                    from: BUSINESS_PHONE_NUMBER_ID,
+                    to: currentContact,
+                    text: 'Image',
+                    timestamp: new Date().toISOString(),
+                    status: 'sent',
+                    image_url: response.image_url
+                };
+                if (!conversations[currentContact]) {
+                    conversations[currentContact] = [];
+                }
+                conversations[currentContact].push(newMessage);
+                addMessageToChat(newMessage);
+                updateContactList();
+                saveConversations();
+            } else {
+                console.error('Failed to send image:', response.error);
+            }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error('Error sending image:', textStatus, errorThrown);
+        }
     });
 }
