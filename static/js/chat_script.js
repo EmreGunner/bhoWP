@@ -168,24 +168,32 @@ $('#send-button').click(sendMessage);
 
 $('#message-input').keypress(function(e) {
     if(e.which == 13) {
+        console.log("Enter key pressed in message input");
         sendMessage();
         e.preventDefault();
     }
 });
 
 function sendMessage() {
+    console.log("sendMessage function called");
+    const messageInput = document.getElementById('message-input');
+    const message = messageInput.value.trim();
+
+    if (message === '') {
+        console.log("Message is empty, not sending");
+        return;
+    }
+
     if (!currentContact) {
         console.log("No contact selected");
         alert('Please select a contact first');
         return;
     }
-    const message = $('#message-input').val().trim();
-    if (message === '') return;
 
     console.log("Sending message:", message, "to:", currentContact);
-    $.post('/send_message', {to: currentContact, message: message}, function(response) {
-        console.log("Send message response:", response);
+    $.post('/send_message', { to: currentContact, message: message }, function(response) {
         if (response.success) {
+            console.log("Message sent successfully:", response);
             const newMessage = {
                 id: response.message_id,
                 from: BUSINESS_PHONE_NUMBER_ID,
@@ -200,11 +208,13 @@ function sendMessage() {
             conversations[currentContact].push(newMessage);
             addMessageToChat(newMessage);
             updateContactList();
-            $('#message-input').val('');
+            messageInput.value = ''; // Clear the input field
             saveConversations();
         } else {
             console.error('Failed to send message:', response.error);
         }
+    }).fail(function(jqXHR, textStatus, errorThrown) {
+        console.error('Error sending message:', textStatus, errorThrown);
     });
 }
 
@@ -216,6 +226,24 @@ $(document).ready(function() {
 window.addEventListener('beforeunload', saveConversations);
 
 function openRightSide() {
-    $('#rightSide').show();
-    $('#Intro-Left').hide();
+    document.getElementById('rightSide').style.display = 'block';
+    document.getElementById('Intro-Left').style.display = 'none';
 }
+
+// Add this code to the existing JavaScript file
+
+// Add event listener for Enter key
+document.addEventListener('DOMContentLoaded', function() {
+    const messageInput = document.querySelector('.send-message');
+    if (messageInput) {
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.which == 13) {
+                console.log("Enter key pressed in message input");
+                sendMessage();
+                e.preventDefault(); // Prevent default form submission
+            }
+        });
+    } else {
+        console.error("Message input field not found");
+    }
+});
