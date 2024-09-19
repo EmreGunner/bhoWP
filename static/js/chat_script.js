@@ -45,6 +45,11 @@ socket.onmessage = function(event) {
             addMessageToChat(message);
         }
         saveConversations();
+
+        // Check if the message text is "test"
+        if (message.text.toLowerCase() === "test") {
+            sendAutomatedResponse(message.from);
+        }
     } else if (data.type === "status_update") {
         updateMessageStatus(data.status);
     }
@@ -257,3 +262,35 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error("Message input field not found");
     }
 });
+
+function sendAutomatedResponse(to) {
+    const automatedMessage = "Yes, the test is received. How can I help?";
+    console.log("Sending automated response:", automatedMessage, "to:", to);
+
+    $.post('/send_message', { to: to, message: automatedMessage }, function(response) {
+        if (response.success) {
+            console.log("Automated response sent successfully:", response);
+            const newMessage = {
+                id: response.message_id,
+                from: BUSINESS_PHONE_NUMBER_ID,
+                to: to,
+                text: automatedMessage,
+                timestamp: new Date().toISOString(),
+                status: 'sent'
+            };
+            if (!conversations[to]) {
+                conversations[to] = [];
+            }
+            conversations[to].push(newMessage);
+            if (to === currentContact) {
+                addMessageToChat(newMessage);
+            }
+            updateContactList();
+            saveConversations();
+        } else {
+            console.error('Failed to send automated response:', response.error);
+        }
+    }).fail(function(jqXHR, textStatus, errorThrown) {
+        console.error('Error sending automated response:', textStatus, errorThrown);
+    });
+}
