@@ -3,6 +3,15 @@ let currentContact = null;
 let socket = new WebSocket("wss://" + window.location.host + "/ws");
 let conversations = {};
 
+// Debounce function to prevent multiple calls
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
 function loadConversations() {
     const savedConversations = localStorage.getItem('conversations');
     if (savedConversations) {
@@ -164,13 +173,13 @@ function updateMessageStatus(status) {
     }
 }
 
-$('#send-button').click(sendMessage);
+$('#send-button').click(debounce(sendMessage, 300));
 
 $('#message-input').keypress(function(e) {
     if(e.which == 13) {
         console.log("Enter key pressed in message input");
-        sendMessage();
         e.preventDefault();
+        debounce(sendMessage, 300)();
     }
 });
 
@@ -191,6 +200,8 @@ function sendMessage() {
     }
 
     console.log("Sending message:", message, "to:", currentContact);
+    messageInput.value = ''; // Clear the input field immediately
+
     $.post('/send_message', { to: currentContact, message: message }, function(response) {
         if (response.success) {
             console.log("Message sent successfully:", response);
@@ -208,7 +219,6 @@ function sendMessage() {
             conversations[currentContact].push(newMessage);
             addMessageToChat(newMessage);
             updateContactList();
-            messageInput.value = ''; // Clear the input field
             saveConversations();
         } else {
             console.error('Failed to send message:', response.error);
@@ -239,8 +249,8 @@ document.addEventListener('DOMContentLoaded', function() {
         messageInput.addEventListener('keypress', function(e) {
             if (e.which == 13) {
                 console.log("Enter key pressed in message input");
-                sendMessage();
-                e.preventDefault(); // Prevent default form submission
+                e.preventDefault();
+                debounce(sendMessage, 300)();
             }
         });
     } else {
