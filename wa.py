@@ -55,6 +55,8 @@ fastapi_app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 # Ensure the uploads directory exists
 os.makedirs("uploads", exist_ok=True)
 
+# Add this global variable
+connected_clients = set()
 
 # Update the webhook verification endpoint
 @fastapi_app.get("/")
@@ -478,8 +480,6 @@ def send_welcome_message(client: WhatsApp, from_id: str, text: str):
                      exc_info=True)
 
 
-# Add this global variable
-connected_clients = set()
 
 
 # Update the WebSocket endpoint
@@ -582,10 +582,9 @@ async def global_exception_handler(request, exc):
 
 
 # If you want to use Handler objects instead of decorators, you can do:
-# from pywa.handlers import MessageHandler, CallbackButtonHandler
-# wa.add_handlers(
-#     MessageHandler(hello, filters.matches("Hello", "Hi")),
-#     CallbackButtonHandler(click_me, filters.startswith("id"))
+#from pywa.handlers import MessageHandler, CallbackButtonHandler
+#wa.add_handlers(MessageHandler(hello, filters.matches("Hello", "Hi")),
+#    CallbackButtonHandler(click_me, filters.startswith("id"))
 # )
 
 
@@ -627,3 +626,7 @@ async def send_image(to: str = Form(...), image: UploadFile = File(...)):
             "error": str(e)
         },
                             status_code=500)
+
+@wa.on_message(filters.regex(r"(?i)^(hello|hi|hey)$"))
+def handle_greeting(client: WhatsApp, message: Message):
+    client.send_message(to=message.from_user.wa_id, text="Hello! How can I help you today?")
