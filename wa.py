@@ -9,6 +9,7 @@ from fastapi.websockets import WebSocketDisconnect
 import datetime
 import asyncio
 import json
+from pywa import errors as pywa_errors
 import os
 
 # Set up logging
@@ -54,9 +55,6 @@ os.makedirs("uploads", exist_ok=True)
 
 # Add this global variable
 connected_clients = set()
-
-# Add this global variable to track processed message IDs
-processed_message_ids = set()
 
 # Update the webhook verification endpoint
 @fastapi_app.get("/")
@@ -170,7 +168,7 @@ async def get_messages_for_contact(contact_id: str):
     return JSONResponse(content={"messages": conversations[contact_id]})
 
 @wa.on_raw_update()
-async def handle_raw_update(client: WhatsApp, update: dict):
+def handle_raw_update(client: WhatsApp, update: dict):
     logger.info(f"Received raw update: {update}")
     try:
         if 'entry' in update and len(update['entry']) > 0:
@@ -200,7 +198,7 @@ async def handle_raw_update(client: WhatsApp, update: dict):
                                 }
                                 if from_id not in conversations:
                                     conversations[from_id] = []
-                                    await send_welcome_message(client, from_id, text)
+                                    send_welcome_message(client, from_id, text)
                                 conversations[from_id].append(new_message)
                                 asyncio.create_task(
                                     broadcast_message(
@@ -221,6 +219,8 @@ async def handle_raw_update(client: WhatsApp, update: dict):
                                     })
                                 )
                             )
+    except pywa_errors.ValidationError as e:
+        logger.error(f"Validation error in handle_raw_update: {e}")
     except KeyError as e:
         logger.error(f"Key error in handle_raw_update: {e}")
     except Exception as e:
@@ -356,3 +356,23 @@ async def send_image(to: str = Form(...), image: UploadFile = File(...)):
             "success": False,
             "error": str(e)
         }, status_code=500)
+
+
+
+
+# Update the WebSocket endpoint
+@fastapi_app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    connected_clients.add(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            logger.info(f"Received WebSocket message: {data}")
+            await broadcast_message(data)
+    except WebSocketDisconnect:
+        logger.info("WebSocket disconnected")
+    except Exception as e:
+        logger.error(f"Unexpected WebSocket error: {e}", exc_info=True)
+    finally:
+        connected_clients.remove(websocket)
