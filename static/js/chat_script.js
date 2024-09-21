@@ -245,7 +245,8 @@ function sendMessage() {
 
 let isUploading = false;
 
-document.addEventListener('DOMContentLoaded', function() {
+function initializeImageUpload() {
+    console.log("Initializing image upload");
     let imageUploadButton = document.querySelector('#image-upload');
     if (!imageUploadButton) {
         imageUploadButton = document.createElement('input');
@@ -258,25 +259,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const photosVideosButton = document.querySelector('.popopIcons[title="Photos & Videos"]');
     if (photosVideosButton) {
-        // Remove any existing click event listeners
-        photosVideosButton.removeEventListener('click', photosVideosClickHandler);
+        // Remove all existing click event listeners
+        const newButton = photosVideosButton.cloneNode(true);
+        photosVideosButton.parentNode.replaceChild(newButton, photosVideosButton);
+        
         // Add a new click event listener
-        photosVideosButton.addEventListener('click', photosVideosClickHandler);
+        newButton.addEventListener('click', photosVideosClickHandler);
     } else {
         console.error('Photos & Videos button not found');
     }
 
-    // Remove any existing change event listeners
-    imageUploadButton.removeEventListener('change', imageUploadHandler);
+    // Remove all existing change event listeners
+    const newImageUploadButton = imageUploadButton.cloneNode(true);
+    imageUploadButton.parentNode.replaceChild(newImageUploadButton, imageUploadButton);
+    
     // Add a new change event listener
-    imageUploadButton.addEventListener('change', imageUploadHandler);
+    newImageUploadButton.addEventListener('change', imageUploadHandler);
 
     // Remove the onclick attribute from the SVG element
     const svgElement = document.querySelector('svg[viewBox="0 0 53 53"]');
     if (svgElement) {
         svgElement.removeAttribute('onclick');
     }
-});
+}
 
 function photosVideosClickHandler(e) {
     e.preventDefault();
@@ -298,6 +303,9 @@ function imageUploadHandler() {
         });
     }
 }
+
+// Call initializeImageUpload when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', initializeImageUpload);
 
 function sendImage(imageFile) {
     return new Promise((resolve, reject) => {
