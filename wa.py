@@ -30,7 +30,7 @@ templates = Jinja2Templates(directory="templates")
 wa = WhatsApp(
     phone_id="347058841835061",
     token=
-    "EAAOxaNntzsEBO9vWIZB1bVjSzEIfRTMUCYVpW5ZBh5Y4knub62AJwZBTPzkRfvZCQ4nuk1lcdhPx1QUYoREeioQMr2EpZCDIpVyo0jTM3yact4ans28bvamg1WRaBobNUbjAM64bd3x1qsDKV8wTGhgXzZCEoBzu7vJdZA3zqTBink0oU5vY6JwlxzZCRzGeTVtoCEnlD5ZBEDwHtKkZCFwztf1PZANODoZD",
+    "EAAOxaNntzsEBO6me6ZB06mZAoZC8giOonU7ZCo5vEhUYQl0Cykbak616s99ZBi2ZClDHZB9qc6TRYLmuueZBKUUUH6wQ8crVeVC5HyB6ZALhpzoAQc080uCtOw1G5GcaZCs4uCv0aK2B0hKZBiVUyZAsLgaksMZATXPlY9Ro3N1FOZBjc68OOMPF0qKr56AGdR1kotDdqVfvb9fHbw8HMZCioqGAcZC07I6D1SQZD",
     server=fastapi_app,
     callback_url=
     "https://49ae544d-ebdc-4b20-9445-aa092113c69a-00-1cr1zoiat6wtd.sisko.replit.dev",
@@ -69,7 +69,7 @@ class ButtonAction(CallbackData):
 def send_message_with_buttons(client: WhatsApp, to: str):
     # Step 3: Define the buttons with their respective actions
     buttons = [
-        Button(title="Ürünleri Göster", callback_data=ButtonAction(action="option", value="1")),
+        Button(title="Ürünleri Göster", callback_data=ButtonAction(action="option", value="1", image="1.jpeg")),
         Button(title="Option 2", callback_data=ButtonAction(action="option", value="2")),
         Button(title="Help", callback_data=ButtonAction(action="help", value="general"))
     ]
