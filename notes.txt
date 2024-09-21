@@ -1,0 +1,20 @@
+#send image
+def send_image(client: WhatsApp, to: str, image_file: str, image_caption: str):
+        # Path to the image file
+        image_path = os.path.join("uploads", image_file)
+        
+        # Check if the file exists
+        if os.path.exists(image_path):
+            try:
+                # Send the image
+                client.send_image(
+                    to=to,
+                    image=image_path,
+                    caption=image_caption
+                )
+                logger.info(f"Image sent successfully: {image_file}")
+            except Exception as e:
+                logger.error(f"Error sending image: {e}")
+                client.send_message(to=message.from_user.wa_id, text="Sorry, there was an error sending the image.")
+        else:
+            client.send_message(to=message.from_user.wa_id, text="Sorry, the requested image is not available.")

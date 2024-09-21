@@ -65,6 +65,12 @@ class ButtonAction(CallbackData):
     value: str
     image: str = None  # Add this line
 
+@dataclass(frozen=True, slots=True)
+class ProductAction(CallbackData):
+    action: str
+    product_id: str
+
+
 # Step 2: Create a function to send a message with buttons
 def send_message_with_buttons(client: WhatsApp, to: str):
     # Step 3: Define the buttons with their respective actions
@@ -88,7 +94,7 @@ def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
     if btn.data.action == "option":
         if btn.data.value == "1":
             if btn.data.image:
-                send_imagefile(client, btn.from_user.wa_id, btn.data.image, "Here's the image you requested.")
+                send_image_button(client, btn.from_user.wa_id, btn.data.image, "Here's the image you requested.")
             else:
                 response = "You selected Option 1"
                 client.send_message(to=btn.from_user.wa_id, text=response)
@@ -694,19 +700,30 @@ def handle_message(client: WhatsApp, message: Message):
     elif lower_text == "menu":
         send_message_with_buttons(client, message.from_user.wa_id)
 
-def send_imagefile(client: WhatsApp, to: str, image_file: str, image_caption: str):
+def send_image_button(client: WhatsApp, to: str, image_file: str, image_caption: str):
         # Path to the image file
         image_path = os.path.join("uploads", image_file)
-        
+        button = Button(
+                title="Choose This Product",
+                callback_data=ProductAction(action="choose_product", product_id=product_id)
+            )
         # Check if the file exists
         if os.path.exists(image_path):
             try:
+                # Create the button
+                button = Button(
+                title="Choose This Product",
+                callback_data=ProductAction(action="choose_product", product_id=product_id)
+                 )
                 # Send the image
                 client.send_image(
                     to=to,
                     image=image_path,
-                    caption=image_caption
+                    caption=image_caption,
+                    buttons=[button]
                 )
+               
+
                 logger.info(f"Image sent successfully: {image_file}")
             except Exception as e:
                 logger.error(f"Error sending image: {e}")
