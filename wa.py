@@ -104,7 +104,7 @@ def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
 def handle_message(client: WhatsApp, message: Message):
     if message.text.lower() == "menu":
         send_message_with_buttons(client, message.from_user.wa_id)
-        
+
 # Update the webhook verification endpoint
 @fastapi_app.get("/")
 async def root(request: Request):
@@ -684,3 +684,23 @@ def handle_message(client: WhatsApp, message: Message):
     lower_text = message.text.lower()
     if lower_text in automated_responses:
         client.send_message(to=message.from_user.wa_id, text=automated_responses[lower_text])
+    elif lower_text == "image":
+        # Path to the image file
+        image_path = os.path.join("uploads", "cards.jpeg")
+        
+        # Check if the file exists
+        if os.path.exists(image_path):
+            try:
+                # Send the image
+                client.send_image(
+                    to=message.from_user.wa_id,
+                    image=image_path,
+                    caption="Here's the Speaking Cards 2 - General Questions image you requested."
+                )
+            except Exception as e:
+                logger.error(f"Error sending image: {e}")
+                client.send_message(to=message.from_user.wa_id, text="Sorry, there was an error sending the image.")
+        else:
+            client.send_message(to=message.from_user.wa_id, text="Sorry, the requested image is not available.")
+    elif lower_text == "menu":
+        send_message_with_buttons(client, message.from_user.wa_id)
