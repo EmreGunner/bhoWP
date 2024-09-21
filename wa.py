@@ -703,7 +703,7 @@ def send_imagefile(client: WhatsApp, to: str, image_file: str, image_caption: st
             try:
                 # Send the image
                 client.send_image(
-                    to=message.from_user.wa_id,
+                    to=to,
                     image=image_path,
                     caption=image_caption
                 )
