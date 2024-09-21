@@ -29,7 +29,7 @@ templates = Jinja2Templates(directory="templates")
 wa = WhatsApp(
     phone_id="347058841835061",
     token=
-    "EAAOxaNntzsEBOz1tBYmDmuZBs0ZA7ZA9wbIayW8F5m4YYJZBM76MCjiX9etMLl4dgIl4ZCJDfuahUXFjuGYEcvOTl5i0ki0Qb8k6nw3VqnfBPpTypQ32OfBXKKbZAGNtMMCydNwtUlp37xDbP0G0jfCKUNQiTLICxG7wUnMGzKDrX4ZAmTgeSDOi9ZAoAqwNm1kvCgZCk0Imgv8feZAD8ZBS2obSjBt87ZBl",
+    "EAAOxaNntzsEBO7x8dy5IQ9UQtGBKep9AQZCxZBzxgM5HKwAmNbmWO27YSL3ZBFKdhBWoUbZB47ZCDkIbYek1vb1F9DQ4l3WHoDZAyLJ1HcZBMl1dZBhZAwZB6mHKIAzTP39DqQE5oZBEWiniedqp9wYl5WuZCWZBelD2ramrxYspx6grXJtYtEC1Y4mGZC1cNjooOmMc1Tj2TCBBTqXZC8sDt2wZBySTfCyZADRoZD",
     server=fastapi_app,
     callback_url=
     "https://49ae544d-ebdc-4b20-9445-aa092113c69a-00-1cr1zoiat6wtd.sisko.replit.dev",
@@ -48,7 +48,6 @@ contacts = [{"number": "+905330475085", "name": "Default Contact"}]
 # Create a dictionary to store conversations
 conversations = {}
 
-
 # Add this near the top of the file, after the FastAPI app initialization
 fastapi_app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
@@ -57,6 +56,7 @@ os.makedirs("uploads", exist_ok=True)
 
 # Add this global variable
 connected_clients = set()
+
 
 # Update the webhook verification endpoint
 @fastapi_app.get("/")
@@ -289,8 +289,6 @@ def handle_chat_opened(client: WhatsApp, chat: ChatOpened):
         print(f"Error in handle_chat_opened: {e}")
 
 
-
-
 # Update the get_contacts route
 @fastapi_app.get("/get_contacts")
 async def get_contacts():
@@ -316,7 +314,6 @@ async def get_messages_for_contact(contact_id: str):
         f"Returning messages for contact {contact_id}: {conversations[contact_id]}"
     )
     return JSONResponse(content={"messages": conversations[contact_id]})
-
 
 
 # Modify the get_messages_for_contact route
@@ -480,8 +477,6 @@ def send_welcome_message(client: WhatsApp, from_id: str, text: str):
                      exc_info=True)
 
 
-
-
 # Update the WebSocket endpoint
 @fastapi_app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -627,6 +622,8 @@ async def send_image(to: str = Form(...), image: UploadFile = File(...)):
         },
                             status_code=500)
 
+
 @wa.on_message(filters.regex(r"(?i)^(hello|hi|hey)$"))
 def handle_greeting(client: WhatsApp, message: Message):
-    client.send_message(to=message.from_user.wa_id, text="Hello! How can I help you today?")
+    client.send_message(to=message.from_user.wa_id,
+                        text="Hello! How can I help you today?")
