@@ -65,10 +65,6 @@ class ButtonAction(CallbackData):
     value: str
     image: str = None  # Add this line
 
-@dataclass(frozen=True, slots=True)
-class ProductAction(CallbackData):
-    action: str
-    product_id: str
 
 
 # Step 2: Create a function to send a message with buttons
