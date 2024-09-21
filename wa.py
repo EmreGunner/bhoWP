@@ -63,6 +63,7 @@ connected_clients = set()
 class ButtonAction(CallbackData):
     action: str
     value: str
+    image: str = None  # Add this line
 
 # Step 2: Create a function to send a message with buttons
 def send_message_with_buttons(client: WhatsApp, to: str):
@@ -86,7 +87,12 @@ def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
     # Step 6: Handle different button actions
     if btn.data.action == "option":
         if btn.data.value == "1":
-            response = "You selected Option 1"
+            if btn.data.image:
+                send_imagefile(client, btn.from_user.wa_id, btn.data.image, "Here's the image you requested.")
+            else:
+                response = "You selected Option 1"
+                client.send_message(to=btn.from_user.wa_id, text=response)
+            
         elif btn.data.value == "2":
             response = "You selected Option 2"
         else:
