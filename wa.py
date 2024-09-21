@@ -4,12 +4,13 @@ from fastapi.responses import PlainTextResponse, JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pywa import WhatsApp, filters
-from pywa.types import Message, CallbackButton, CallbackSelection, FlowCompletion, MessageStatus, TemplateStatus, ChatOpened, Button, MessageStatusType
+from pywa.types import Message, Button, CallbackButton, CallbackData, CallbackSelection, FlowCompletion, MessageStatus, TemplateStatus, ChatOpened, Button, MessageStatusType
 from fastapi.websockets import WebSocketDisconnect
 import datetime
 import asyncio
 import json
 from pywa import errors as pywa_errors
+from dataclasses import dataclass
 import os
 
 # Set up logging
@@ -459,23 +460,23 @@ def handle_raw_update(client: WhatsApp, update: dict):
 
 # Update the send_welcome_message function with better error handling
 #defaultMessage
-def send_welcome_message(client: WhatsApp, from_id: str, text: str):
-    logger.info(f"Sending welcome message to {from_id}")
-    try:
-        response = client.send_message(
-            to=from_id, text="Welcome! How can I assist you today?")
-        logger.info(f"Sent welcome response: {response}")
-    except pywa_errors.AuthorizationError as e:
-        logger.error(f"Authorization error in send_welcome_message: {e}")
-    except pywa_errors.ThrottlingError as e:
-        logger.error(f"Throttling error in send_welcome_message: {e}")
-    except pywa_errors.SendMessageError as e:
-        logger.error(f"Send message error in send_welcome_message: {e}")
-    except pywa_errors.WhatsAppError as e:
-        logger.error(f"WhatsApp error in send_welcome_message: {e}")
-    except Exception as e:
-        logger.error(f"Unexpected error in send_welcome_message: {e}",
-                     exc_info=True)
+#def send_welcome_message(client: WhatsApp, from_id: str, text: str):
+#    logger.info(f"Sending welcome message to {from_id}")
+#    try:
+#        response = client.send_message(
+#            to=from_id, text="Welcome! How can I assist you today?")
+#        logger.info(f"Sent welcome response: {response}")
+#    except pywa_errors.AuthorizationError as e:
+#        logger.error(f"Authorization error in send_welcome_message: {e}")
+#    except pywa_errors.ThrottlingError as e:
+#        logger.error(f"Throttling error in send_welcome_message: {e}")
+#    except pywa_errors.SendMessageError as e:
+#        logger.error(f"Send message error in send_welcome_message: {e}")
+#    except pywa_errors.WhatsAppError as e:
+#        logger.error(f"WhatsApp error in send_welcome_message: {e}")
+#    except Exception as e:
+#        logger.error(f"Unexpected error in send_welcome_message: {e}",
+#                     exc_info=True)
 
 
 # Update the WebSocket endpoint
@@ -629,7 +630,7 @@ async def send_image(to: str = Form(...), image: UploadFile = File(...)):
 def handle_message(client: WhatsApp, message: Message):
     automated_responses = {
         "test": "test1",
-        "hello": "Hello! How can I assist you today?",
+        "Merhaba": "Merhaba! ,  nasıl yardımcı olabilirim?",
         "help": "Sure, I'd be happy to help. What do you need assistance with?",
         # Add more automated responses here
     }
