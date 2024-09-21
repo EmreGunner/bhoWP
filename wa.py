@@ -68,7 +68,7 @@ class ButtonAction(CallbackData):
 def send_message_with_buttons(client: WhatsApp, to: str):
     # Step 3: Define the buttons with their respective actions
     buttons = [
-        Button(title="Option 1", callback_data=ButtonAction(action="option", value="1")),
+        Button(title="Ürünleri Göster", callback_data=ButtonAction(action="option", value="1")),
         Button(title="Option 2", callback_data=ButtonAction(action="option", value="2")),
         Button(title="Help", callback_data=ButtonAction(action="help", value="general"))
     ]
@@ -684,9 +684,13 @@ def handle_message(client: WhatsApp, message: Message):
     lower_text = message.text.lower()
     if lower_text in automated_responses:
         client.send_message(to=message.from_user.wa_id, text=automated_responses[lower_text])
-    elif lower_text == "image":
+    
+    elif lower_text == "menu":
+        send_message_with_buttons(client, message.from_user.wa_id)
+
+def send_imagefile(client: WhatsApp, to: str, image_file: str, image_caption: str):
         # Path to the image file
-        image_path = os.path.join("uploads", "cards.jpeg")
+        image_path = os.path.join("uploads", image_file)
         
         # Check if the file exists
         if os.path.exists(image_path):
@@ -695,12 +699,11 @@ def handle_message(client: WhatsApp, message: Message):
                 client.send_image(
                     to=message.from_user.wa_id,
                     image=image_path,
-                    caption="Here's the Speaking Cards 2 - General Questions image you requested."
+                    caption=image_caption
                 )
+                logger.info(f"Image sent successfully: {image_file}")
             except Exception as e:
                 logger.error(f"Error sending image: {e}")
                 client.send_message(to=message.from_user.wa_id, text="Sorry, there was an error sending the image.")
         else:
             client.send_message(to=message.from_user.wa_id, text="Sorry, the requested image is not available.")
-    elif lower_text == "menu":
-        send_message_with_buttons(client, message.from_user.wa_id)
