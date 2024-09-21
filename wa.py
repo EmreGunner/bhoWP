@@ -458,6 +458,7 @@ def handle_raw_update(client: WhatsApp, update: dict):
 
 
 # Update the send_welcome_message function with better error handling
+#defaultMessage
 def send_welcome_message(client: WhatsApp, from_id: str, text: str):
     logger.info(f"Sending welcome message to {from_id}")
     try:
@@ -583,14 +584,14 @@ async def global_exception_handler(request, exc):
 # )
 
 
-def send_welcome_message(client: WhatsApp, from_id: str, text: str):
-    logger.info(f"Sending welcome message to {from_id}")
-    try:
-        response = client.send_message(
-            to=from_id, text="Welcome! How can I assist you today?")
-        logger.info(f"Sent welcome response: {response}")
-    except Exception as e:
-        logger.error(f"Error in send_welcome_message: {e}", exc_info=True)
+#def send_welcome_message(client: WhatsApp, from_id: str, text: str):
+#    logger.info(f"Sending welcome message to {from_id}")
+#    try:
+#        response = client.send_message(
+#            to=from_id, text="Welcome! How can I assist you today?")
+#        logger.info(f"Sent welcome response: {response}")
+#    except Exception as e:
+#        logger.error(f"Error in send_welcome_message: {e}", exc_info=True)
 
 
 @fastapi_app.post("/send_image")
@@ -623,7 +624,16 @@ async def send_image(to: str = Form(...), image: UploadFile = File(...)):
                             status_code=500)
 
 
-@wa.on_message(filters.regex(r"(?i)^(hello|hi|hey)$"))
-def handle_greeting(client: WhatsApp, message: Message):
-    client.send_message(to=message.from_user.wa_id,
-                        text="Hello! How can I help you today?")
+# Or, if you prefer a more general approach:
+@wa.on_message()
+def handle_message(client: WhatsApp, message: Message):
+    automated_responses = {
+        "test": "test1",
+        "hello": "Hello! How can I assist you today?",
+        "help": "Sure, I'd be happy to help. What do you need assistance with?",
+        # Add more automated responses here
+    }
+    
+    lower_text = message.text.lower()
+    if lower_text in automated_responses:
+        client.send_message(to=message.from_user.wa_id, text=automated_responses[lower_text])
