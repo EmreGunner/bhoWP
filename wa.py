@@ -77,7 +77,7 @@ def send_message_with_buttons(client: WhatsApp, to: str):
     # Step 4: Send the message with buttons
     client.send_message(
         to=to,
-        text="Please choose an option:",
+        text="Lütfen bir seçenek seçiniz:",
         buttons=buttons
     )
 
