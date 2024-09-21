@@ -58,7 +58,53 @@ os.makedirs("uploads", exist_ok=True)
 # Add this global variable
 connected_clients = set()
 
+# Step 1: Define our custom CallbackData
+@dataclass(frozen=True, slots=True)
+class ButtonAction(CallbackData):
+    action: str
+    value: str
 
+# Step 2: Create a function to send a message with buttons
+def send_message_with_buttons(client: WhatsApp, to: str):
+    # Step 3: Define the buttons with their respective actions
+    buttons = [
+        Button(title="Option 1", callback_data=ButtonAction(action="option", value="1")),
+        Button(title="Option 2", callback_data=ButtonAction(action="option", value="2")),
+        Button(title="Help", callback_data=ButtonAction(action="help", value="general"))
+    ]
+
+    # Step 4: Send the message with buttons
+    client.send_message(
+        to=to,
+        text="Please choose an option:",
+        buttons=buttons
+    )
+
+# Step 5: Define the callback handler
+@wa.on_callback_button(factory=ButtonAction)
+def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
+    # Step 6: Handle different button actions
+    if btn.data.action == "option":
+        if btn.data.value == "1":
+            response = "You selected Option 1"
+        elif btn.data.value == "2":
+            response = "You selected Option 2"
+        else:
+            response = "Unknown option selected"
+    elif btn.data.action == "help":
+        response = "This is the help message"
+    else:
+        response = "Unknown action"
+
+    # Step 7: Send the response
+    client.send_message(to=btn.from_user.wa_id, text=response)
+
+# Step 8: Usage example
+@wa.on_message()
+def handle_message(client: WhatsApp, message: Message):
+    if message.text.lower() == "menu":
+        send_message_with_buttons(client, message.from_user.wa_id)
+        
 # Update the webhook verification endpoint
 @fastapi_app.get("/")
 async def root(request: Request):
