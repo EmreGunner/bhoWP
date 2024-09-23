@@ -658,7 +658,7 @@ async def global_exception_handler(request, exc):
 async def send_image(to: str = Form(...), image: UploadFile = File(...)):
     try:
         # Save the image
-        file_location = f"uploads/{image.filename}"
+        file_location = f"uploads/products/{image.filename}"
         with open(file_location, "wb+") as file_object:
             file_object.write(await image.read())
 
