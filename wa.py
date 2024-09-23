@@ -703,7 +703,7 @@ def handle_message(client: WhatsApp, message: Message):
 
 def send_image_button(client: WhatsApp, to: str, image_file: str, image_caption: str):
     # Path to the image file
-    image_path = os.path.join("uploads", image_file)
+    image_path = os.path.join("uploads/products/", image_file)
     # Create the button
     button = Button(
         title="Choose This Product",
