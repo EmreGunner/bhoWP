@@ -12,7 +12,7 @@ import json
 from pywa import errors as pywa_errors
 from dataclasses import dataclass
 import os
-
+#my
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -90,25 +90,27 @@ def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
     if btn.data.action == "option":
         if btn.data.value == "1":
             if btn.data.image:
-                 image_files = [f for f in os.listdir("uploads/products") if f.endswith(".jpeg")]
-                 for i, image_file in enumerate(image_files):
-                    send_image_button(client, btn.from_user.wa_id, image_file, "Here's the image you requested.")
-                
+                image_files = [f for f in os.listdir("uploads/products") if f.endswith(".jpeg")]
+                for i, image_file in enumerate(image_files):
+                    send_image_button(client, btn.from_user.wa_id, image_file, f"Here's the image you requested. Product ID: {i+1}")
             else:
                 response = "You selected Option 1"
                 client.send_message(to=btn.from_user.wa_id, text=response)
-            
         elif btn.data.value == "2":
             response = "You selected Option 2"
+            client.send_message(to=btn.from_user.wa_id, text=response)
         else:
             response = "Unknown option selected"
+            client.send_message(to=btn.from_user.wa_id, text=response)
     elif btn.data.action == "help":
         response = "This is the help message"
+        client.send_message(to=btn.from_user.wa_id, text=response)
+    elif btn.data.action == "choose_product":
+        response = f"You chose the product with ID: {btn.data.value}"
+        client.send_message(to=btn.from_user.wa_id, text=response)
     else:
         response = "Unknown action"
-
-    # Step 7: Send the response
-    client.send_message(to=btn.from_user.wa_id, text=response)
+        client.send_message(to=btn.from_user.wa_id, text=response)
 
 # Step 8: Usage example
 @wa.on_message()
@@ -700,29 +702,26 @@ def handle_message(client: WhatsApp, message: Message):
         send_message_with_buttons(client, message.from_user.wa_id)
 
 def send_image_button(client: WhatsApp, to: str, image_file: str, image_caption: str):
-        # Path to the image file
-        image_path = os.path.join("uploads", image_file)
-         # Create the button
-        button = Button(
-            title="Choose This Product",
-            callback_data=ButtonAction(action="choose_product",value=image_file)
-                )
-        # Check if the file exists
-        if os.path.exists(image_path):
-            try:
-               
-                # Send the image
-                client.send_image(
-                    to=to,
-                    image=image_path,
-                    caption=image_caption,
-                    buttons=[button]
-                )
-               
-
-                logger.info(f"Image sent successfully: {image_file}")
-            except Exception as e:
-                logger.error(f"Error sending image: {e}")
-                client.send_message(to=message.from_user.wa_id, text="Sorry, there was an error sending the image.")
-        else:
-            client.send_message(to=message.from_user.wa_id, text="Sorry, the requested image is not available.")
+    # Path to the image file
+    image_path = os.path.join("uploads", image_file)
+    # Create the button
+    button = Button(
+        title="Choose This Product",
+        callback_data=ButtonAction(action="choose_product", value=image_file)
+    )
+    # Check if the file exists
+    if os.path.exists(image_path):
+        try:
+            # Send the image
+            client.send_image(
+                to=to,
+                image=image_path,
+                caption=image_caption,
+                buttons=[button]
+            )
+            logger.info(f"Image sent successfully: {image_file}")
+        except Exception as e:
+            logger.error(f"Error sending image: {e}")
+            client.send_message(to=to, text="Sorry, there was an error sending the image.")
+    else:
+        client.send_message(to=to, text="Sorry, the requested image is not available.")
