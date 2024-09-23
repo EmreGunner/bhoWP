@@ -69,41 +69,48 @@ class ButtonAction(CallbackData):
 
 # Step 2: Create a function to send a message with buttons
 def send_message_with_buttons(client: WhatsApp, to: str):
-    # Step 3: Load all JPEG images from the 'uploads' directory
-    image_files = [f for f in os.listdir("uploads") if f.endswith(".jpeg")]
-
-    # Step 4: Define the buttons with their respective actions
+    # Step 3: Define the buttons with their respective actions
     buttons = [
-        Button(title=f"Image {i+1}", callback_data=ButtonAction(action="option", value=str(i+1), image=image_file))
-        for i, image_file in enumerate(image_files)
+        Button(title="Ürünleri Göster", callback_data=ButtonAction(action="option", value="1", image="1.jpeg")),
+        Button(title="Option 2", callback_data=ButtonAction(action="option", value="2")),
+        Button(title="Help", callback_data=ButtonAction(action="help", value="general"))
     ]
 
-    # Step 5: Send the message with buttons
+    # Step 4: Send the message with buttons
     client.send_message(
         to=to,
         text="Lütfen bir seçenek seçiniz:",
-        buttons=buttons[:3]  # Send only the first 3 buttons
+        buttons=buttons
     )
 
-# Step 6: Define the callback handler
+# Step 5: Define the callback handler
 @wa.on_callback_button(factory=ButtonAction)
 def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
-    # Step 7: Handle different button actions
+    # Step 6: Handle different button actions
     if btn.data.action == "option":
-        # Step 8: Load all JPEG images from the 'uploads' directory
-        image_files = [f for f in os.listdir("uploads") if f.endswith(".jpeg")]
-
-        # Step 9: Send all images one by one with buttons
-        for image_file in image_files:
-            send_image_button(client, btn.from_user.wa_id, image_file, "Here's the image you requested.")
+        if btn.data.value == "1":
+            if btn.data.image:
+                 image_files = [f for f in os.listdir("uploads/products") if f.endswith(".jpeg")]
+                 for i, image_file in enumerate(image_files):
+                    send_image_button(client, btn.from_user.wa_id, image_file, "Here's the image you requested.")
+                
+            else:
+                response = "You selected Option 1"
+                client.send_message(to=btn.from_user.wa_id, text=response)
+            
+        elif btn.data.value == "2":
+            response = "You selected Option 2"
+        else:
+            response = "Unknown option selected"
     elif btn.data.action == "help":
         response = "This is the help message"
-        client.send_message(to=btn.from_user.wa_id, text=response)
     else:
         response = "Unknown action"
-        client.send_message(to=btn.from_user.wa_id, text=response)
 
-# Step 10: Usage example
+    # Step 7: Send the response
+    client.send_message(to=btn.from_user.wa_id, text=response)
+
+# Step 8: Usage example
 @wa.on_message()
 def handle_message(client: WhatsApp, message: Message):
     if message.text.lower() == "menu":
@@ -693,26 +700,29 @@ def handle_message(client: WhatsApp, message: Message):
         send_message_with_buttons(client, message.from_user.wa_id)
 
 def send_image_button(client: WhatsApp, to: str, image_file: str, image_caption: str):
-    # Path to the image file
-    image_path = os.path.join("uploads", image_file)
-    # Create the button
-    button = Button(
-        title="Choose This Product",
-        callback_data=ButtonAction(action="choose_product", value=image_file)
-    )
-    # Check if the file exists
-    if os.path.exists(image_path):
-        try:
-            # Send the image
-            client.send_image(
-                to=to,
-                image=image_path,
-                caption=image_caption,
-                buttons=[button]
-            )
-            logger.info(f"Image sent successfully: {image_file}")
-        except Exception as e:
-            logger.error(f"Error sending image: {e}")
-            client.send_message(to=to, text="Sorry, there was an error sending the image.")
-    else:
-        client.send_message(to=to, text="Sorry, the requested image is not available.")
+        # Path to the image file
+        image_path = os.path.join("uploads", image_file)
+         # Create the button
+        button = Button(
+            title="Choose This Product",
+            callback_data=ButtonAction(action="choose_product",value=image_file)
+                )
+        # Check if the file exists
+        if os.path.exists(image_path):
+            try:
+               
+                # Send the image
+                client.send_image(
+                    to=to,
+                    image=image_path,
+                    caption=image_caption,
+                    buttons=[button]
+                )
+               
+
+                logger.info(f"Image sent successfully: {image_file}")
+            except Exception as e:
+                logger.error(f"Error sending image: {e}")
+                client.send_message(to=message.from_user.wa_id, text="Sorry, there was an error sending the image.")
+        else:
+            client.send_message(to=message.from_user.wa_id, text="Sorry, the requested image is not available.")
