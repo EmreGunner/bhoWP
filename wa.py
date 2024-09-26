@@ -12,6 +12,8 @@ import json
 from pywa import errors as pywa_errors
 from dataclasses import dataclass
 import os
+from airtable import Airtable
+
 #my
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -47,7 +49,7 @@ BUSINESS_PHONE_NUMBER_ID = "347058841835061"
 contacts = [{"number": "+905330475085", "name": "Default Contact"}]
 
 # Create a dictionary to store conversations
-conversations = {}
+conversations = {}z
 
 # Add this near the top of the file, after the FastAPI app initialization
 fastapi_app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
@@ -57,6 +59,13 @@ os.makedirs("uploads", exist_ok=True)
 
 # Add this global variable
 connected_clients = set()
+
+# Initialize Airtable client
+AIRTABLE_API_KEY = "your_airtable_api_key"
+AIRTABLE_BASE_ID = "your_airtable_base_id"
+AIRTABLE_TABLE_NAME = "Products"
+
+airtable = Airtable(AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME, AIRTABLE_API_KEY)
 
 # Step 1: Define our custom CallbackData
 @dataclass(frozen=True, slots=True)
@@ -69,36 +78,25 @@ class ButtonAction(CallbackData):
 
 # Step 2: Create a function to send a message with buttons
 def send_message_with_buttons(client: WhatsApp, to: str):
-    # Step 3: Define the buttons with their respective actions
+    # Fetch product information from Airtable
+    products = airtable.get_all()
+
+    # Define the buttons with their respective actions
     buttons = [
-        Button(title="Ürünleri Göster", callback_data=ButtonAction(action="option", value="1", image="1.jpeg")),
-        Button(title="Option 2", callback_data=ButtonAction(action="option", value="2")),
-        Button(title="Help", callback_data=ButtonAction(action="help", value="general"))
+        Button(title=product['fields']['Name'], callback_data=ButtonAction(action="option", value=product['id'], image=product['fields']['Image URL'][0]['url']))
+        for product in products
     ]
 
-    # Step 4: Send the message with buttons
-    client.send_message(
-        to=to,
-        text="Lütfen bir seçenek seçiniz:",
-        buttons=buttons
-    )
+    # Send the message with buttons
+    client.send_message(to=to, text="Lütfen bir seçenek seçiniz:", buttons=buttons[:3])  # Send only the first 3 buttons
 
 # Step 5: Define the callback handler
 @wa.on_callback_button(factory=ButtonAction)
 def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
-    # Step 6: Handle different button actions
     if btn.data.action == "option":
-        if btn.data.value == "1":
-            if btn.data.image:
-                image_files = [f for f in os.listdir("uploads/products") if f.endswith(".jpeg")]
-                for i, image_file in enumerate(image_files):
-                    send_image_button(client, btn.from_user.wa_id, image_file, f"Here's the image you requested. Product ID: {i+1}")
-            else:
-                response = "You selected Option 1"
-                client.send_message(to=btn.from_user.wa_id, text=response)
-        elif btn.data.value == "2":
-            response = "You selected Option 2"
-            client.send_message(to=btn.from_user.wa_id, text=response)
+        if btn.data.value:
+            product = airtable.get(btn.data.value)
+            send_image_button(client, btn.from_user.wa_id, product['fields']['Image URL'][0]['url'], f"Here's the image you requested. Product ID: {product['id']}")
         else:
             response = "Unknown option selected"
             client.send_message(to=btn.from_user.wa_id, text=response)
@@ -655,33 +653,27 @@ async def global_exception_handler(request, exc):
 
 
 @fastapi_app.post("/send_image")
-async def send_image(to: str = Form(...), image: UploadFile = File(...)):
+async def send_image(to: str = Form(...), image: UploadFile = File(...), name: str = Form(...), description: str = Form(...)):
     try:
-        # Save the image
+        # Save the image locally
         file_location = f"uploads/products/{image.filename}"
         with open(file_location, "wb+") as file_object:
             file_object.write(await image.read())
 
-        # Send the image using PyWa
-        response = wa.send_image(to=to,
-                                 image=file_location,
-                                 caption="Sent from BirHediyenOlsun Wp")
-
-        # Generate the URL for the uploaded image
-        image_url = f"{fastapi_app.url_path_for('static', path=image.filename)}"
-
-        return JSONResponse(content={
-            "success": True,
-            "message_id": response,
-            "image_url": image_url
+        # Upload the image to Airtable
+        airtable_response = airtable.insert({
+            "Name": name,
+            "Description": description,
+            "Image URL": [{"url": f"{fastapi_app.url_path_for('static', path=image.filename)}"}]
         })
+
+        # Send the image using PyWa
+        response = wa.send_image(to=to, image=file_location, caption="Sent from BirHediyenOlsun Wp")
+
+        return JSONResponse(content={"success": True, "message_id": response, "airtable_id": airtable_response['id']})
     except Exception as e:
         logger.error(f"Error sending image: {e}", exc_info=True)
-        return JSONResponse(content={
-            "success": False,
-            "error": str(e)
-        },
-                            status_code=500)
+        return JSONResponse(content={"success": False, "error": str(e)}, status_code=500)
 
 
 # Or, if you prefer a more general approach:
