@@ -12,8 +12,6 @@ import json
 from pywa import errors as pywa_errors
 from dataclasses import dataclass
 import os
-from airtable import Airtable
-
 #my
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -32,7 +30,7 @@ templates = Jinja2Templates(directory="templates")
 wa = WhatsApp(
     phone_id="347058841835061",
     token=
-    "EAAOxaNntzsEBOZCeXexy3sq2GXcUrYCyIz7usSbfkqUZC3vg7i80EYkZAhSVuZCxmkG2El5zQZC8xrgrVa5G1EBe43bUBGuN4pWvnDQlMxRvhdhAimYgzmLOMtlM79lv47ncllNt07RuRPPKKCzWzkZAqPvHWqyuamXZAr3ihRKi7oA39Cqu9eHgMZCkN0PCwz4QKwgMZAewIydPNpP10imJwHs9SbOEZD",
+    "EAAOxaNntzsEBO7IXv7W30rZByIRVihKCza5TnxCjREy31LGG2iZBJhbgaDfLjvKGFUZBKw1vb0g2nzrBuFVv8ivVN8PA4NNGpMt8CiUYhanXKV7lmgFBLlpFQUmHkTSzXpJvZCCnbogGsLWKBgDC5f9zuqk43stUtmxSGSbmCSLWog6l6MbOZAKhxLdy3ZCBbBGQjWDkYQq68HCQbvswhjPktCoIlc",
     server=fastapi_app,
     callback_url=
     "https://49ae544d-ebdc-4b20-9445-aa092113c69a-00-1cr1zoiat6wtd.sisko.replit.dev",
@@ -49,7 +47,7 @@ BUSINESS_PHONE_NUMBER_ID = "347058841835061"
 contacts = [{"number": "+905330475085", "name": "Default Contact"}]
 
 # Create a dictionary to store conversations
-conversations = {}z
+conversations = {}
 
 # Add this near the top of the file, after the FastAPI app initialization
 fastapi_app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
@@ -59,13 +57,6 @@ os.makedirs("uploads", exist_ok=True)
 
 # Add this global variable
 connected_clients = set()
-
-# Initialize Airtable client
-AIRTABLE_API_KEY = "your_airtable_api_key"
-AIRTABLE_BASE_ID = "your_airtable_base_id"
-AIRTABLE_TABLE_NAME = "Products"
-
-airtable = Airtable(AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME, AIRTABLE_API_KEY)
 
 # Step 1: Define our custom CallbackData
 @dataclass(frozen=True, slots=True)
@@ -78,25 +69,36 @@ class ButtonAction(CallbackData):
 
 # Step 2: Create a function to send a message with buttons
 def send_message_with_buttons(client: WhatsApp, to: str):
-    # Fetch product information from Airtable
-    products = airtable.get_all()
-
-    # Define the buttons with their respective actions
+    # Step 3: Define the buttons with their respective actions
     buttons = [
-        Button(title=product['fields']['Name'], callback_data=ButtonAction(action="option", value=product['id'], image=product['fields']['Image URL'][0]['url']))
-        for product in products
+        Button(title="Ürünleri Göster", callback_data=ButtonAction(action="option", value="1", image="1.jpeg")),
+        Button(title="Option 2", callback_data=ButtonAction(action="option", value="2")),
+        Button(title="Help", callback_data=ButtonAction(action="help", value="general"))
     ]
 
-    # Send the message with buttons
-    client.send_message(to=to, text="Lütfen bir seçenek seçiniz:", buttons=buttons[:3])  # Send only the first 3 buttons
+    # Step 4: Send the message with buttons
+    client.send_message(
+        to=to,
+        text="Lütfen bir seçenek seçiniz:",
+        buttons=buttons
+    )
 
 # Step 5: Define the callback handler
 @wa.on_callback_button(factory=ButtonAction)
 def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
+    # Step 6: Handle different button actions
     if btn.data.action == "option":
-        if btn.data.value:
-            product = airtable.get(btn.data.value)
-            send_image_button(client, btn.from_user.wa_id, product['fields']['Image URL'][0]['url'], f"Here's the image you requested. Product ID: {product['id']}")
+        if btn.data.value == "1":
+            if btn.data.image:
+                image_files = [f for f in os.listdir("uploads/products") if f.endswith(".jpeg")]
+                for i, image_file in enumerate(image_files):
+                    send_image_button(client, btn.from_user.wa_id, image_file, f"Here's the image you requested. Product ID: {i+1}")
+            else:
+                response = "You selected Option 1"
+                client.send_message(to=btn.from_user.wa_id, text=response)
+        elif btn.data.value == "2":
+            response = "You selected Option 2"
+            client.send_message(to=btn.from_user.wa_id, text=response)
         else:
             response = "Unknown option selected"
             client.send_message(to=btn.from_user.wa_id, text=response)
@@ -653,27 +655,33 @@ async def global_exception_handler(request, exc):
 
 
 @fastapi_app.post("/send_image")
-async def send_image(to: str = Form(...), image: UploadFile = File(...), name: str = Form(...), description: str = Form(...)):
+async def send_image(to: str = Form(...), image: UploadFile = File(...)):
     try:
-        # Save the image locally
+        # Save the image
         file_location = f"uploads/products/{image.filename}"
         with open(file_location, "wb+") as file_object:
             file_object.write(await image.read())
 
-        # Upload the image to Airtable
-        airtable_response = airtable.insert({
-            "Name": name,
-            "Description": description,
-            "Image URL": [{"url": f"{fastapi_app.url_path_for('static', path=image.filename)}"}]
-        })
-
         # Send the image using PyWa
-        response = wa.send_image(to=to, image=file_location, caption="Sent from BirHediyenOlsun Wp")
+        response = wa.send_image(to=to,
+                                 image=file_location,
+                                 caption="Sent from BirHediyenOlsun Wp")
 
-        return JSONResponse(content={"success": True, "message_id": response, "airtable_id": airtable_response['id']})
+        # Generate the URL for the uploaded image
+        image_url = f"{fastapi_app.url_path_for('static', path=image.filename)}"
+
+        return JSONResponse(content={
+            "success": True,
+            "message_id": response,
+            "image_url": image_url
+        })
     except Exception as e:
         logger.error(f"Error sending image: {e}", exc_info=True)
-        return JSONResponse(content={"success": False, "error": str(e)}, status_code=500)
+        return JSONResponse(content={
+            "success": False,
+            "error": str(e)
+        },
+                            status_code=500)
 
 
 # Or, if you prefer a more general approach:
