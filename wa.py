@@ -4,7 +4,7 @@ from fastapi.responses import PlainTextResponse, JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pywa import WhatsApp, filters
-from pywa.types import Message, Button, CallbackButton, CallbackData, CallbackSelection, FlowCompletion, MessageStatus, TemplateStatus, ChatOpened, Button, MessageStatusType
+from pywa.types import Message, Button, CallbackButton, CallbackData, CallbackSelection, FlowCompletion, MessageStatus, TemplateStatus, ChatOpened, Button, MessageStatusType, Command
 from fastapi.websockets import WebSocketDisconnect
 import datetime
 import asyncio
@@ -12,6 +12,11 @@ import json
 from pywa import errors as pywa_errors
 from dataclasses import dataclass
 import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
 #my
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -28,20 +33,18 @@ templates = Jinja2Templates(directory="templates")
 
 # Update the WhatsApp client initialization
 wa = WhatsApp(
-    phone_id="347058841835061",
-    token=
-    "EAAOxaNntzsEBOwbe9DWWx5RFXI9rqjZB2AmrmwzyZBdMZC1u8T207gcZAvusV1gr4jlcKbZC9P9NABbDHPPD6Jv1o6TRW8vibGqPH2Fh0sJzIZBP4gZC68ZCs7j7ZAG1DBdB79kG3oO2joeMzFvqZA4dTrQFWpuMZBcZAKygNSPIiZCiZCVYnWbNhDVedhWE0apGfA67Jd92OV07nA8ZCleZABGzrYvw2aJvK48ZD",
+    phone_id=os.getenv("WHATSAPP_PHONE_ID"),
+    token=os.getenv("WHATSAPP_TOKEN"),
     server=fastapi_app,
-    callback_url=
-    "https://49ae544d-ebdc-4b20-9445-aa092113c69a-00-1cr1zoiat6wtd.sisko.replit.dev",
-    verify_token="randomstring",
-    app_id=1039488821087937,
-    app_secret="eda6cba58fa6404a8198b205face33aa",
+    callback_url=os.getenv("WHATSAPP_CALLBACK_URL"),
+    verify_token=os.getenv("WHATSAPP_VERIFY_TOKEN"),
+    app_id=int(os.getenv("WHATSAPP_APP_ID")),
+    app_secret=os.getenv("WHATSAPP_APP_SECRET"),
     validate_updates=True,
     continue_handling=True)
 
 # Add this line near the top of the file, after the imports
-BUSINESS_PHONE_NUMBER_ID = "347058841835061"
+BUSINESS_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_ID")
 
 # Update the contacts list with a default contact
 contacts = [{"number": "+905330475085", "name": "Default Contact"}]
@@ -58,6 +61,9 @@ os.makedirs("uploads", exist_ok=True)
 # Add this global variable
 connected_clients = set()
 
+# Add this to your global variables
+users_greeted = set()
+
 # Step 1: Define our custom CallbackData
 @dataclass(frozen=True, slots=True)
 class ButtonAction(CallbackData):
@@ -72,8 +78,8 @@ def send_message_with_buttons(client: WhatsApp, to: str):
     # Step 3: Define the buttons with their respective actions
     buttons = [
         Button(title="Ürünleri Göster", callback_data=ButtonAction(action="option", value="1", image="1.jpeg")),
-        Button(title="Option 2", callback_data=ButtonAction(action="option", value="2")),
-        Button(title="Help", callback_data=ButtonAction(action="help", value="general"))
+        Button(title="Soru Sor", callback_data=ButtonAction(action="option", value="2")),
+        Button(title="Yardim", callback_data=ButtonAction(action="help", value="general"))
     ]
 
     # Step 4: Send the message with buttons
@@ -113,10 +119,10 @@ def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
         client.send_message(to=btn.from_user.wa_id, text=response)
 
 # Step 8: Usage example
-@wa.on_message()
-def handle_message(client: WhatsApp, message: Message):
-    if message.text.lower() == "menu":
-        send_message_with_buttons(client, message.from_user.wa_id)
+#@wa.on_message()
+#def handle_message(client: WhatsApp, message: Message):
+#    if message.text.lower() == "menu":
+#        send_message_with_buttons(client, message.from_user.wa_id)
 
 # Update the webhook verification endpoint
 @fastapi_app.get("/")
@@ -689,7 +695,7 @@ async def send_image(to: str = Form(...), image: UploadFile = File(...)):
 def handle_message(client: WhatsApp, message: Message):
     automated_responses = {
         "test": "test1",
-        "Merhaba": "Merhaba! ,  nasıl yardımcı olabilirim?",
+        "merhaba": "Merhaba! Nasıl yardımcı olabilirim?",
         "help": "Sure, I'd be happy to help. What do you need assistance with?",
         # Add more automated responses here
     }
@@ -725,3 +731,44 @@ def send_image_button(client: WhatsApp, to: str, image_file: str, image_caption:
             client.send_message(to=to, text="Sorry, there was an error sending the image.")
     else:
         client.send_message(to=to, text="Sorry, the requested image is not available.")
+
+# Create a function to send the welcome message
+def send_welcome_message(client: WhatsApp, to: str):
+    client.send_message(
+        to=to,
+        text="Merhaba! Nasıl yardımcı olabiliriz?"
+    )
+
+# Handle incoming messages
+@wa.on_message(filters.text)
+def handle_message(client: WhatsApp, message: Message):
+    from_id = message.from_user.wa_id
+    
+    # Send welcome message if it's the user's first message
+    if from_id not in users_greeted:
+        send_welcome_message(client, from_id)
+        users_greeted.add(from_id)
+    
+    # Handle the /menu command
+    if message.text.lower() == "/menu":
+        send_message_with_buttons(client, from_id)
+    else:
+        # Handle other messages or automated responses
+        automated_responses = {
+            "test": "test1",
+            "merhaba": "Merhaba! Nasıl yardımcı olabilirim?",
+            "help": "Sure, I'd be happy to help. What do you need assistance with?",
+            # Add more automated responses here
+        }
+        
+        lower_text = message.text.lower()
+        if lower_text in automated_responses:
+            client.send_message(to=from_id, text=automated_responses[lower_text])
+        else:
+            # Default response for unrecognized messages
+            client.send_message(to=from_id, text="Anlaşılmadı. Yardım için lütfen /menu yazın.")
+
+# Handle the /menu command explicitly
+@wa.on_message(filters.command("menu"))
+def handle_menu_command(client: WhatsApp, message: Message):
+    send_message_with_buttons(client, message.from_user.wa_id)
