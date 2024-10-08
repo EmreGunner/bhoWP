@@ -5,8 +5,8 @@ import logging
 
 # Logging configuration
 logging.basicConfig(
-    filename='logs/order_manager.log',  # Log file for this module
-    level=logging.DEBUG,
+    filename='logs/order_manager.log',
+    level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)

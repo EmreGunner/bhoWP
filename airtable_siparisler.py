@@ -7,7 +7,7 @@ import json
 # Logging configuration
 logging.basicConfig(
     filename='logs/airtable_siparisler.log',  # Log file for this module
-    level=logging.DEBUG,
+    level=logging.INFO,  # Change this from DEBUG to INFO
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)

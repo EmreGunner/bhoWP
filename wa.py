@@ -19,8 +19,8 @@ from typing import List, Dict, Any
 
 # Logging configuration
 logging.basicConfig(
-    filename='logs/main.log',  # Log file for the main application
-    level=logging.DEBUG,
+    filename='logs/main.log',
+    level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
