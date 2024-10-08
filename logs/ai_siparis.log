@@ -5,3 +5,6 @@
 2024-10-08 21:32:16,220 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_ADDRESS, message: Hehejje, product_id: None
 2024-10-08 21:32:24,516 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_PHONE, message: 05551234567, product_id: None
 2024-10-08 21:32:29,458 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_TEXT, message: Eyeuue, product_id: None
+2024-10-08 21:33:21,889 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CONFIRMING, message: Evet, product_id: None
+2024-10-08 21:33:21,889 - ai_siparis - INFO - Calling Airtable create record function with: product_id=3.jpeg, name=Asd jre, address=Hehejje, phone=05551234567, text=Eyeuue
+2024-10-08 21:33:25,085 - ai_siparis - INFO - Airtable record created successfully with ID: recuqVPP6tW7pRSJr
