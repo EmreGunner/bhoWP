@@ -449,12 +449,11 @@ async def send_image(to: str = Form(...), image: UploadFile = File(...)):
                             status_code=500)
 
 
-def send_image_button(client: WhatsApp, to: str, image_file: str,
-                      image_caption: str):
+def send_image_button(client: WhatsApp, to: str, image_file: str, image_caption: str):
     # Path to the image file
     image_path = os.path.join("uploads/products/", image_file)
     # Create the button
-    button = Button(title="Bu urunu satin almak istiyorum",
+    button = Button(title="Ürünü Seç",  # Bu satırı değiştirdik
                     callback_data=ButtonAction(action="choose_product",
                                                value=image_file))
     # Check if the file exists
@@ -469,10 +468,10 @@ def send_image_button(client: WhatsApp, to: str, image_file: str,
         except Exception as e:
             logger.error(f"Error sending image: {e}")
             client.send_message(
-                to=to, text="Sorry, there was an error sending the image.")
+                to=to, text="Üzgünüz, resmi gönderirken bir hata oluştu.")
     else:
         client.send_message(
-            to=to, text="Sorry, the requested image is not available.")
+            to=to, text="Üzgünüz, istenen resim mevcut değil.")
 
 
 # Handle incoming messages
