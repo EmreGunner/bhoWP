@@ -84,19 +84,12 @@ def handle_order(user_id: str, message: str, product_id: Optional[str] = None) -
         return "Bir hata oluştu. Lütfen tekrar deneyin."
 
 def create_airtable_record(product_id, name, address, phone):
-    api_key = 'patBOjCbAkFYSl5yd.65d9881a0065d782703e54603326458182719122bc222858afebf95c6873d2'
-    base_id = 'appcfWwht8JToMUhi'
-    table_name = 'Orders'  # Replace with your actual table name
-
-    api = Api(api_key)
-    table = api.table(base_id, table_name)
-
-    record = {
-        'Product ID': product_id,
-        'Name': name,
-        'Address': address,
-        'Phone': phone
-    }
-
-    response = table.create(record)
-    return response['id']  # Return the Airtable record ID as the order number
+    try:
+        from airtable_siparisler import create_airtable_record as airtable_create_record
+        logger.info(f"Calling Airtable create record function with: product_id={product_id}, name={name}, address={address}, phone={phone}")
+        record_id = airtable_create_record(product_id, name, address, phone)
+        logger.info(f"Airtable record created successfully with ID: {record_id}")
+        return record_id
+    except Exception as e:
+        logger.error(f"Error in create_airtable_record: {str(e)}", exc_info=True)
+        raise

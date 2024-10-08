@@ -17,6 +17,10 @@ from aiTools import get_ai_response
 from ai_siparis import handle_order, OrderState, order_manager
 from typing import List, Dict, Any
 
+# Logging konfigürasyonu
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 # Load environment variables
 load_dotenv()
 
