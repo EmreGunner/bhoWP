@@ -4,3 +4,4 @@ python-dotenv
 requests
 openai
 typing-extensions
+pyairtable
