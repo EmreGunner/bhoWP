@@ -1,0 +1,7 @@
+2024-10-08 21:29:51,517 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.IDLE, message: , product_id: 3 copy.jpeg
+2024-10-08 21:29:57,000 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_NAME, message: Asshdh, product_id: None
+2024-10-08 21:32:04,376 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.IDLE, message: , product_id: 3.jpeg
+2024-10-08 21:32:10,998 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_NAME, message: Asd jre, product_id: None
+2024-10-08 21:32:16,220 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_ADDRESS, message: Hehejje, product_id: None
+2024-10-08 21:32:24,516 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_PHONE, message: 05551234567, product_id: None
+2024-10-08 21:32:29,458 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_TEXT, message: Eyeuue, product_id: None

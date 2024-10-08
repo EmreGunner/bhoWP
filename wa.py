@@ -129,7 +129,20 @@ def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
         product_id = btn.data.value
         wa_logger.info(f"User {btn.from_user.wa_id} selected product: {product_id}")
         response = order_manager.process_message(btn.from_user.wa_id, "", product_id)
-        client.send_message(to=btn.from_user.wa_id, text=response)
+        
+        if isinstance(response, dict):
+            text = response.get('text', '')
+            buttons = response.get('buttons', [])
+            
+            if buttons:
+                client.send_message(to=btn.from_user.wa_id, text=text, buttons=[
+                    Button(title=b['title'], callback_data=b['callback_data']) for b in buttons
+                ])
+            else:
+                client.send_message(to=btn.from_user.wa_id, text=text)
+        else:
+            client.send_message(to=btn.from_user.wa_id, text=str(response))
+    
     elif btn.data.action == "option":
         if btn.data.value == "1":
             if btn.data.image:
@@ -517,7 +530,19 @@ def handle_message(client: WhatsApp, from_id: str, text: str):
         wa_logger.info(f"Continuing order process for user {from_id}, current state: {order['state']}")
         response = order_manager.process_message(from_id, text)
         wa_logger.info(f"Order response for ongoing order: {response}")
-        client.send_message(to=from_id, text=response)
+        
+        if isinstance(response, dict):
+            message_text = response.get('text', '')
+            buttons = response.get('buttons', [])
+            
+            if buttons:
+                client.send_message(to=from_id, text=message_text, buttons=[
+                    Button(title=b['title'], callback_data=b['callback_data']) for b in buttons
+                ])
+            else:
+                client.send_message(to=from_id, text=message_text)
+        else:
+            client.send_message(to=from_id, text=str(response))
         return
 
     # Diğer mesaj işlemleri (mevcut kod)

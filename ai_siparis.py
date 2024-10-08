@@ -68,16 +68,6 @@ class OrderManager:
             order["product_id"] = product_id
             order["state"] = OrderState.COLLECTING_NAME
             response["text"] = f"Ürün {product_id} için siparişinizi almaya başlıyoruz. Lütfen adınızı ve soyadınızı girin."
-            return response
-
-        if order["state"] == OrderState.IDLE:
-            if product_id:
-                order["product_id"] = product_id
-                order["state"] = OrderState.COLLECTING_NAME
-                response["text"] = f"Ürün {product_id} için siparişinizi almaya başlıyoruz. Lütfen adınızı ve soyadınızı girin."
-            else:
-                response["text"] = "Lütfen önce bir ürün seçin."
-            return response
 
         elif order["state"] == OrderState.COLLECTING_NAME:
             if self.validate_name(message):
