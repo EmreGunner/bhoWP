@@ -94,38 +94,30 @@ def send_message_with_buttons(client: WhatsApp, to: str):
 # Step 5: Define thez callback handler
 @wa.on_callback_button(factory=ButtonAction)
 def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
-    # Step 6: Handle different button actions
-    if btn.data.action == "option":
+    if btn.data.action == "choose_product":
+        product_id = btn.data.value
+        logger.info(f"User {btn.from_user.wa_id} selected product: {product_id}")
+        response = handle_order(btn.from_user.wa_id, "", product_id)
+        client.send_message(to=btn.from_user.wa_id, text=response)
+    elif btn.data.action == "option":
         if btn.data.value == "1":
             if btn.data.image:
-                image_files = [
-                    f for f in os.listdir("uploads/products")
-                    if f.endswith(".jpeg")
-                ]
+                image_files = [f for f in os.listdir("uploads/products") if f.endswith(".jpeg")]
                 for i, image_file in enumerate(image_files):
-                    send_image_button(
-                        client, btn.from_user.wa_id, image_file,
-                        f"Here's the image you requested. Product ID: {i+1}")
+                    send_image_button(client, btn.from_user.wa_id, image_file, f"Ürün ID: {i+1}")
             else:
-                response = "You selected Option 1"
+                response = "Ürünler gösteriliyor"
                 client.send_message(to=btn.from_user.wa_id, text=response)
         elif btn.data.value == "2":
-            client.send_message(
-                to=btn.from_user.wa_id,
-                text=
-                "Please ask your question, and I'll do my best to assist you.")
+            client.send_message(to=btn.from_user.wa_id, text="Lütfen sorunuzu sorun, size yardımcı olmaya çalışacağım.")
         else:
-            response = "Unknown option selected"
+            response = "Bilinmeyen seçenek"
             client.send_message(to=btn.from_user.wa_id, text=response)
     elif btn.data.action == "cargo":
-        response = "Kargonuzun durumu asagidaki gibidir:"
-        #send query to check the cargo status
-        client.send_message(to=btn.from_user.wa_id, text=response)
-    elif btn.data.action == "choose_product":
-        response = f"You chose the product with ID: {btn.data.value}"
+        response = "Kargonuzun durumu aşağıdaki gibidir:"
         client.send_message(to=btn.from_user.wa_id, text=response)
     else:
-        response = "Unknown action"
+        response = "Bilinmeyen işlem"
         client.send_message(to=btn.from_user.wa_id, text=response)
 
 

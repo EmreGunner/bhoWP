@@ -36,7 +36,7 @@ class OrderManager:
         if product_id:
             order["product_id"] = product_id
             order["state"] = OrderState.COLLECTING_NAME
-            return "Siparişiniz için teşekkür ederiz. Lütfen adınızı ve soyadınızı girin."
+            return f"Ürün {product_id} için siparişinizi almaya başlıyoruz. Lütfen adınızı ve soyadınızı girin."
 
         if order["state"] == OrderState.COLLECTING_NAME:
             order["name"] = message
