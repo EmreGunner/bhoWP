@@ -25,6 +25,9 @@ os.makedirs('logs', exist_ok=True)
 def setup_logger(name, log_file, level=logging.INFO):
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     
+    # Create logs directory if it doesn't exist
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
+    
     handler = RotatingFileHandler(log_file, maxBytes=10*1024*1024, backupCount=5)
     handler.setFormatter(formatter)
 
@@ -32,11 +35,16 @@ def setup_logger(name, log_file, level=logging.INFO):
     logger.setLevel(level)
     logger.addHandler(handler)
 
+    # Add a stream handler to print logs to console
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+
     return logger
 
 # Setup loggers
-main_logger = setup_logger('main', 'logs/main.log')
-wa_logger = setup_logger('wa', 'logs/wa.log')
+wa_logger = setup_logger('wa', 'logs/wa.log', level=logging.DEBUG)
+main_logger = setup_logger('main', 'logs/main.log', level=logging.DEBUG)
 
 # Use wa_logger for WhatsApp specific logs
 # Use main_logger for general application logs
@@ -509,14 +517,25 @@ def send_image_button(client: WhatsApp, to: str, image_file: str, image_caption:
             to=to, text="Üzgünüz, istenen resim mevcut değil.")
 
 
+@wa.on_message()
+def on_message(client: WhatsApp, message: Message):
+    wa_logger.debug(f"Received message: {message.text} from {message.from_user.wa_id}")
+    try:
+        handle_message(client, message.from_user.wa_id, message.text)
+    except Exception as e:
+        wa_logger.error(f"Error in on_message handler: {str(e)}", exc_info=True)
+        send_menu_buttons(client, message.from_user.wa_id)
+
+
 # Handle incoming messages
 def handle_message(client: WhatsApp, from_id: str, text: str):
-    wa_logger.info(f"Received message from {from_id}: {text}")
+    wa_logger.info(f"Handling message from {from_id}: {text}")
     lower_text = text.lower()
 
     try:
         # Sipariş süreci devam ediyorsa
         order = order_manager.get_or_create_order(from_id)
+        wa_logger.debug(f"Current order state for user {from_id}: {order['state']}")
         if order['state'] != OrderState.IDLE:
             wa_logger.info(f"Continuing order process for user {from_id}, current state: {order['state']}")
             response = order_manager.process_message(from_id, text)
@@ -525,12 +544,14 @@ def handle_message(client: WhatsApp, from_id: str, text: str):
             return
 
         if from_id not in users_greeted:
+            wa_logger.info(f"Sending welcome message to new user: {from_id}")
             send_welcome_message(client, from_id)
             users_greeted.add(from_id)
             send_menu_buttons(client, from_id)
             return
 
         if lower_text == "/menu":
+            wa_logger.info(f"Sending menu buttons to user: {from_id}")
             send_menu_buttons(client, from_id)
             return
 
@@ -541,15 +562,19 @@ def handle_message(client: WhatsApp, from_id: str, text: str):
         }
 
         if lower_text in automated_responses:
+            wa_logger.info(f"Sending automated response for '{lower_text}' to user: {from_id}")
             client.send_message(to=from_id, text=automated_responses[lower_text])
         elif lower_text in ["fiyat nedir?", "fiyat nedir"]:
+            wa_logger.info(f"Sending catalog link to user: {from_id}")
             catalog_link = "ornekcataloglink.wp.com"
             response = f"Ürünlerimizin fiyatları hakkında detaylı bilgi için lütfen kataloğumuzu inceleyin: {catalog_link}"
             client.send_message(to=from_id, text=response)
         else:
+            wa_logger.info(f"Getting AI response for user: {from_id}")
             ai_response = get_ai_response(text)
             client.send_message(to=from_id, text=ai_response)
 
+        wa_logger.info(f"Sending menu buttons after response to user: {from_id}")
         send_menu_buttons(client, from_id)
     except Exception as e:
         wa_logger.error(f"Error in handle_message: {str(e)}", exc_info=True)
@@ -578,7 +603,7 @@ def send_response(client: WhatsApp, to: str, response: Dict[str, Any]):
 def send_menu_buttons(client: WhatsApp, to: str):
     buttons = [
         Button(title="Ürünleri Göster", callback_data=ButtonAction(action="option", value="1", image="1.jpeg")),
-        Button(title="Musteri temsicilisi", callback_data=ButtonAction(action="option", value="2")),
+        Button(title="Musteri temsilcisi", callback_data=ButtonAction(action="option", value="2")),
         Button(title="Kargo Sorgula", callback_data=ButtonAction(action="help", value="general"))
     ]
     client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)
