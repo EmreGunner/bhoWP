@@ -14,7 +14,7 @@ from dataclasses import dataclass
 import os
 from dotenv import load_dotenv
 from aiTools import get_ai_response
-from ai_siparis import handle_order, OrderState, OrderManager
+from ai_siparis import handle_order, OrderState, order_manager
 from typing import List, Dict, Any
 
 # Load environment variables
@@ -364,20 +364,8 @@ def handle_raw_update(client: WhatsApp, update: dict):
                                             "message": new_message
                                         })))
 
-                                # Create a Message object with the required arguments
-                                msg = Message(
-                                    _client=client,
-                                    raw=message,
-                                    type='text',
-                                    reply_to_message=None,
-                                    forwarded=False,
-                                    forwarded_many_times=False,
-                                    text=text,
-                                    from_user=from_id
-                                )
-
                                 # Handle the message
-                                handle_message(client, msg)
+                                handle_message(client, from_id, text)
                     elif 'statuses' in value:
                         for status in value['statuses']:
                             logger.info(f"Received status update: {status}")
@@ -474,7 +462,7 @@ def send_image_button(client: WhatsApp, to: str, image_file: str,
     # Path to the image file
     image_path = os.path.join("uploads/products/", image_file)
     # Create the button
-    button = Button(title="Choose This Product",
+    button = Button(title="Bu urunu satin almak istiyorum",
                     callback_data=ButtonAction(action="choose_product",
                                                value=image_file))
     # Check if the file exists
@@ -496,12 +484,9 @@ def send_image_button(client: WhatsApp, to: str, image_file: str,
 
 
 # Handle incoming messages
-@wa.on_message(filters.text)
-def handle_message(client: WhatsApp, message: Message):
-    from_id = message.from_user.wa_id
-    lower_text = message.text.lower()
-
-    logger.info(f"Received message from {from_id}: {lower_text}")
+def handle_message(client: WhatsApp, from_id: str, text: str):
+    logger.info(f"Received message from {from_id}: {text}")
+    lower_text = text.lower()
 
     # Ürün seçimi yapıldıysa sipariş sürecini başlat
     if lower_text.startswith("urun_"):
@@ -516,7 +501,7 @@ def handle_message(client: WhatsApp, message: Message):
     order = order_manager.get_or_create_order(from_id)
     if order['state'] != OrderState.IDLE:
         logger.info(f"Continuing order process for user {from_id}, current state: {order['state']}")
-        response = handle_order(from_id, message.text)
+        response = handle_order(from_id, text)
         logger.info(f"Order response for ongoing order: {response}")
         client.send_message(to=from_id, text=response)
         return
@@ -547,7 +532,7 @@ def handle_message(client: WhatsApp, message: Message):
         client.send_message(to=from_id, text=response)
         send_message_with_buttons(client, from_id)
     else:
-        ai_response = get_ai_response(message.text)
+        ai_response = get_ai_response(text)
         client.send_message(to=from_id, text=ai_response)
         send_message_with_buttons(client, from_id)
 
