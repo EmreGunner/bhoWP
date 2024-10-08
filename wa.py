@@ -12,7 +12,9 @@ import json
 from pywa import errors as pywa_errors
 from dataclasses import dataclass
 import os
-#my
+from ai_siparis import OrderManager, OrderState
+import re
+
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -86,7 +88,6 @@ def send_message_with_buttons(client: WhatsApp, to: str):
 # Step 5: Define the callback handler
 @wa.on_callback_button(factory=ButtonAction)
 def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
-    # Step 6: Handle different button actions
     if btn.data.action == "option":
         if btn.data.value == "1":
             if btn.data.image:
@@ -108,6 +109,8 @@ def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
     elif btn.data.action == "choose_product":
         response = f"You chose the product with ID: {btn.data.value}"
         client.send_message(to=btn.from_user.wa_id, text=response)
+        # Start the order workflow
+        handle_order_workflow(client, btn.from_user.wa_id, "", btn.data.value)
     else:
         response = "Unknown action"
         client.send_message(to=btn.from_user.wa_id, text=response)
@@ -475,30 +478,35 @@ def handle_raw_update(client: WhatsApp, update: dict):
                                 logger.info(
                                     f"Received message: '{text}' from {from_id}"
                                 )
-                                new_message = {
-                                    "id":
-                                    message_id,
-                                    "from":
-                                    from_id,
-                                    "to":
-                                    BUSINESS_PHONE_NUMBER_ID,
-                                    "text":
-                                    text,
-                                    "timestamp":
-                                    datetime.datetime.now().isoformat(),
-                                    "status":
-                                    "received"
-                                }
-                                if from_id not in conversations:
-                                    conversations[from_id] = []
-                                    send_welcome_message(client, from_id, text)
-                                conversations[from_id].append(new_message)
-                                asyncio.create_task(
-                                    broadcast_message(
-                                        json.dumps({
-                                            "type": "new_message",
-                                            "message": new_message
-                                        })))
+                                
+                                # Check if the user is in the middle of an order
+                                if from_id in order_manager.orders:
+                                    handle_order_workflow(client, from_id, text)
+                                else:
+                                    new_message = {
+                                        "id":
+                                        message_id,
+                                        "from":
+                                        from_id,
+                                        "to":
+                                        BUSINESS_PHONE_NUMBER_ID,
+                                        "text":
+                                        text,
+                                        "timestamp":
+                                        datetime.datetime.now().isoformat(),
+                                        "status":
+                                        "received"
+                                    }
+                                    if from_id not in conversations:
+                                        conversations[from_id] = []
+                                        send_welcome_message(client, from_id, text)
+                                    conversations[from_id].append(new_message)
+                                    asyncio.create_task(
+                                        broadcast_message(
+                                            json.dumps({
+                                                "type": "new_message",
+                                                "message": new_message
+                                            })))
                     elif 'statuses' in value:
                         for status in value['statuses']:
                             logger.info(f"Received status update: {status}")
@@ -700,6 +708,11 @@ def handle_message(client: WhatsApp, message: Message):
     
     elif lower_text == "menu":
         send_message_with_buttons(client, message.from_user.wa_id)
+    elif message.from_user.wa_id in order_manager.orders:
+        handle_order_workflow(client, message.from_user.wa_id, message.text)
+    else:
+        # Handle other messages or use a default response
+        client.send_message(to=message.from_user.wa_id, text="I'm not sure how to respond to that. Can you please be more specific?")
 
 def send_image_button(client: WhatsApp, to: str, image_file: str, image_caption: str):
     # Path to the image file
@@ -725,3 +738,21 @@ def send_image_button(client: WhatsApp, to: str, image_file: str, image_caption:
             client.send_message(to=to, text="Sorry, there was an error sending the image.")
     else:
         client.send_message(to=to, text="Sorry, the requested image is not available.")
+
+# Add this global variable
+order_manager = OrderManager()
+
+# Add this function to handle the order workflow
+def handle_order_workflow(client: WhatsApp, user_id: str, message: str, product_id: Optional[str] = None):
+    order = order_manager.get_or_create_order(user_id)
+    
+    if product_id:
+        response = order_manager.process_message(user_id, message, product_id)
+    else:
+        response = order_manager.process_message(user_id, message)
+    
+    client.send_message(to=user_id, text=response)
+    
+    if order['state'] == OrderState.COMPLETED:
+        # Reset the order state
+        order_manager.orders.pop(user_id, None)
