@@ -4,6 +4,12 @@ from airtable_siparisler import create_airtable_record
 import logging
 import re
 
+# Logging configuration
+logging.basicConfig(
+    filename='logs/ai_siparis.log',  # Log file for this module
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 class OrderState(Enum):
@@ -35,6 +41,12 @@ class OrderManager:
     def validate_phone(self, phone: str) -> bool:
         return bool(re.match(r'^\+?[0-9]{10,12}$', phone))
 
+    def validate_name(self, name: str) -> bool:
+        return len(name.split()) >= 1 and all(part.isalpha() for part in name.split())
+
+    def validate_address(self, address: str) -> bool:
+        return len(address) >= 5
+
     def process_message(self, user_id: str, message: str, product_id: Optional[str] = None) -> str:
         order = self.get_or_create_order(user_id)
         logger.info(f"Processing message for user {user_id}, current state: {order['state']}, message: {message}, product_id: {product_id}")
@@ -45,14 +57,20 @@ class OrderManager:
             return f"Ürün {product_id} için siparişinizi almaya başlıyoruz. Lütfen adınızı ve soyadınızı girin."
 
         if order["state"] == OrderState.COLLECTING_NAME:
-            order["name"] = message
-            order["state"] = OrderState.COLLECTING_ADDRESS
-            return "Teşekkürler. Şimdi lütfen adresinizi girin."
+            if self.validate_name(message):
+                order["name"] = message
+                order["state"] = OrderState.COLLECTING_ADDRESS
+                return "Teşekkürler. Şimdi lütfen adresinizi girin."
+            else:
+                return "Geçersiz isim. Lütfen adınızı (ve varsa soyadınızı) girin."
 
         elif order["state"] == OrderState.COLLECTING_ADDRESS:
-            order["address"] = message
-            order["state"] = OrderState.COLLECTING_PHONE
-            return "Adresinizi aldık. Son olarak, telefon numaranızı girer misiniz? (Örnek: +905551234567)"
+            if self.validate_address(message):
+                order["address"] = message
+                order["state"] = OrderState.COLLECTING_PHONE
+                return "Adresinizi aldık. Son olarak, telefon numaranızı girer misiniz? (Örnek: +905551234567)"
+            else:
+                return "Geçersiz adres. Lütfen en az 5 karakterden oluşan bir adres girin."
 
         elif order["state"] == OrderState.COLLECTING_PHONE:
             if self.validate_phone(message):
@@ -70,12 +88,22 @@ class OrderManager:
         elif order["state"] == OrderState.CONFIRMING:
             if message.lower() == "evet":
                 try:
-                    order_number = create_airtable_record(order["product_id"], order["name"], order["address"], order["phone"], order["text"])
-                    order["order_number"] = order_number
-                    order["state"] = OrderState.COMPLETED
-                    return f"Siparişiniz alındı. Sipariş numaranız: {order_number}. Teşekkür ederiz!"
+                    order_number = create_airtable_record(
+                        order["product_id"],
+                        order["name"],
+                        order["address"],
+                        order["phone"],
+                        order["text"]
+                    )
+                    if order_number != "ERROR":
+                        order["order_number"] = order_number
+                        order["state"] = OrderState.COMPLETED
+                        return f"Siparişiniz alındı. Sipariş numaranız: {order_number}. Teşekkür ederiz!"
+                    else:
+                        logger.warning(f"Failed to create Airtable record for user {user_id}")
+                        return "Üzgünüz, siparişinizi kaydederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
                 except Exception as e:
-                    logger.error(f"Error creating Airtable record: {e}")
+                    logger.warning(f"Error creating Airtable record: {e}", exc_info=True)
                     return "Üzgünüz, siparişinizi kaydederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
             elif message.lower() == "hayır":
                 order["state"] = OrderState.COLLECTING_NAME
@@ -98,11 +126,11 @@ def handle_order(user_id: str, message: str, product_id: Optional[str] = None) -
         logger.error(f"Error in handle_order: {e}", exc_info=True)
         return "Bir hata oluştu. Lütfen tekrar deneyin."
 
-def create_airtable_record(product_id, name, address, phone):
+def create_airtable_record(product_id, name, address, phone, text):  # Added text parameter
     try:
         from airtable_siparisler import create_airtable_record as airtable_create_record
-        logger.info(f"Calling Airtable create record function with: product_id={product_id}, name={name}, address={address}, phone={phone}")
-        record_id = airtable_create_record(product_id, name, address, phone)
+        logger.info(f"Calling Airtable create record function with: product_id={product_id}, name={name}, address={address}, phone={phone}, text={text}")
+        record_id = airtable_create_record(product_id, name, address, phone, text)  # Pass the text argument
         logger.info(f"Airtable record created successfully with ID: {record_id}")
         return record_id
     except Exception as e:

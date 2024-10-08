@@ -2,9 +2,14 @@ import requests
 import os
 from dotenv import load_dotenv
 import logging
+import json
 
-# Logging konfigürasyonu
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# Logging configuration
+logging.basicConfig(
+    filename='logs/airtable_siparisler.log',  # Log file for this module
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 load_dotenv()
@@ -24,47 +29,53 @@ def create_airtable_record(product_id: str, name: str, address: str, phone: str,
     logger.debug(f"create_airtable_record called with: product_id={product_id}, name={name}, address={address}, phone={phone}, text={text}")
     
     data = {
-        "records": [
-            {
-                "fields": {
-                    "urunNo": product_id,
-                    "AdSoyad": name,
-                    "Adres": address,
-                    "telefonNo": phone,
-                    "UrunMetni": text
-                }
-            }
-        ]
+        "fields": {
+            "urunNo": product_id,
+            "AdSoyad": name,
+            "Adres": address,
+            "telefonNo": phone,
+            "UrunMetni": text,
+            "SiparisNo": ""  # This will be updated after record creation
+        }
     }
     
     try:
         logger.debug(f"Sending POST request to Airtable API: {BASE_URL}")
         logger.debug(f"Request headers: {headers}")
-        logger.debug(f"Request data: {data}")
+        logger.debug(f"Request data: {json.dumps(data)}")
         
         response = requests.post(BASE_URL, headers=headers, json=data)
         logger.debug(f"Airtable API response status code: {response.status_code}")
         logger.debug(f"Airtable API response content: {response.text}")
         
-        response.raise_for_status()  # This will raise an exception for HTTP errors
-        
         if response.status_code == 200:
-            record_id = response.json()['records'][0]['id']
-            logger.info(f"Successfully created Airtable record with ID: {record_id}")
-            return record_id
+            record_id = response.json()['id']
+            
+            # Update the record with the SiparisNo
+            update_data = {
+                "fields": {
+                    "SiparisNo": record_id
+                }
+            }
+            update_response = requests.patch(f"{BASE_URL}/{record_id}", headers=headers, json=update_data)
+            
+            if update_response.status_code == 200:
+                logger.info(f"Successfully created and updated Airtable record with ID: {record_id}")
+                return record_id
+            else:
+                logger.warning(f"Failed to update SiparisNo. Status code: {update_response.status_code}")
+                return record_id  # Return the original record ID even if update fails
         else:
-            logger.error(f"Unexpected status code from Airtable API: {response.status_code}")
-            raise Exception(f"Unexpected status code: {response.status_code}")
+            logger.error(f"Failed to create Airtable record. Status code: {response.status_code}")
+            logger.error(f"Response content: {response.text}")
+            return "ERROR"  # Return a default error value
     
     except requests.exceptions.RequestException as e:
         logger.error(f"Request to Airtable API failed: {str(e)}", exc_info=True)
-        raise
-    except KeyError as e:
-        logger.error(f"Unexpected response format from Airtable API: {str(e)}", exc_info=True)
-        raise
+        return "ERROR"  # Return a default error value
     except Exception as e:
         logger.error(f"Unexpected error while creating Airtable record: {str(e)}", exc_info=True)
-        raise
+        return "ERROR"  # Return a default error value
 
 # Test function to verify the Airtable connection
 def test_airtable_connection():

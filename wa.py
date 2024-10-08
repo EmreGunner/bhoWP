@@ -17,16 +17,16 @@ from aiTools import get_ai_response
 from ai_siparis import handle_order, OrderState, order_manager
 from typing import List, Dict, Any
 
-# Logging konfigürasyonu
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# Logging configuration
+logging.basicConfig(
+    filename='logs/main.log',  # Log file for the main application
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Initialize FastAPI application
 fastapi_app = FastAPI()
@@ -55,6 +55,14 @@ contacts = [{"number": "+905330475085", "name": "Default Contact"}]
 
 # Create a dictionary to store conversations
 conversations = {}
+
+# Create a separate log file for conversation logs
+conversation_logger = logging.getLogger("conversation")
+conversation_handler = logging.FileHandler('logs/conversation.log')
+conversation_handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+conversation_handler.setFormatter(formatter)
+conversation_logger.addHandler(conversation_handler)
 
 # Add this near the top of the file, after the FastAPI app initialization
 fastapi_app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
@@ -158,12 +166,13 @@ async def receive_webhook(request: Request):
             update=data,
             raw_body=body,
             hmac_header=request.headers.get("X-Hub-Signature-256"))
-        logger.info(
-            f"Webhook handler response: {response}, status: {status_code}")
+        logger.info(f"Webhook handler response: {response}, status: {status_code}")
 
         # Process the incoming message
         if 'messages' in data['entry'][0]['changes'][0]['value']:
             message = data['entry'][0]['changes'][0]['value']['messages'][0]
+            # Log the conversation
+            conversation_logger.info(f"Message from {message['from']}: {message['text']}")
             # Broadcast the message to all connected WebSocket clients
             for client in connected_clients:
                 await client.send_json(message)
@@ -535,9 +544,9 @@ def handle_message(client: WhatsApp, from_id: str, text: str):
 # Error handler
 @fastapi_app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
+    logger.error(f"HTTP Exception: {exc.detail}", exc_info=True)
     return JSONResponse(status_code=exc.status_code,
                         content={"message": exc.detail})
-
 
 # Global exception handler
 @fastapi_app.exception_handler(Exception)
