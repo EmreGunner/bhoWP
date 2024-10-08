@@ -17,8 +17,6 @@ from dotenv import load_dotenv
 from aiTools import get_ai_response
 from ai_siparis import OrderManager, OrderState
 from typing import List, Dict, Any
-from airtable_cargo import check_tracking_number
-import re
 
 # Ensure the logs directory exists
 os.makedirs('logs', exist_ok=True)
@@ -135,173 +133,35 @@ def send_message_with_buttons(client: WhatsApp, to: str):
 # Step 5: Define thez callback handler
 @wa.on_callback_button(factory=ButtonAction)
 def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
-    wa_logger.info(f"Düğmeye basıldı: {btn.data.action}")
+    wa_logger.info(f"Button pressed: {btn.data.action}")
     try:
         if btn.data.action == "choose_product":
-            handle_product_selection(client, btn)
+            product_id = btn.data.value
+            wa_logger.info(f"User {btn.from_user.wa_id} selected product: {product_id}")
+            response = order_manager.process_message(btn.from_user.wa_id, "", product_id)
         elif btn.data.action == "option":
-            handle_option_selection(client, btn)
-        elif btn.data.action == "help" and btn.data.value == "general":
-            handle_cargo_tracking_menu(client, btn.from_user.wa_id)
-        elif btn.data.action == "track_last_order":
-            handle_last_order_tracking(client, btn.from_user.wa_id)
-        elif btn.data.action == "cargo_companies":
-            handle_cargo_companies(client, btn.from_user.wa_id)
-        elif btn.data.action == "main_menu":
-            send_menu_buttons(client, btn.from_user.wa_id)
+            if btn.data.value == "1":
+                if btn.data.image:
+                    image_files = [f for f in os.listdir("uploads/products") if f.endswith(".jpeg")]
+                    for i, image_file in enumerate(image_files):
+                        send_image_button(client, btn.from_user.wa_id, image_file, f"Ürün ID: {i+1}")
+                    return
+                else:
+                    response = {"text": "Ürünler gösteriliyor", "buttons": []}
+            elif btn.data.value == "2":
+                response = {"text": "Lütfen sorunuzu sorun, size yardımcı olmaya çalışacağım.", "buttons": []}
+            else:
+                response = {"text": "Bilinmeyen seçenek", "buttons": []}
         elif btn.data.action in ["confirm_order_yes", "confirm_order_no"] or btn.data.action.startswith("correct_"):
-            handle_order_confirmation(client, btn)
+            response = order_manager.process_message(btn.from_user.wa_id, btn.data.action)
         else:
-            wa_logger.warning(f"Bilinmeyen düğme eylemi: {btn.data.action}")
-            send_menu_buttons(client, btn.from_user.wa_id)
+            response = {"text": "Bilinmeyen işlem", "buttons": []}
+
+        send_response(client, btn.from_user.wa_id, response)
     except Exception as e:
-        wa_logger.error(f"Düğme işleme hatası: {str(e)}", exc_info=True)
-        send_error_message(client, btn.from_user.wa_id)
-
-def handle_product_selection(client: WhatsApp, btn: CallbackButton[ButtonAction]):
-    product_id = btn.data.value
-    wa_logger.info(f"Kullanıcı {btn.from_user.wa_id} ürün seçti: {product_id}")
-    response = order_manager.process_message(btn.from_user.wa_id, "", product_id)
-    send_response(client, btn.from_user.wa_id, response)
-
-def handle_option_selection(client: WhatsApp, btn: CallbackButton[ButtonAction]):
-    if btn.data.value == "1":
-        if btn.data.image:
-            send_product_images(client, btn.from_user.wa_id)
-        else:
-            client.send_message(to=btn.from_user.wa_id, text="Ürünler gösteriliyor")
-    elif btn.data.value == "2":
-        client.send_message(to=btn.from_user.wa_id, text="Lütfen sorunuzu sorun, size yardımcı olmaya çalışacağım.")
-    else:
-        wa_logger.warning(f"Bilinmeyen seçenek değeri: {btn.data.value}")
+        wa_logger.error(f"Error in handle_button_press: {str(e)}", exc_info=True)
         send_menu_buttons(client, btn.from_user.wa_id)
 
-def handle_cargo_tracking_menu(client: WhatsApp, user_id: str):
-    buttons = [
-        Button(title="Son Siparişimi Sorgula", callback_data=ButtonAction(action="track_last_order", value="")),
-        Button(title="Kargo Firmaları", callback_data=ButtonAction(action="cargo_companies", value="")),
-        Button(title="Ana Menü", callback_data=ButtonAction(action="main_menu", value=""))
-    ]
-    client.send_message(to=user_id, text="Kargo işlemleri için bir seçenek belirleyin:", buttons=buttons)
-
-def handle_last_order_tracking(client: WhatsApp, user_id: str):
-    # Bu fonksiyon, son siparişin takip numarasını almalı ve kargo durumunu sorgulamalıdır.
-    # Şimdilik örnek bir yanıt gönderiyoruz.
-    tracking_number = "YK-987654321"  # Bu, gerçek bir veritabanından alınmalıdır
-    cargo_info = check_tracking_number(tracking_number)
-    send_response_with_menu(client, user_id, cargo_info)
-
-def handle_cargo_companies(client: WhatsApp, user_id: str):
-    cargo_companies_info = "Çalıştığımız kargo firmaları:\n\n1. Yurtiçi Kargo\n2. MNG Kargo\n3. Aras Kargo"
-    send_response_with_menu(client, user_id, cargo_companies_info)
-
-def handle_order_confirmation(client: WhatsApp, btn: CallbackButton[ButtonAction]):
-    response = order_manager.process_message(btn.from_user.wa_id, btn.data.action)
-    send_response(client, btn.from_user.wa_id, response)
-
-def send_product_images(client: WhatsApp, user_id: str):
-    image_files = [f for f in os.listdir("uploads/products") if f.endswith(".jpeg")]
-    for i, image_file in enumerate(image_files):
-        send_image_button(client, user_id, image_file, f"Ürün ID: {i+1}")
-
-def send_error_message(client: WhatsApp, user_id: str):
-    error_message = "Üzgünüz, bir hata oluştu. Lütfen tekrar deneyin veya müşteri hizmetleriyle iletişime geçin."
-    send_response_with_menu(client, user_id, error_message)
-
-@wa.on_message()
-def on_message(client: WhatsApp, message: Message):
-    wa_logger.debug(f"Mesaj alındı: {message.text} - Gönderen: {message.from_user.wa_id}")
-    try:
-        handle_message(client, message.from_user.wa_id, message.text)
-    except Exception as e:
-        wa_logger.error(f"Mesaj işleme hatası: {str(e)}", exc_info=True)
-        send_error_message(client, message.from_user.wa_id)
-
-def handle_message(client: WhatsApp, from_id: str, text: str):
-    wa_logger.info(f"Mesaj işleniyor - Gönderen: {from_id}, Mesaj: {text}")
-    lower_text = text.lower()
-
-    try:
-        order = order_manager.get_or_create_order(from_id)
-        if order['state'] != OrderState.IDLE:
-            handle_ongoing_order(client, from_id, text, order)
-            return
-
-        if from_id not in users_greeted:
-            send_welcome_message(client, from_id)
-            users_greeted.add(from_id)
-            return
-
-        if lower_text == "/menu":
-            send_menu_buttons(client, from_id)
-            return
-
-        if re.match(r'^[A-Za-z]{2}-\d{9}$', text):
-            handle_cargo_tracking(client, from_id, text)
-            return
-
-        handle_general_message(client, from_id, lower_text)
-
-    except Exception as e:
-        wa_logger.error(f"Mesaj işleme hatası: {str(e)}", exc_info=True)
-        send_error_message(client, from_id)
-
-def handle_ongoing_order(client: WhatsApp, from_id: str, text: str, order: Dict):
-    wa_logger.info(f"Devam eden sipariş işleniyor - Kullanıcı: {from_id}, Mevcut durum: {order['state']}")
-    response = order_manager.process_message(from_id, text)
-    send_response(client, from_id, response)
-
-def handle_general_message(client: WhatsApp, from_id: str, lower_text: str):
-    automated_responses = {
-        "test": "test1",
-        "merhaba": "Merhaba! Nasıl yardımcı olabilirim?",
-        "yardim": "Müşteri temsilcisine yönlendiriyorum",
-    }
-
-    if lower_text in automated_responses:
-        send_response_with_menu(client, from_id, automated_responses[lower_text])
-    elif lower_text in ["fiyat nedir?", "fiyat nedir"]:
-        catalog_link = "ornekcataloglink.wp.com"
-        response = f"Ürünlerimizin fiyatları hakkında detaylı bilgi için lütfen kataloğumuzu inceleyin: {catalog_link}"
-        send_response_with_menu(client, from_id, response)
-    else:
-        ai_response = get_ai_response(lower_text)
-        send_response_with_menu(client, from_id, ai_response)
-
-def handle_cargo_tracking(client: WhatsApp, from_id: str, tracking_number: str):
-    wa_logger.info(f"Kargo takibi yapılıyor - Kullanıcı: {from_id}, Takip No: {tracking_number}")
-    cargo_info = check_tracking_number(tracking_number)
-    send_response_with_menu(client, from_id, cargo_info)
-
-def send_response_with_menu(client: WhatsApp, to: str, text: str):
-    client.send_message(to=to, text=text)
-    send_menu_buttons(client, to)
-
-def send_response(client: WhatsApp, to: str, response: Dict[str, Any]):
-    try:
-        if isinstance(response, dict):
-            message_text = response.get('text', '')
-            buttons = response.get('buttons', [])
-            
-            if buttons:
-                client.send_message(to=to, text=message_text, buttons=[
-                    Button(title=b['title'], callback_data=ButtonAction(action=b['callback_data'], value="")) for b in buttons
-                ])
-            else:
-                client.send_message(to=to, text=message_text)
-        else:
-            client.send_message(to=to, text=str(response))
-    except Exception as e:
-        wa_logger.error(f"Yanıt gönderme hatası: {str(e)}", exc_info=True)
-        send_error_message(client, to)
-
-def send_menu_buttons(client: WhatsApp, to: str):
-    buttons = [
-        Button(title="Ürünleri Göster", callback_data=ButtonAction(action="option", value="1", image="1.jpeg")),
-        Button(title="Müşteri Temsilcisi", callback_data=ButtonAction(action="option", value="2")),
-        Button(title="Kargo Sorgula", callback_data=ButtonAction(action="help", value="general"))
-    ]
-    client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)
 
 # Update the webhook verification endpoint
 @fastapi_app.get("/")
@@ -655,6 +515,98 @@ def send_image_button(client: WhatsApp, to: str, image_file: str, image_caption:
     else:
         client.send_message(
             to=to, text="Üzgünüz, istenen resim mevcut değil.")
+
+
+@wa.on_message()
+def on_message(client: WhatsApp, message: Message):
+    wa_logger.debug(f"Received message: {message.text} from {message.from_user.wa_id}")
+    try:
+        handle_message(client, message.from_user.wa_id, message.text)
+    except Exception as e:
+        wa_logger.error(f"Error in on_message handler: {str(e)}", exc_info=True)
+        send_menu_buttons(client, message.from_user.wa_id)
+
+
+# Handle incoming messages
+def handle_message(client: WhatsApp, from_id: str, text: str):
+    wa_logger.info(f"Handling message from {from_id}: {text}")
+    lower_text = text.lower()
+
+    try:
+        # Sipariş süreci devam ediyorsa
+        order = order_manager.get_or_create_order(from_id)
+        wa_logger.debug(f"Current order state for user {from_id}: {order['state']}")
+        if order['state'] != OrderState.IDLE:
+            wa_logger.info(f"Continuing order process for user {from_id}, current state: {order['state']}")
+            response = order_manager.process_message(from_id, text)
+            wa_logger.info(f"Order response for ongoing order: {response}")
+            send_response(client, from_id, response)
+            return
+
+        if from_id not in users_greeted:
+            wa_logger.info(f"Sending welcome message to new user: {from_id}")
+            send_welcome_message(client, from_id)
+            users_greeted.add(from_id)
+            send_menu_buttons(client, from_id)
+            return
+
+        if lower_text == "/menu":
+            wa_logger.info(f"Sending menu buttons to user: {from_id}")
+            send_menu_buttons(client, from_id)
+            return
+
+        automated_responses = {
+            "test": "test1",
+            "merhaba": "Merhaba! Nasıl yardımcı olabilirim?",
+            "yardim": "Musteri temsilcisi yonlendiriyorum",
+        }
+
+        if lower_text in automated_responses:
+            wa_logger.info(f"Sending automated response for '{lower_text}' to user: {from_id}")
+            client.send_message(to=from_id, text=automated_responses[lower_text])
+        elif lower_text in ["fiyat nedir?", "fiyat nedir"]:
+            wa_logger.info(f"Sending catalog link to user: {from_id}")
+            catalog_link = "ornekcataloglink.wp.com"
+            response = f"Ürünlerimizin fiyatları hakkında detaylı bilgi için lütfen kataloğumuzu inceleyin: {catalog_link}"
+            client.send_message(to=from_id, text=response)
+        else:
+            wa_logger.info(f"Getting AI response for user: {from_id}")
+            ai_response = get_ai_response(text)
+            client.send_message(to=from_id, text=ai_response)
+
+        wa_logger.info(f"Sending menu buttons after response to user: {from_id}")
+        send_menu_buttons(client, from_id)
+    except Exception as e:
+        wa_logger.error(f"Error in handle_message: {str(e)}", exc_info=True)
+        send_menu_buttons(client, from_id)
+
+
+def send_response(client: WhatsApp, to: str, response: Dict[str, Any]):
+    try:
+        if isinstance(response, dict):
+            message_text = response.get('text', '')
+            buttons = response.get('buttons', [])
+            
+            if buttons:
+                client.send_message(to=to, text=message_text, buttons=[
+                    Button(title=b['title'], callback_data=ButtonAction(action=b['callback_data'], value="")) for b in buttons
+                ])
+            else:
+                client.send_message(to=to, text=message_text)
+        else:
+            client.send_message(to=to, text=str(response))
+    except Exception as e:
+        wa_logger.error(f"Error in send_response: {str(e)}", exc_info=True)
+        send_menu_buttons(client, to)
+
+
+def send_menu_buttons(client: WhatsApp, to: str):
+    buttons = [
+        Button(title="Ürünleri Göster", callback_data=ButtonAction(action="option", value="1", image="1.jpeg")),
+        Button(title="Musteri temsilcisi", callback_data=ButtonAction(action="option", value="2")),
+        Button(title="Kargo Sorgula", callback_data=ButtonAction(action="help", value="general"))
+    ]
+    client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)
 
 
 # Error handler
