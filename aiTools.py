@@ -56,7 +56,7 @@ def get_ai_response(question: str) -> str:
         # Stream the response
         with client.beta.threads.runs.stream(
             thread_id=thread.id,
-            run_id=run.id,
+            assistant_id=ASSISTANT_ID,
             event_handler=handler,
         ) as stream:
             stream.until_done()

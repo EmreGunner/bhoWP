@@ -755,7 +755,7 @@ def handle_message(client: WhatsApp, message: Message):
     if message.text.lower() == "/menu":
         send_message_with_buttons(client, from_id)
     else:
-        # Handle other messages or automated responses
+        # Handle automated responses or use AI
         automated_responses = {
             "test": "test1",
             "merhaba": "Merhaba! Nasıl yardımcı olabilirim?",
@@ -767,22 +767,6 @@ def handle_message(client: WhatsApp, message: Message):
         if lower_text in automated_responses:
             client.send_message(to=from_id, text=automated_responses[lower_text])
         else:
-            # Default response for unrecognized messages
-            client.send_message(to=from_id, text="Anlaşılmadı. Yardım için lütfen /menu yazın.")
-
-# Add a dictionary to store user states
-user_states = {}
-
-@wa.on_message(filters.text)
-def handle_message(client: WhatsApp, message: Message):
-    from_id = message.from_user.wa_id
-    
-    if from_id in user_states and user_states[from_id] == "waiting_for_question":
-        # Process the question using OpenAI
-        ai_response = get_ai_response(message.text)
-        client.send_message(to=from_id, text=ai_response)
-        # Reset user state
-        del user_states[from_id]
-    else:
-        print("not Ais")
-        # ... (existing code for handling other messages)
+            # Use AI for non-automated responses
+            ai_response = get_ai_response(message.text)
+            client.send_message(to=from_id, text=ai_response)
