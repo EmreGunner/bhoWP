@@ -1,18 +1,5 @@
-2024-10-08 20:32:13,348 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:13,699 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:14,050 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:14,400 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:14,751 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:15,101 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:15,452 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:15,802 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:16,154 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:16,504 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:16,855 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:17,205 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:17,556 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:17,906 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:18,257 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:18,608 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:18,958 - watchfiles.main - INFO - 1 change detected
-2024-10-08 20:32:19,309 - watchfiles.main - INFO - 1 change detected
+2024-10-08 21:06:28,070 - airtable_siparisler - ERROR - Unexpected error while creating Airtable record: name 'json' is not defined
+Traceback (most recent call last):
+  File "/home/runner/noodWP/airtable_siparisler.py", line 53, in create_airtable_record
+    airtable_logger.debug(f"Request data: {json.dumps(data)}")
+NameError: name 'json' is not defined

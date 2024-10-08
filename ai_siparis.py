@@ -48,7 +48,10 @@ class OrderManager:
         return self.orders[user_id]
 
     def validate_phone(self, phone: str) -> bool:
-        return bool(re.match(r'^\+?[0-9]{10,12}$', phone))
+        # Remove any non-digit characters
+        cleaned_phone = re.sub(r'\D', '', phone)
+        # Check if the cleaned phone number has 10 to 15 digits
+        return 10 <= len(cleaned_phone) <= 15
 
     def validate_name(self, name: str) -> bool:
         return len(name.split()) >= 1 and all(part.isalpha() for part in name.split())
@@ -77,7 +80,7 @@ class OrderManager:
             if self.validate_address(message):
                 order["address"] = message
                 order["state"] = OrderState.COLLECTING_PHONE
-                return "Adresinizi aldık. Son olarak, telefon numaranızı girer misiniz? (Örnek: +905551234567)"
+                return "Adresinizi aldık. Son olarak, telefon numaranızı girer misiniz? (Örnek: 05551234567)"
             else:
                 return "Geçersiz adres. Lütfen en az 5 karakterden oluşan bir adres girin."
 
@@ -87,7 +90,7 @@ class OrderManager:
                 order["state"] = OrderState.COLLECTING_TEXT
                 return "Teşekkürler. Ürün üzerine yazdırmak istediğiniz metni girin. Eğer istemiyorsanız 'Yok' yazabilirsiniz."
             else:
-                return "Geçersiz telefon numarası. Lütfen +905551234567 formatında bir numara girin."
+                return "Geçersiz telefon numarası. Lütfen 5551234567 formatında bir numara girin."
 
         elif order["state"] == OrderState.COLLECTING_TEXT:
             order["text"] = message if message.lower() != "yok" else ""
@@ -95,28 +98,29 @@ class OrderManager:
             return f"Bilgilerinizi özetliyorum:\nİsim: {order['name']}\nAdres: {order['address']}\nTelefon: {order['phone']}\nÜrün Metni: {order['text'] or 'Yok'}\nBu bilgiler doğru mu? (Evet/Hayır)"
 
         elif order["state"] == OrderState.CONFIRMING:
-            if message.lower() == "evet":
-                try:
-                    order_number = create_airtable_record(
-                        order["product_id"],
-                        order["name"],
-                        order["address"],
-                        order["phone"],
-                        order["text"]
-                    )
-                    if order_number != "ERROR":
-                        order["order_number"] = order_number
-                        order["state"] = OrderState.COMPLETED
-                        return f"Siparişiniz alındı. Sipariş numaranız: {order_number}. Teşekkür ederiz!"
-                    else:
-                        ai_siparis_logger.warning(f"Failed to create Airtable record for user {user_id}")
+            if message.lower() in ["evet", "hayır", "hayir"]:
+                if "evet" in message.lower():
+                    try:
+                        order_number = create_airtable_record(
+                            order["product_id"],
+                            order["name"],
+                            order["address"],
+                            order["phone"],
+                            order["text"]
+                        )
+                        if order_number != "ERROR":
+                            order["order_number"] = order_number
+                            order["state"] = OrderState.COMPLETED
+                            return f"Siparişiniz alındı. Sipariş numaranız: {order_number}. Teşekkür ederiz!"
+                        else:
+                            ai_siparis_logger.warning(f"Failed to create Airtable record for user {user_id}")
+                            return "Üzgünüz, siparişinizi kaydederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+                    except Exception as e:
+                        ai_siparis_logger.warning(f"Error creating Airtable record: {e}", exc_info=True)
                         return "Üzgünüz, siparişinizi kaydederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
-                except Exception as e:
-                    ai_siparis_logger.warning(f"Error creating Airtable record: {e}", exc_info=True)
-                    return "Üzgünüz, siparişinizi kaydederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
-            elif message.lower() == "hayır":
-                order["state"] = OrderState.COLLECTING_NAME
-                return "Özür dileriz. Bilgilerinizi tekrar alalım. Lütfen adınızı ve soyadınızı girin."
+                else:
+                    order["state"] = OrderState.COLLECTING_NAME
+                    return "Özür dileriz. Bilgilerinizi tekrar alalım. Lütfen adınızı ve soyadınızı girin."
             else:
                 return "Lütfen 'Evet' veya 'Hayır' şeklinde yanıt verin."
 

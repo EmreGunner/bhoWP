@@ -15,7 +15,7 @@ from pywa import errors as pywa_errors
 from dataclasses import dataclass
 from dotenv import load_dotenv
 from aiTools import get_ai_response
-from ai_siparis import handle_order, OrderState, order_manager
+from ai_siparis import OrderManager, OrderState
 from typing import List, Dict, Any
 
 # Ensure the logs directory exists
@@ -92,6 +92,9 @@ connected_clients = set()
 # Add this to your global variables
 users_greeted = set()
 
+# Initialize the OrderManager
+order_manager = OrderManager()
+
 
 # Step 1: Define our custom CallbackData
 @dataclass(frozen=True, slots=True)
@@ -125,7 +128,7 @@ def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
     if btn.data.action == "choose_product":
         product_id = btn.data.value
         wa_logger.info(f"User {btn.from_user.wa_id} selected product: {product_id}")
-        response = handle_order(btn.from_user.wa_id, "", product_id)
+        response = order_manager.process_message(btn.from_user.wa_id, "", product_id)
         client.send_message(to=btn.from_user.wa_id, text=response)
     elif btn.data.action == "option":
         if btn.data.value == "1":
@@ -508,20 +511,11 @@ def handle_message(client: WhatsApp, from_id: str, text: str):
     wa_logger.info(f"Received message from {from_id}: {text}")
     lower_text = text.lower()
 
-    # Ürün seçimi yapıldıysa sipariş sürecini başlat
-    if lower_text.startswith("urun_"):
-        product_id = lower_text.split("_")[1]
-        wa_logger.info(f"Starting order process for product {product_id}")
-        response = handle_order(from_id, "", product_id)
-        wa_logger.info(f"Order response for product selection: {response}")
-        client.send_message(to=from_id, text=response)
-        return
-
     # Sipariş süreci devam ediyorsa
     order = order_manager.get_or_create_order(from_id)
     if order['state'] != OrderState.IDLE:
         wa_logger.info(f"Continuing order process for user {from_id}, current state: {order['state']}")
-        response = handle_order(from_id, text)
+        response = order_manager.process_message(from_id, text)
         wa_logger.info(f"Order response for ongoing order: {response}")
         client.send_message(to=from_id, text=response)
         return
