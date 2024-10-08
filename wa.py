@@ -754,7 +754,7 @@ def send_image_button(client: WhatsApp, to: str, image_file: str, image_caption:
 def send_welcome_message(client: WhatsApp, to: str):
     client.send_message(
         to=to,
-        text="Merhaba! Nasıl yardımcı olabiliz?"
+        text="Merhaba! Nasıl yardımcı olabiliriz?"
     )
 
 # Handle incoming messages
@@ -767,22 +767,24 @@ def handle_message(client: WhatsApp, message: Message):
         send_welcome_message(client, from_id)
         users_greeted.add(from_id)
     
+    lower_text = message.text.lower()
+    
     # Handle the /menu command
-    if message.text.lower() == "/menu":
+    if lower_text == "/menu":
         send_message_with_buttons(client, from_id)
+        return  # Exit the function after sending the menu
+    
+    # Check for automated responses
+    automated_responses = {
+        "test": "test1",
+        "merhaba": "Merhaba! Nasıl yardımcı olabilirim?",
+        "help": "Sure, I'd be happy to help. What do you need assistance with?",
+        # Add more automated responses here
+    }
+    
+    if lower_text in automated_responses:
+        client.send_message(to=from_id, text=automated_responses[lower_text])
     else:
-        # Handle automated responses or use AI
-        automated_responses = {
-            "test": "test1",
-            "merhaba": "Merhaba! Nasıl yardımcı olabilirim?",
-            "help": "Sure, I'd be happy to help. What do you need assistance with?",
-            # Add more automated responses here
-        }
-        
-        lower_text = message.text.lower()
-        if lower_text in automated_responses:
-            client.send_message(to=from_id, text=automated_responses[lower_text])
-        else:
-            # Use AI for non-automated responses
-            ai_response = get_ai_response(message.text)
-            client.send_message(to=from_id, text=ai_response)
+        # Use AI for non-automated responses
+        ai_response = get_ai_response(message.text)
+        client.send_message(to=from_id, text=ai_response)
