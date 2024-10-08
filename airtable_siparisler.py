@@ -22,7 +22,6 @@ headers = {
 
 def create_airtable_record(product_id: str, name: str, address: str, phone: str) -> str:
     logger.debug(f"create_airtable_record called with: product_id={product_id}, name={name}, address={address}, phone={phone}")
-    logger.debug(f"API_KEY: {API_KEY}, BASE_ID: {BASE_ID}, TABLE_NAME: {TABLE_NAME}")
     
     data = {
         "records": [
