@@ -17,6 +17,8 @@ from dotenv import load_dotenv
 from aiTools import get_ai_response
 from ai_siparis import OrderManager, OrderState
 from typing import List, Dict, Any
+from airtable_cargo import check_tracking_number
+import re
 
 # Ensure the logs directory exists
 os.makedirs('logs', exist_ok=True)
@@ -152,6 +154,37 @@ def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
                 response = {"text": "Lütfen sorunuzu sorun, size yardımcı olmaya çalışacağım.", "buttons": []}
             else:
                 response = {"text": "Bilinmeyen seçenek", "buttons": []}
+        elif btn.data.action == "help" and btn.data.value == "general":
+            # Handle "Kargo Sorgula" button
+            response = {
+                "text": "Kargo takip numaranızı girin veya aşağıdaki seçeneklerden birini seçin:",
+                "buttons": [
+                    {"title": "Son Siparişimi Sorgula", "callback_data": "track_last_order"},
+                    {"title": "Kargo Firmaları", "callback_data": "cargo_companies"},
+                    {"title": "Ana Menü", "callback_data": "main_menu"}
+                ]
+            }
+        elif btn.data.action == "track_last_order":
+            # Implement logic to get the last order's tracking number
+            # For now, we'll use a dummy tracking number
+            tracking_number = "YK-987654321"
+            cargo_info = check_tracking_number(tracking_number)
+            response = {
+                "text": f"Son siparişinizin kargo bilgisi:\n\n{cargo_info}",
+                "buttons": [
+                    {"title": "Ana Menü", "callback_data": "main_menu"}
+                ]
+            }
+        elif btn.data.action == "cargo_companies":
+            response = {
+                "text": "Çalıştığımız kargo firmaları:\n\n1. Yurtiçi Kargo\n2. MNG Kargo\n3. Aras Kargo",
+                "buttons": [
+                    {"title": "Ana Menü", "callback_data": "main_menu"}
+                ]
+            }
+        elif btn.data.action == "main_menu":
+            send_menu_buttons(client, btn.from_user.wa_id)
+            return
         elif btn.data.action in ["confirm_order_yes", "confirm_order_no"] or btn.data.action.startswith("correct_"):
             response = order_manager.process_message(btn.from_user.wa_id, btn.data.action)
         else:
@@ -555,6 +588,12 @@ def handle_message(client: WhatsApp, from_id: str, text: str):
             send_menu_buttons(client, from_id)
             return
 
+        # Check if the message is a cargo tracking number
+        if re.match(r'^[A-Za-z]{2}-\d{9}$', text):
+            wa_logger.info(f"Handling cargo tracking for user: {from_id}")
+            handle_cargo_tracking(client, from_id, text)
+            return
+
         automated_responses = {
             "test": "test1",
             "merhaba": "Merhaba! Nasıl yardımcı olabilirim?",
@@ -625,3 +664,15 @@ async def global_exception_handler(request, exc):
                             "message": "An unexpected error occurred.",
                             "error": str(exc)
                         })
+
+def handle_cargo_tracking(client: WhatsApp, from_id: str, text: str):
+    tracking_number = text.strip().upper()
+    cargo_info = check_tracking_number(tracking_number)
+    response = {
+        "text": cargo_info,
+        "buttons": [
+            {"title": "Başka Kargo Sorgula", "callback_data": "help:general"},
+            {"title": "Ana Menü", "callback_data": "main_menu"}
+        ]
+    }
+    send_response(client, from_id, response)
