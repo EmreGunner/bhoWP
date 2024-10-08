@@ -20,8 +20,8 @@ headers = {
     "Content-Type": "application/json"
 }
 
-def create_airtable_record(product_id: str, name: str, address: str, phone: str) -> str:
-    logger.debug(f"create_airtable_record called with: product_id={product_id}, name={name}, address={address}, phone={phone}")
+def create_airtable_record(product_id: str, name: str, address: str, phone: str, text: str) -> str:
+    logger.debug(f"create_airtable_record called with: product_id={product_id}, name={name}, address={address}, phone={phone}, text={text}")
     
     data = {
         "records": [
@@ -30,7 +30,8 @@ def create_airtable_record(product_id: str, name: str, address: str, phone: str)
                     "urunNo": product_id,
                     "AdSoyad": name,
                     "Adres": address,
-                    "telefonNo": phone
+                    "telefonNo": phone,
+                    "UrunMetni": text
                 }
             }
         ]

@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import Dict, Optional
 from airtable_siparisler import create_airtable_record
-from pyairtable import Api
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -11,8 +11,9 @@ class OrderState(Enum):
     COLLECTING_NAME = 1
     COLLECTING_ADDRESS = 2
     COLLECTING_PHONE = 3
-    CONFIRMING = 4
-    COMPLETED = 5
+    COLLECTING_TEXT = 4
+    CONFIRMING = 5
+    COMPLETED = 6
 
 class OrderManager:
     def __init__(self):
@@ -25,9 +26,14 @@ class OrderManager:
                 "name": "",
                 "address": "",
                 "phone": "",
-                "product_id": ""
+                "product_id": "",
+                "text": "",
+                "order_number": ""
             }
         return self.orders[user_id]
+
+    def validate_phone(self, phone: str) -> bool:
+        return bool(re.match(r'^\+?[0-9]{10,12}$', phone))
 
     def process_message(self, user_id: str, message: str, product_id: Optional[str] = None) -> str:
         order = self.get_or_create_order(user_id)
@@ -46,17 +52,26 @@ class OrderManager:
         elif order["state"] == OrderState.COLLECTING_ADDRESS:
             order["address"] = message
             order["state"] = OrderState.COLLECTING_PHONE
-            return "Adresinizi aldık. Son olarak, telefon numaranızı girer misiniz?"
+            return "Adresinizi aldık. Son olarak, telefon numaranızı girer misiniz? (Örnek: +905551234567)"
 
         elif order["state"] == OrderState.COLLECTING_PHONE:
-            order["phone"] = message
+            if self.validate_phone(message):
+                order["phone"] = message
+                order["state"] = OrderState.COLLECTING_TEXT
+                return "Teşekkürler. Ürün üzerine yazdırmak istediğiniz metni girin. Eğer istemiyorsanız 'Yok' yazabilirsiniz."
+            else:
+                return "Geçersiz telefon numarası. Lütfen +905551234567 formatında bir numara girin."
+
+        elif order["state"] == OrderState.COLLECTING_TEXT:
+            order["text"] = message if message.lower() != "yok" else ""
             order["state"] = OrderState.CONFIRMING
-            return f"Bilgilerinizi özetliyorum:\nİsim: {order['name']}\nAdres: {order['address']}\nTelefon: {order['phone']}\nBu bilgiler doğru mu? (Evet/Hayır)"
+            return f"Bilgilerinizi özetliyorum:\nİsim: {order['name']}\nAdres: {order['address']}\nTelefon: {order['phone']}\nÜrün Metni: {order['text'] or 'Yok'}\nBu bilgiler doğru mu? (Evet/Hayır)"
 
         elif order["state"] == OrderState.CONFIRMING:
             if message.lower() == "evet":
                 try:
-                    order_number = create_airtable_record(order["product_id"], order["name"], order["address"], order["phone"])
+                    order_number = create_airtable_record(order["product_id"], order["name"], order["address"], order["phone"], order["text"])
+                    order["order_number"] = order_number
                     order["state"] = OrderState.COMPLETED
                     return f"Siparişiniz alındı. Sipariş numaranız: {order_number}. Teşekkür ederiz!"
                 except Exception as e:
