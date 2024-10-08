@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Dict, Optional
 from airtable_siparisler import create_airtable_record
 import re
+import json
 
 # Logging configuration
 def setup_logger(name, log_file, level=logging.INFO):
@@ -48,9 +49,7 @@ class OrderManager:
         return self.orders[user_id]
 
     def validate_phone(self, phone: str) -> bool:
-        # Remove any non-digit characters
         cleaned_phone = re.sub(r'\D', '', phone)
-        # Check if the cleaned phone number has 10 to 15 digits
         return 10 <= len(cleaned_phone) <= 15
 
     def validate_name(self, name: str) -> bool:
@@ -74,7 +73,7 @@ class OrderManager:
                 order["state"] = OrderState.COLLECTING_ADDRESS
                 return "Teşekkürler. Şimdi lütfen adresinizi girin."
             else:
-                return "Geçersiz isim. Lütfen adınızı (ve varsa soyadınızı) girin."
+                return "Geçersiz isim. Lütfen adınızı ve soyadınızı tekrar girin."
 
         elif order["state"] == OrderState.COLLECTING_ADDRESS:
             if self.validate_address(message):
@@ -108,7 +107,7 @@ class OrderManager:
                             order["phone"],
                             order["text"]
                         )
-                        if order_number != "ERROR":
+                        if order_number and order_number != "ERROR":
                             order["order_number"] = order_number
                             order["state"] = OrderState.COMPLETED
                             return f"Siparişiniz alındı. Sipariş numaranız: {order_number}. Teşekkür ederiz!"
@@ -116,7 +115,7 @@ class OrderManager:
                             ai_siparis_logger.warning(f"Failed to create Airtable record for user {user_id}")
                             return "Üzgünüz, siparişinizi kaydederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
                     except Exception as e:
-                        ai_siparis_logger.warning(f"Error creating Airtable record: {e}", exc_info=True)
+                        ai_siparis_logger.error(f"Error creating Airtable record: {e}", exc_info=True)
                         return "Üzgünüz, siparişinizi kaydederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
                 else:
                     order["state"] = OrderState.COLLECTING_NAME
@@ -139,13 +138,13 @@ def handle_order(user_id: str, message: str, product_id: Optional[str] = None) -
         ai_siparis_logger.error(f"Error in handle_order: {e}", exc_info=True)
         return "Bir hata oluştu. Lütfen tekrar deneyin."
 
-def create_airtable_record(product_id, name, address, phone, text):  # Added text parameter
+def create_airtable_record(product_id, name, address, phone, text):
     try:
         from airtable_siparisler import create_airtable_record as airtable_create_record
         ai_siparis_logger.info(f"Calling Airtable create record function with: product_id={product_id}, name={name}, address={address}, phone={phone}, text={text}")
-        record_id = airtable_create_record(product_id, name, address, phone, text)  # Pass the text argument
+        record_id = airtable_create_record(product_id, name, address, phone, text)
         ai_siparis_logger.info(f"Airtable record created successfully with ID: {record_id}")
         return record_id
     except Exception as e:
         ai_siparis_logger.error(f"Error in create_airtable_record: {str(e)}", exc_info=True)
-        raise
+        return None
