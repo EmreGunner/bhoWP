@@ -13,6 +13,7 @@ from pywa import errors as pywa_errors
 from dataclasses import dataclass
 import os
 from dotenv import load_dotenv
+from aiTools import get_ai_response
 
 # Load environment variables
 load_dotenv()
@@ -103,8 +104,9 @@ def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
                 response = "You selected Option 1"
                 client.send_message(to=btn.from_user.wa_id, text=response)
         elif btn.data.value == "2":
-            response = "You selected Option 2"
-            client.send_message(to=btn.from_user.wa_id, text=response)
+            client.send_message(to=btn.from_user.wa_id, text="Please ask your question, and I'll do my best to assist you.")
+            # Set user state to waiting for question
+            user_states[btn.from_user.wa_id] = "waiting_for_question"
         else:
             response = "Unknown option selected"
             client.send_message(to=btn.from_user.wa_id, text=response)
@@ -736,7 +738,7 @@ def send_image_button(client: WhatsApp, to: str, image_file: str, image_caption:
 def send_welcome_message(client: WhatsApp, to: str):
     client.send_message(
         to=to,
-        text="Merhaba! Nasıl yardımcı olabiliriz?"
+        text="Merhaba! Nasıl yardımcı olabiliz?"
     )
 
 # Handle incoming messages
@@ -768,7 +770,19 @@ def handle_message(client: WhatsApp, message: Message):
             # Default response for unrecognized messages
             client.send_message(to=from_id, text="Anlaşılmadı. Yardım için lütfen /menu yazın.")
 
-# Handle the /menu command explicitly
-@wa.on_message(filters.command("menu"))
-def handle_menu_command(client: WhatsApp, message: Message):
-    send_message_with_buttons(client, message.from_user.wa_id)
+# Add a dictionary to store user states
+user_states = {}
+
+@wa.on_message(filters.text)
+def handle_message(client: WhatsApp, message: Message):
+    from_id = message.from_user.wa_id
+    
+    if from_id in user_states and user_states[from_id] == "waiting_for_question":
+        # Process the question using OpenAI
+        ai_response = get_ai_response(message.text)
+        client.send_message(to=from_id, text=ai_response)
+        # Reset user state
+        del user_states[from_id]
+    else:
+        print("not Ais")
+        # ... (existing code for handling other messages)
