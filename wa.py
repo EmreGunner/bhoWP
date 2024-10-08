@@ -15,7 +15,7 @@ from pywa import errors as pywa_errors
 from dataclasses import dataclass
 from dotenv import load_dotenv
 from aiTools import get_ai_response
-from ai_siparis import OrderManager, OrderState, handle_order
+from ai_siparis import OrderManager, OrderState
 from typing import List, Dict, Any
 
 # Ensure the logs directory exists
@@ -129,14 +129,7 @@ def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
         product_id = btn.data.value
         wa_logger.info(f"User {btn.from_user.wa_id} selected product: {product_id}")
         response = order_manager.process_message(btn.from_user.wa_id, "", product_id)
-        if isinstance(response, dict):
-            if response.get('buttons'):
-                buttons = [Button(title=b['title'], callback_data=b['callback_data']) for b in response['buttons']]
-                client.send_message(to=btn.from_user.wa_id, text=response['text'], buttons=buttons)
-            else:
-                client.send_message(to=btn.from_user.wa_id, text=response['text'])
-        else:
-            client.send_message(to=btn.from_user.wa_id, text=str(response))
+        client.send_message(to=btn.from_user.wa_id, text=response)
     elif btn.data.action == "option":
         if btn.data.value == "1":
             if btn.data.image:
@@ -522,14 +515,9 @@ def handle_message(client: WhatsApp, from_id: str, text: str):
     order = order_manager.get_or_create_order(from_id)
     if order['state'] != OrderState.IDLE:
         wa_logger.info(f"Continuing order process for user {from_id}, current state: {order['state']}")
-        response = handle_order(from_id, text)
+        response = order_manager.process_message(from_id, text)
         wa_logger.info(f"Order response for ongoing order: {response}")
-        
-        if response['buttons']:
-            buttons = [Button(title=btn['title'], callback_data=btn['callback_data']) for btn in response['buttons']]
-            client.send_message(to=from_id, text=response['text'], buttons=buttons)
-        else:
-            client.send_message(to=from_id, text=response['text'])
+        client.send_message(to=from_id, text=response)
         return
 
     # Diğer mesaj işlemleri (mevcut kod)
