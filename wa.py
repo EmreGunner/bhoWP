@@ -15,6 +15,7 @@ import os
 from dotenv import load_dotenv
 from aiTools import get_ai_response
 from ai_siparis import handle_order
+from typing import List, Dict, Any
 
 # Load environment variables
 load_dotenv()
