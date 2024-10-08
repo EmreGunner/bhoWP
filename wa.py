@@ -14,7 +14,7 @@ from dataclasses import dataclass
 import os
 from dotenv import load_dotenv
 from aiTools import get_ai_response
-from ai_siparis import handle_order
+#from ai_siparis import handle_order
 from typing import List, Dict, Any
 
 # Load environment variables
@@ -91,7 +91,7 @@ def send_message_with_buttons(client: WhatsApp, to: str):
                         buttons=buttons)
 
 
-# Step 5: Define the callback handler
+# Step 5: Define thez callback handler
 @wa.on_callback_button(factory=ButtonAction)
 def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
     # Step 6: Handle different button actions
@@ -347,18 +347,12 @@ def handle_raw_update(client: WhatsApp, update: dict):
                                     f"Received message: '{text}' from {from_id}"
                                 )
                                 new_message = {
-                                    "id":
-                                    message_id,
-                                    "from":
-                                    from_id,
-                                    "to":
-                                    BUSINESS_PHONE_NUMBER_ID,
-                                    "text":
-                                    text,
-                                    "timestamp":
-                                    datetime.datetime.now().isoformat(),
-                                    "status":
-                                    "received"
+                                    "id": message_id,
+                                    "from": from_id,
+                                    "to": BUSINESS_PHONE_NUMBER_ID,
+                                    "text": text,
+                                    "timestamp": datetime.datetime.now().isoformat(),
+                                    "status": "received"
                                 }
                                 if from_id not in conversations:
                                     conversations[from_id] = []
@@ -370,10 +364,20 @@ def handle_raw_update(client: WhatsApp, update: dict):
                                             "message": new_message
                                         })))
 
+                                # Create a Message object with the required arguments
+                                msg = Message(
+                                    _client=client,
+                                    raw=message,
+                                    type='text',
+                                    reply_to_message=None,
+                                    forwarded=False,
+                                    forwarded_many_times=False,
+                                    text=text,
+                                    from_user=from_id
+                                )
+
                                 # Handle the message
-                                handle_message(
-                                    client,
-                                    Message(text=text, from_user=from_id))
+                                handle_message(client, msg)
                     elif 'statuses' in value:
                         for status in value['statuses']:
                             logger.info(f"Received status update: {status}")
