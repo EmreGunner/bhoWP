@@ -3,9 +3,8 @@
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
-from typing_extensions import override
-from openai import AssistantEventHandler
-from openai.types.beta.threads import Text, TextDelta
+import json
+import time
 
 # Load environment variables
 load_dotenv()
@@ -15,22 +14,6 @@ client = OpenAI(api_key=os.getenv("OPENAI_KEY"))
 
 # Assistant ID
 ASSISTANT_ID = "asst_c0fmvtw3HZfUYXooiPim6WBF"
-
-class EventHandler(AssistantEventHandler):
-    def __init__(self):
-        self.full_response = ""
-
-    @override
-    def on_text_created(self, text: Text) -> None:
-        pass
-
-    @override
-    def on_text_delta(self, delta: TextDelta, snapshot: Text):
-        self.full_response += delta.value
-
-    @override
-    def on_end(self):
-        pass
 
 def get_ai_response(question: str) -> str:
     try:
@@ -50,19 +33,23 @@ def get_ai_response(question: str) -> str:
             assistant_id=ASSISTANT_ID
         )
 
-        # Initialize the event handler
-        handler = EventHandler()
+        # Wait for the run to complete
+        while run.status in ["queued", "in_progress"]:
+            run = client.beta.threads.runs.retrieve(
+                thread_id=thread.id,
+                run_id=run.id
+            )
+            time.sleep(0.5)
 
-        # Stream the response
-        with client.beta.threads.runs.stream(
-            thread_id=thread.id,
-            assistant_id=ASSISTANT_ID,
-            event_handler=handler,
-        ) as stream:
-            stream.until_done()
+        # Retrieve the messages
+        messages = client.beta.threads.messages.list(thread_id=thread.id)
 
-        # Return the full response
-        return handler.full_response.strip()
+        # Get the last assistant message
+        for message in messages.data:
+            if message.role == "assistant":
+                return message.content[0].text.value
+
+        return "No response from the assistant."
 
     except Exception as e:
         print(f"Error in get_ai_response: {e}")

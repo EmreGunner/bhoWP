@@ -708,6 +708,22 @@ def handle_message(client: WhatsApp, message: Message):
     
     elif lower_text == "menu":
         send_message_with_buttons(client, message.from_user.wa_id)
+    else:
+        # Handle automated responses or use AI
+        automated_responses = {
+            "test": "test1",
+            "merhaba": "Merhaba! Nasıl yardımcı olabilirim?",
+            "help": "Sure, I'd be happy to help. What do you need assistance with?",
+            # Add more automated responses here
+        }
+        
+        lower_text = message.text.lower()
+        if lower_text in automated_responses:
+            client.send_message(to=message.from_user.wa_id, text=automated_responses[lower_text])
+        else:
+            # Use AI for non-automated responses
+            ai_response = get_ai_response(message.text)
+            client.send_message(to=message.from_user.wa_id, text=ai_response)
 
 def send_image_button(client: WhatsApp, to: str, image_file: str, image_caption: str):
     # Path to the image file
