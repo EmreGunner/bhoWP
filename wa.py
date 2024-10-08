@@ -1,4 +1,6 @@
 import logging
+from logging.handlers import RotatingFileHandler
+import os
 from fastapi import FastAPI, Request, Query, HTTPException, Body, Form, WebSocket, UploadFile, File
 from fastapi.responses import PlainTextResponse, JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -11,19 +13,33 @@ import asyncio
 import json
 from pywa import errors as pywa_errors
 from dataclasses import dataclass
-import os
 from dotenv import load_dotenv
 from aiTools import get_ai_response
 from ai_siparis import handle_order, OrderState, order_manager
 from typing import List, Dict, Any
 
+# Ensure the logs directory exists
+os.makedirs('logs', exist_ok=True)
+
 # Logging configuration
-logging.basicConfig(
-    filename='logs/main.log',
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+def setup_logger(name, log_file, level=logging.INFO):
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    
+    handler = RotatingFileHandler(log_file, maxBytes=10*1024*1024, backupCount=5)
+    handler.setFormatter(formatter)
+
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    logger.addHandler(handler)
+
+    return logger
+
+# Setup loggers
+main_logger = setup_logger('main', 'logs/main.log')
+wa_logger = setup_logger('wa', 'logs/wa.log')
+
+# Use wa_logger for WhatsApp specific logs
+# Use main_logger for general application logs
 
 # Load environment variables
 load_dotenv()
@@ -108,7 +124,7 @@ def send_message_with_buttons(client: WhatsApp, to: str):
 def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
     if btn.data.action == "choose_product":
         product_id = btn.data.value
-        logger.info(f"User {btn.from_user.wa_id} selected product: {product_id}")
+        wa_logger.info(f"User {btn.from_user.wa_id} selected product: {product_id}")
         response = handle_order(btn.from_user.wa_id, "", product_id)
         client.send_message(to=btn.from_user.wa_id, text=response)
     elif btn.data.action == "option":
@@ -161,12 +177,12 @@ async def receive_webhook(request: Request):
     try:
         body = await request.body()
         data = await request.json()
-        logger.info(f"Received webhook data: {data}")
+        wa_logger.info(f"Received webhook data: {data}")
         response, status_code = await wa.webhook_update_handler(
             update=data,
             raw_body=body,
             hmac_header=request.headers.get("X-Hub-Signature-256"))
-        logger.info(f"Webhook handler response: {response}, status: {status_code}")
+        wa_logger.info(f"Webhook handler response: {response}, status: {status_code}")
 
         # Process the incoming message
         if 'messages' in data['entry'][0]['changes'][0]['value']:
@@ -179,7 +195,7 @@ async def receive_webhook(request: Request):
 
         return PlainTextResponse(content=response, status_code=status_code)
     except Exception as e:
-        logger.error(f"Error in receive_webhook: {e}", exc_info=True)
+        wa_logger.error(f"Error in receive_webhook: {e}", exc_info=True)
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
@@ -228,7 +244,7 @@ async def send_message(to: str = Form(...), message: str = Form(...)):
             }))
         return JSONResponse(content={"success": True, "message_id": response})
     except Exception as e:
-        logger.error(f"Error in send_message: {e}", exc_info=True)
+        wa_logger.error(f"Error in send_message: {e}", exc_info=True)
         return JSONResponse(content={
             "success": False,
             "error": str(e)
@@ -277,7 +293,7 @@ def handle_message_status(client: WhatsApp, status: MessageStatus):
     try:
         message_id = status.id
         status_type = status.status.value  # Convert enum to string
-        logger.info(
+        wa_logger.info(
             f"Message status update: {status_type} for message {message_id}")
 
         # Broadcast the status update to all connected WebSocket clients
@@ -292,13 +308,13 @@ def handle_message_status(client: WhatsApp, status: MessageStatus):
                     }
                 })))
     except Exception as e:
-        logger.error(f"Error in handle_message_status: {e}", exc_info=True)
+        wa_logger.error(f"Error in handle_message_status: {e}", exc_info=True)
 
 
 # Update the get_contacts route
 @fastapi_app.get("/get_contacts")
 async def get_contacts():
-    logger.info(f"Returning contacts: {contacts}")
+    main_logger.info(f"Returning contacts: {contacts}")
     return JSONResponse(content=contacts)
 
 
@@ -307,7 +323,7 @@ async def get_contacts():
 async def add_contact(number: str = Form(...), name: str = Form(...)):
     new_contact = {"number": number, "name": name}
     contacts.append(new_contact)
-    logger.info(f"New contact added: {new_contact}")
+    main_logger.info(f"New contact added: {new_contact}")
     return JSONResponse(content={"success": True, "contact": new_contact})
 
 
@@ -316,7 +332,7 @@ async def add_contact(number: str = Form(...), name: str = Form(...)):
 async def get_messages_for_contact(contact_id: str):
     if contact_id not in conversations:
         conversations[contact_id] = []
-    logger.info(
+    main_logger.info(
         f"Returning messages for contact {contact_id}: {conversations[contact_id]}"
     )
     return JSONResponse(content={"messages": conversations[contact_id]})
@@ -328,7 +344,7 @@ processed_message_ids = set()
 
 @wa.on_raw_update()
 def handle_raw_update(client: WhatsApp, update: dict):
-    logger.info(f"Received raw update: {update}")
+    wa_logger.info(f"Received raw update: {update}")
     try:
         if 'entry' in update and len(update['entry']) > 0:
             changes = update['entry'][0].get('changes', [])
@@ -340,7 +356,7 @@ def handle_raw_update(client: WhatsApp, update: dict):
                             if message['type'] == 'text':
                                 message_id = message['id']
                                 if message_id in processed_message_ids:
-                                    logger.info(
+                                    wa_logger.info(
                                         f"Skipping already processed message: {message_id}"
                                     )
                                     continue
@@ -348,7 +364,7 @@ def handle_raw_update(client: WhatsApp, update: dict):
 
                                 text = message['text']['body']
                                 from_id = message['from']
-                                logger.info(
+                                wa_logger.info(
                                     f"Received message: '{text}' from {from_id}"
                                 )
                                 new_message = {
@@ -373,7 +389,7 @@ def handle_raw_update(client: WhatsApp, update: dict):
                                 handle_message(client, from_id, text)
                     elif 'statuses' in value:
                         for status in value['statuses']:
-                            logger.info(f"Received status update: {status}")
+                            wa_logger.info(f"Received status update: {status}")
                             asyncio.create_task(
                                 broadcast_message(
                                     json.dumps({
@@ -381,7 +397,7 @@ def handle_raw_update(client: WhatsApp, update: dict):
                                         "status": status
                                     })))
     except Exception as e:
-        logger.error(f"Unexpected error in handle_raw_update: {e}",
+        wa_logger.error(f"Unexpected error in handle_raw_update: {e}",
                      exc_info=True)
 
 
@@ -393,24 +409,24 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
-            logger.info(f"Received WebSocket message: {data}")
+            wa_logger.info(f"Received WebSocket message: {data}")
             await broadcast_message(data)
     except WebSocketDisconnect:
-        logger.info("WebSocket disconnected")
+        wa_logger.info("WebSocket disconnected")
     except Exception as e:
-        logger.error(f"Unexpected WebSocket error: {e}", exc_info=True)
+        wa_logger.error(f"Unexpected WebSocket error: {e}", exc_info=True)
     finally:
         connected_clients.remove(websocket)
 
 
 async def broadcast_message(message):
-    logger.info(f"Broadcasting message: {message}")
+    wa_logger.info(f"Broadcasting message: {message}")
     disconnected_clients = set()
     for client in connected_clients:
         try:
             await client.send_text(message)
         except Exception as e:
-            logger.error(f"Error sending message to client: {e}",
+            wa_logger.error(f"Error sending message to client: {e}",
                          exc_info=True)
             disconnected_clients.add(client)
 
@@ -419,7 +435,7 @@ async def broadcast_message(message):
 
 
 def send_welcome_message(client: WhatsApp, to: str):
-    logger.info(f"Sending welcome message to {to}")
+    wa_logger.info(f"Sending welcome message to {to}")
     try:
         welcome_text = (
             "Merhaba! BirHediyenOlsun'a hoş geldiniz. "
@@ -427,9 +443,9 @@ def send_welcome_message(client: WhatsApp, to: str):
             "Aşağıdaki seçeneklerden birini seçebilir veya doğrudan sorunuzu yazabilirsiniz."
         )
         response = client.send_message(to=to, text=welcome_text)
-        logger.info(f"Sent welcome response: {response}")
+        wa_logger.info(f"Sent welcome response: {response}")
     except Exception as e:
-        logger.error(f"Error in send_welcome_message: {e}", exc_info=True)
+        wa_logger.error(f"Error in send_welcome_message: {e}", exc_info=True)
 
 
 @fastapi_app.post("/send_image")
@@ -454,7 +470,7 @@ async def send_image(to: str = Form(...), image: UploadFile = File(...)):
             "image_url": image_url
         })
     except Exception as e:
-        logger.error(f"Error sending image: {e}", exc_info=True)
+        wa_logger.error(f"Error sending image: {e}", exc_info=True)
         return JSONResponse(content={
             "success": False,
             "error": str(e)
@@ -477,9 +493,9 @@ def send_image_button(client: WhatsApp, to: str, image_file: str, image_caption:
                               image=image_path,
                               caption=image_caption,
                               buttons=[button])
-            logger.info(f"Image sent successfully: {image_file}")
+            wa_logger.info(f"Image sent successfully: {image_file}")
         except Exception as e:
-            logger.error(f"Error sending image: {e}")
+            wa_logger.error(f"Error sending image: {e}")
             client.send_message(
                 to=to, text="Üzgünüz, resmi gönderirken bir hata oluştu.")
     else:
@@ -489,24 +505,24 @@ def send_image_button(client: WhatsApp, to: str, image_file: str, image_caption:
 
 # Handle incoming messages
 def handle_message(client: WhatsApp, from_id: str, text: str):
-    logger.info(f"Received message from {from_id}: {text}")
+    wa_logger.info(f"Received message from {from_id}: {text}")
     lower_text = text.lower()
 
     # Ürün seçimi yapıldıysa sipariş sürecini başlat
     if lower_text.startswith("urun_"):
         product_id = lower_text.split("_")[1]
-        logger.info(f"Starting order process for product {product_id}")
+        wa_logger.info(f"Starting order process for product {product_id}")
         response = handle_order(from_id, "", product_id)
-        logger.info(f"Order response for product selection: {response}")
+        wa_logger.info(f"Order response for product selection: {response}")
         client.send_message(to=from_id, text=response)
         return
 
     # Sipariş süreci devam ediyorsa
     order = order_manager.get_or_create_order(from_id)
     if order['state'] != OrderState.IDLE:
-        logger.info(f"Continuing order process for user {from_id}, current state: {order['state']}")
+        wa_logger.info(f"Continuing order process for user {from_id}, current state: {order['state']}")
         response = handle_order(from_id, text)
-        logger.info(f"Order response for ongoing order: {response}")
+        wa_logger.info(f"Order response for ongoing order: {response}")
         client.send_message(to=from_id, text=response)
         return
 
@@ -544,14 +560,14 @@ def handle_message(client: WhatsApp, from_id: str, text: str):
 # Error handler
 @fastapi_app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
-    logger.error(f"HTTP Exception: {exc.detail}", exc_info=True)
+    main_logger.error(f"HTTP Exception: {exc.detail}", exc_info=True)
     return JSONResponse(status_code=exc.status_code,
                         content={"message": exc.detail})
 
 # Global exception handler
 @fastapi_app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
-    logger.error(f"Unexpected error: {exc}", exc_info=True)
+    main_logger.error(f"Unexpected error: {exc}", exc_info=True)
     return JSONResponse(status_code=500,
                         content={
                             "message": "An unexpected error occurred.",

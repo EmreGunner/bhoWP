@@ -2,14 +2,23 @@ from enum import Enum
 from typing import Dict, Optional
 from airtable_siparisler import create_airtable_record
 import logging
+from logging.handlers import RotatingFileHandler
 
 # Logging configuration
-logging.basicConfig(
-    filename='logs/order_manager.log',
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+def setup_logger(name, log_file, level=logging.INFO):
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    
+    handler = RotatingFileHandler(log_file, maxBytes=10*1024*1024, backupCount=5)
+    handler.setFormatter(formatter)
+
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    logger.addHandler(handler)
+
+    return logger
+
+# Setup logger
+order_logger = setup_logger('order_manager', 'logs/order_manager.log')
 
 class OrderState(Enum):
     IDLE = 0
@@ -38,7 +47,7 @@ class OrderManager:
 
     def process_message(self, user_id: str, message: str, product_id: Optional[str] = None) -> str:
         order = self.get_or_create_order(user_id)
-        logger.info(f"Processing message for user {user_id}, current state: {order['state']}, message: {message}, product_id: {product_id}")
+        order_logger.info(f"Processing message for user {user_id}, current state: {order['state']}, message: {message}, product_id: {product_id}")
 
         if product_id:
             order["product_id"] = product_id
@@ -78,7 +87,7 @@ class OrderManager:
                     order["state"] = OrderState.COMPLETED
                     return f"Siparişiniz alındı. Sipariş numaranız: {order_number}. Teşekkür ederiz!"
                 except Exception as e:
-                    logger.error(f"Error creating Airtable record: {e}", exc_info=True)
+                    order_logger.error(f"Error creating Airtable record: {e}", exc_info=True)
                     return "Üzgünüz, siparişinizi kaydederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
             elif message.lower() == "hayır":
                 order["state"] = OrderState.COLLECTING_NAME
