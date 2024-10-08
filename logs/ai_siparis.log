@@ -8,3 +8,17 @@
 2024-10-08 21:33:21,889 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CONFIRMING, message: Evet, product_id: None
 2024-10-08 21:33:21,889 - ai_siparis - INFO - Calling Airtable create record function with: product_id=3.jpeg, name=Asd jre, address=Hehejje, phone=05551234567, text=Eyeuue
 2024-10-08 21:33:25,085 - ai_siparis - INFO - Airtable record created successfully with ID: recuqVPP6tW7pRSJr
+2024-10-08 21:40:16,945 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.IDLE, message: , product_id: 2.jpeg
+2024-10-08 21:40:20,371 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_NAME, message: Asd, product_id: None
+2024-10-08 21:40:26,165 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_ADDRESS, message: Ghnnjkkk, product_id: None
+2024-10-08 21:40:29,610 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_PHONE, message: 05551234567, product_id: None
+2024-10-08 21:40:36,358 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_TEXT, message: Yuuuuh, product_id: None
+2024-10-08 21:40:44,767 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CONFIRMING, message: confirm_order_no, product_id: None
+2024-10-08 21:40:52,104 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CORRECTING, message: Hayir, product_id: None
+2024-10-08 21:41:00,013 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CONFIRMING, message: confirm_order_no, product_id: None
+2024-10-08 21:41:44,173 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CORRECTING, message: confirm_order_yes, product_id: None
+2024-10-08 21:41:48,949 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CONFIRMING, message: confirm_order_yes, product_id: None
+2024-10-08 21:41:48,949 - ai_siparis - INFO - Calling Airtable create record function with: product_id=2.jpeg, name=Asd, address=Ghnnjkkk, phone=05551234567, text=Yuuuuh
+2024-10-08 21:41:51,252 - ai_siparis - INFO - Airtable record created successfully with ID: recMWsDJPH2MYf82i
+2024-10-08 21:42:36,771 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COMPLETED, message: confirm_order_no, product_id: None
+2024-10-08 21:42:36,772 - ai_siparis - ERROR - Unexpected state: OrderState.COMPLETED for user 905330475085

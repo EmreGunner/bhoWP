@@ -29,7 +29,8 @@ class OrderState(Enum):
     COLLECTING_PHONE = 3
     COLLECTING_TEXT = 4
     CONFIRMING = 5
-    COMPLETED = 6
+    CORRECTING = 6
+    COMPLETED = 7
 
 class OrderManager:
     def __init__(self):
@@ -44,7 +45,8 @@ class OrderManager:
                 "phone": "",
                 "product_id": "",
                 "text": "",
-                "order_number": ""
+                "order_number": "",
+                "correction_field": None
             }
         return self.orders[user_id]
 
@@ -57,6 +59,24 @@ class OrderManager:
 
     def validate_address(self, address: str) -> bool:
         return len(address) >= 5
+
+    def get_order_summary(self, order: Dict) -> str:
+        return (f"Bilgilerinizi özetliyorum:\n"
+                f"İsim: {order['name']}\n"
+                f"Adres: {order['address']}\n"
+                f"Telefon: {order['phone']}\n"
+                f"Ürün No: {order['product_id']}\n"
+                f"Ürün Metni: {order['text'] or 'Yok'}\n"
+                f"Bu bilgiler doğru mu?")
+
+    def get_correction_buttons(self) -> List[Dict[str, str]]:
+        return [
+            {"title": "İsim", "callback_data": "correct_name"},
+            {"title": "Adres", "callback_data": "correct_address"},
+            {"title": "Telefon", "callback_data": "correct_phone"},
+            {"title": "Ürün Metni", "callback_data": "correct_text"},
+            {"title": "Ürün No", "callback_data": "correct_product_id"}
+        ]
 
     def process_message(self, user_id: str, message: str, product_id: Optional[str] = None) -> Dict[str, Any]:
         order = self.get_or_create_order(user_id)
@@ -96,7 +116,7 @@ class OrderManager:
         elif order["state"] == OrderState.COLLECTING_TEXT:
             order["text"] = message if message.lower() != "yok" else ""
             order["state"] = OrderState.CONFIRMING
-            response["text"] = f"Bilgilerinizi özetliyorum:\nİsim: {order['name']}\nAdres: {order['address']}\nTelefon: {order['phone']}\nÜrün Metni: {order['text'] or 'Yok'}\nBu bilgiler doğru mu?"
+            response["text"] = self.get_order_summary(order)
             response["buttons"] = [
                 {"title": "Evet", "callback_data": "confirm_order_yes"},
                 {"title": "Hayır", "callback_data": "confirm_order_no"}
@@ -124,10 +144,46 @@ class OrderManager:
                         ai_siparis_logger.error(f"Error creating Airtable record for user {user_id}: {str(e)}", exc_info=True)
                         response["text"] = "Üzgünüz, siparişinizi kaydederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
                 else:
-                    order["state"] = OrderState.COLLECTING_NAME
-                    response["text"] = "Özür dileriz. Bilgilerinizi tekrar alalım. Lütfen adınızı ve soyadınızı girin."
+                    order["state"] = OrderState.CORRECTING
+                    response["text"] = "Hangi bilgiyi düzeltmek istersiniz?"
+                    response["buttons"] = self.get_correction_buttons()
             else:
                 response["text"] = "Lütfen 'Evet' veya 'Hayır' şeklinde yanıt verin."
+                response["buttons"] = [
+                    {"title": "Evet", "callback_data": "confirm_order_yes"},
+                    {"title": "Hayır", "callback_data": "confirm_order_no"}
+                ]
+
+        elif order["state"] == OrderState.CORRECTING:
+            if message.startswith("correct_"):
+                order["correction_field"] = message[8:]
+                response["text"] = f"Lütfen yeni {order['correction_field']} bilgisini girin:"
+            else:
+                if order["correction_field"] == "name":
+                    if self.validate_name(message):
+                        order["name"] = message
+                    else:
+                        response["text"] = "Geçersiz isim. Lütfen adınızı ve soyadınızı tekrar girin."
+                        return response
+                elif order["correction_field"] == "address":
+                    if self.validate_address(message):
+                        order["address"] = message
+                    else:
+                        response["text"] = "Geçersiz adres. Lütfen en az 5 karakterden oluşan bir adres girin."
+                        return response
+                elif order["correction_field"] == "phone":
+                    if self.validate_phone(message):
+                        order["phone"] = message
+                    else:
+                        response["text"] = "Geçersiz telefon numarası. Lütfen 5551234567 formatında bir numara girin."
+                        return response
+                elif order["correction_field"] == "text":
+                    order["text"] = message if message.lower() != "yok" else ""
+                elif order["correction_field"] == "product_id":
+                    order["product_id"] = message
+
+                order["state"] = OrderState.CONFIRMING
+                response["text"] = self.get_order_summary(order)
                 response["buttons"] = [
                     {"title": "Evet", "callback_data": "confirm_order_yes"},
                     {"title": "Hayır", "callback_data": "confirm_order_no"}

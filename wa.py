@@ -129,40 +129,23 @@ def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction]):
         product_id = btn.data.value
         wa_logger.info(f"User {btn.from_user.wa_id} selected product: {product_id}")
         response = order_manager.process_message(btn.from_user.wa_id, "", product_id)
-        
-        if isinstance(response, dict):
-            text = response.get('text', '')
-            buttons = response.get('buttons', [])
-            
-            if buttons:
-                client.send_message(to=btn.from_user.wa_id, text=text, buttons=[
-                    Button(title=b['title'], callback_data=b['callback_data']) for b in buttons
-                ])
-            else:
-                client.send_message(to=btn.from_user.wa_id, text=text)
-        else:
-            client.send_message(to=btn.from_user.wa_id, text=str(response))
-    
-    elif btn.data.action == "option":
-        if btn.data.value == "1":
-            if btn.data.image:
-                image_files = [f for f in os.listdir("uploads/products") if f.endswith(".jpeg")]
-                for i, image_file in enumerate(image_files):
-                    send_image_button(client, btn.from_user.wa_id, image_file, f"Ürün ID: {i+1}")
-            else:
-                response = "Ürünler gösteriliyor"
-                client.send_message(to=btn.from_user.wa_id, text=response)
-        elif btn.data.value == "2":
-            client.send_message(to=btn.from_user.wa_id, text="Lütfen sorunuzu sorun, size yardımcı olmaya çalışacağım.")
-        else:
-            response = "Bilinmeyen seçenek"
-            client.send_message(to=btn.from_user.wa_id, text=response)
-    elif btn.data.action == "cargo":
-        response = "Kargonuzun durumu aşağıdaki gibidir:"
-        client.send_message(to=btn.from_user.wa_id, text=response)
+    elif btn.data.action.startswith("confirm_order_") or btn.data.action.startswith("correct_"):
+        response = order_manager.process_message(btn.from_user.wa_id, btn.data.action)
     else:
-        response = "Bilinmeyen işlem"
-        client.send_message(to=btn.from_user.wa_id, text=response)
+        response = {"text": "Bilinmeyen işlem", "buttons": []}
+
+    if isinstance(response, dict):
+        text = response.get('text', '')
+        buttons = response.get('buttons', [])
+        
+        if buttons:
+            client.send_message(to=btn.from_user.wa_id, text=text, buttons=[
+                Button(title=b['title'], callback_data=ButtonAction(action=b['callback_data'], value="")) for b in buttons
+            ])
+        else:
+            client.send_message(to=btn.from_user.wa_id, text=text)
+    else:
+        client.send_message(to=btn.from_user.wa_id, text=str(response))
 
 
 # Update the webhook verification endpoint
@@ -537,7 +520,7 @@ def handle_message(client: WhatsApp, from_id: str, text: str):
             
             if buttons:
                 client.send_message(to=from_id, text=message_text, buttons=[
-                    Button(title=b['title'], callback_data=b['callback_data']) for b in buttons
+                    Button(title=b['title'], callback_data=ButtonAction(action=b['callback_data'], value="")) for b in buttons
                 ])
             else:
                 client.send_message(to=from_id, text=message_text)

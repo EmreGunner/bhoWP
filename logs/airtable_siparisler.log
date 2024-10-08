@@ -1,2 +1,4 @@
 2024-10-08 21:33:21,889 - airtable_siparisler - INFO - create_airtable_record called with: product_id=3.jpeg, name=Asd jre, address=Hehejje, phone=05551234567, text=Eyeuue
 2024-10-08 21:33:25,083 - airtable_siparisler - INFO - Successfully created and updated Airtable record with ID: recuqVPP6tW7pRSJr
+2024-10-08 21:41:48,949 - airtable_siparisler - INFO - create_airtable_record called with: product_id=2.jpeg, name=Asd, address=Ghnnjkkk, phone=05551234567, text=Yuuuuh
+2024-10-08 21:41:51,250 - airtable_siparisler - INFO - Successfully created and updated Airtable record with ID: recMWsDJPH2MYf82i
