@@ -2,6 +2,9 @@ from enum import Enum
 from typing import Dict, Optional
 from airtable_siparisler import create_airtable_record
 from pyairtable import Api
+import logging
+
+logger = logging.getLogger(__name__)
 
 class OrderState(Enum):
     IDLE = 0
@@ -28,6 +31,7 @@ class OrderManager:
 
     def process_message(self, user_id: str, message: str, product_id: Optional[str] = None) -> str:
         order = self.get_or_create_order(user_id)
+        logger.info(f"Processing message for user {user_id}, current state: {order['state']}, message: {message}, product_id: {product_id}")
 
         if product_id:
             order["product_id"] = product_id
@@ -51,22 +55,33 @@ class OrderManager:
 
         elif order["state"] == OrderState.CONFIRMING:
             if message.lower() == "evet":
-                # Airtable'a kayıt oluştur
-                order_number = create_airtable_record(order["product_id"], order["name"], order["address"], order["phone"])
-                order["state"] = OrderState.COMPLETED
-                return f"Siparişiniz alındı. Sipariş numaranız: {order_number}. Teşekkür ederiz!"
+                try:
+                    order_number = create_airtable_record(order["product_id"], order["name"], order["address"], order["phone"])
+                    order["state"] = OrderState.COMPLETED
+                    return f"Siparişiniz alındı. Sipariş numaranız: {order_number}. Teşekkür ederiz!"
+                except Exception as e:
+                    logger.error(f"Error creating Airtable record: {e}")
+                    return "Üzgünüz, siparişinizi kaydederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
             elif message.lower() == "hayır":
                 order["state"] = OrderState.COLLECTING_NAME
                 return "Özür dileriz. Bilgilerinizi tekrar alalım. Lütfen adınızı ve soyadınızı girin."
             else:
                 return "Lütfen 'Evet' veya 'Hayır' şeklinde yanıt verin."
 
+        logger.error(f"Unexpected state: {order['state']} for user {user_id}")
         return "Bir hata oluştu. Lütfen tekrar deneyin."
 
 order_manager = OrderManager()
 
 def handle_order(user_id: str, message: str, product_id: Optional[str] = None) -> str:
-    return order_manager.process_message(user_id, message, product_id)
+    logger.info(f"Handling order for user {user_id}, message: {message}, product_id: {product_id}")
+    try:
+        response = order_manager.process_message(user_id, message, product_id)
+        logger.info(f"Order response: {response}")
+        return response
+    except Exception as e:
+        logger.error(f"Error in handle_order: {e}", exc_info=True)
+        return "Bir hata oluştu. Lütfen tekrar deneyin."
 
 def create_airtable_record(product_id, name, address, phone):
     api_key = 'patBOjCbAkFYSl5yd.65d9881a0065d782703e54603326458182719122bc222858afebf95c6873d2'

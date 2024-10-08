@@ -5,3 +5,4 @@ requests
 openai
 typing-extensions
 pyairtable
+fastapi-utils
