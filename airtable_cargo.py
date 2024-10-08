@@ -1,5 +1,21 @@
+import requests
+import os
+from dotenv import load_dotenv
 import logging
 from logging.handlers import RotatingFileHandler
+
+# Load environment variables
+load_dotenv()
+API_KEY = os.getenv("AIRTABLE_API_KEY")
+BASE_ID = os.getenv("AIRTABLE_BASE_ID")
+TABLE_NAME = "Kargo"
+
+BASE_URL = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_NAME}"
+
+headers = {
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json"
+}
 
 # Logging configuration
 def setup_logger(name, log_file, level=logging.INFO):
@@ -17,22 +33,49 @@ def setup_logger(name, log_file, level=logging.INFO):
 # Setup logger
 cargo_logger = setup_logger('airtable_cargo', 'logs/airtable_cargo.log')
 
-# check if the number exists in Takip numarasi
 def check_tracking_number(tracking_number):
-    # Implement your logic here
     cargo_logger.info(f"Checking tracking number: {tracking_number}")
-    # if not exist in the table 
-    # mesaji yaz> Bu takip numarasina ait kargo bulunamadi lutfen musteri temsilcisi ile iletisime gecin
-    if not tracking_number_exists(tracking_number):
-        cargo_logger.warning(f"Tracking number not found: {tracking_number}")
-        return "Bu takip numarasina ait kargo bulunamadi. Lutfen musteri temsilcisi ile iletisime gecin."
+    
+    # Construct the filter formula
+    filter_formula = f"{{Takip Numarası}} = '{tracking_number}'"
+    
+    # Make the API request
+    response = requests.get(
+        BASE_URL,
+        headers=headers,
+        params={
+            "filterByFormula": filter_formula
+        }
+    )
+    
+    if response.status_code == 200:
+        data = response.json()
+        records = data.get('records', [])
+        
+        if records:
+            # Tracking number found
+            record = records[0]['fields']
+            tracking_number = record.get('Takip Numarası', '')
+            cargo_company = record.get('Kargo Firması', '')
+            status = record.get('Kargo Durumu', '')
+            
+            cargo_logger.info(f"Tracking number found: {tracking_number}")
+            return f"{tracking_number} numaralı kargonuz {cargo_company} firmasında, durumu {status} olarak görünmektedir."
+        else:
+            # Tracking number not found
+            cargo_logger.warning(f"Tracking number not found: {tracking_number}")
+            return "Bu takip numarasına ait kargo bulunamadı. Lütfen müşteri temsilcisi ile iletişime geçin."
     else:
-        cargo_logger.info(f"Tracking number found: {tracking_number}")
-        return "Kargo bilgileri bulundu."
+        # API request failed
+        cargo_logger.error(f"API request failed with status code: {response.status_code}")
+        return "Kargo bilgilerini kontrol ederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
 
-def tracking_number_exists(tracking_number):
-    # Implement your logic to check if the tracking number exists
-    # This is a placeholder function
-    return False
-
-# ... rest of the airtable_cargo.py code ...
+# Example usage
+if __name__ == "__main__":
+    test_tracking_numbers = ["YK-987654321", "MG-123456789", "AK-112233445", "INVALID-NUMBER"]
+    
+    for number in test_tracking_numbers:
+        result = check_tracking_number(number)
+        print(f"Tracking Number: {number}")
+        print(f"Result: {result}")
+        print()
