@@ -1,7 +1,6 @@
 from enum import Enum
 from typing import Dict, Optional
 from airtable_siparisler import create_airtable_record
-from pyairtable import Api
 
 class OrderState(Enum):
     IDLE = 0
@@ -51,10 +50,12 @@ class OrderManager:
 
         elif order["state"] == OrderState.CONFIRMING:
             if message.lower() == "evet":
-                # Airtable'a kayıt oluştur
-                order_number = create_airtable_record(order["product_id"], order["name"], order["address"], order["phone"])
-                order["state"] = OrderState.COMPLETED
-                return f"Siparişiniz alındı. Sipariş numaranız: {order_number}. Teşekkür ederiz!"
+                try:
+                    order_number = create_airtable_record(order["product_id"], order["name"], order["address"], order["phone"])
+                    order["state"] = OrderState.COMPLETED
+                    return f"Siparişiniz alındı. Sipariş numaranız: {order_number}. Teşekkür ederiz!"
+                except Exception as e:
+                    return f"Üzgünüz, siparişinizi kaydederken bir hata oluştu. Lütfen daha sonra tekrar deneyin. Hata: {str(e)}"
             elif message.lower() == "hayır":
                 order["state"] = OrderState.COLLECTING_NAME
                 return "Özür dileriz. Bilgilerinizi tekrar alalım. Lütfen adınızı ve soyadınızı girin."
@@ -67,21 +68,3 @@ order_manager = OrderManager()
 
 def handle_order(user_id: str, message: str, product_id: Optional[str] = None) -> str:
     return order_manager.process_message(user_id, message, product_id)
-
-def create_airtable_record(product_id, name, address, phone):
-    api_key = 'patBOjCbAkFYSl5yd.65d9881a0065d782703e54603326458182719122bc222858afebf95c6873d2'
-    base_id = 'appcfWwht8JToMUhi'
-    table_name = 'Orders'  # Replace with your actual table name
-
-    api = Api(api_key)
-    table = api.table(base_id, table_name)
-
-    record = {
-        'Product ID': product_id,
-        'Name': name,
-        'Address': address,
-        'Phone': phone
-    }
-
-    response = table.create(record)
-    return response['id']  # Return the Airtable record ID as the order number

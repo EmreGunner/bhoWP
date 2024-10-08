@@ -12,8 +12,8 @@ import json
 from pywa import errors as pywa_errors
 from dataclasses import dataclass
 import os
-from ai_siparis import OrderManager, OrderState
-import re
+from order_manager import OrderManager, OrderState, handle_order
+from typing import Optional
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -31,8 +31,7 @@ templates = Jinja2Templates(directory="templates")
 # Update the WhatsApp client initialization
 wa = WhatsApp(
     phone_id="347058841835061",
-    token=
-    "EAAOxaNntzsEBOZCeXexy3sq2GXcUrYCyIz7usSbfkqUZC3vg7i80EYkZAhSVuZCxmkG2El5zQZC8xrgrVa5G1EBe43bUBGuN4pWvnDQlMxRvhdhAimYgzmLOMtlM79lv47ncllNt07RuRPPKKCzWzkZAqPvHWqyuamXZAr3ihRKi7oA39Cqu9eHgMZCkN0PCwz4QKwgMZAewIydPNpP10imJwHs9SbOEZD",
+    token="YOUR_NEW_TOKEN_HERE",
     server=fastapi_app,
     callback_url=
     "https://49ae544d-ebdc-4b20-9445-aa092113c69a-00-1cr1zoiat6wtd.sisko.replit.dev",
@@ -516,34 +515,15 @@ def handle_raw_update(client: WhatsApp, update: dict):
                                         "type": "status_update",
                                         "status": status
                                     })))
-    except pywa_errors.ValidationError as e:
-        logger.error(f"Validation error in handle_raw_update: {e}")
-    except KeyError as e:
-        logger.error(f"Key error in handle_raw_update: {e}")
     except Exception as e:
         logger.error(f"Unexpected error in handle_raw_update: {e}",
                      exc_info=True)
 
 
 # Update the send_welcome_message function with better error handling
-#defaultMessage
-#def send_welcome_message(client: WhatsApp, from_id: str, text: str):
-#    logger.info(f"Sending welcome message to {from_id}")
-#    try:
-#        response = client.send_message(
-#            to=from_id, text="Welcome! How can I assist you today?")
-#        logger.info(f"Sent welcome response: {response}")
-#    except pywa_errors.AuthorizationError as e:
-#        logger.error(f"Authorization error in send_welcome_message: {e}")
-#    except pywa_errors.ThrottlingError as e:
-#        logger.error(f"Throttling error in send_welcome_message: {e}")
-#    except pywa_errors.SendMessageError as e:
-#        logger.error(f"Send message error in send_welcome_message: {e}")
-#    except pywa_errors.WhatsAppError as e:
-#        logger.error(f"WhatsApp error in send_welcome_message: {e}")
-#    except Exception as e:
-#        logger.error(f"Unexpected error in send_welcome_message: {e}",
-#                     exc_info=True)
+def send_welcome_message(client: WhatsApp, from_id: str, text: str):
+    welcome_message = "Welcome! How can I assist you today?"
+    client.send_message(to=from_id, text=welcome_message)
 
 
 # Update the WebSocket endpoint
@@ -652,16 +632,6 @@ async def global_exception_handler(request, exc):
 # )
 
 
-#def send_welcome_message(client: WhatsApp, from_id: str, text: str):
-#    logger.info(f"Sending welcome message to {from_id}")
-#    try:
-#        response = client.send_message(
-#            to=from_id, text="Welcome! How can I assist you today?")
-#        logger.info(f"Sent welcome response: {response}")
-#    except Exception as e:
-#        logger.error(f"Error in send_welcome_message: {e}", exc_info=True)
-
-
 @fastapi_app.post("/send_image")
 async def send_image(to: str = Form(...), image: UploadFile = File(...)):
     try:
@@ -744,15 +714,10 @@ order_manager = OrderManager()
 
 # Add this function to handle the order workflow
 def handle_order_workflow(client: WhatsApp, user_id: str, message: str, product_id: Optional[str] = None):
-    order = order_manager.get_or_create_order(user_id)
-    
-    if product_id:
-        response = order_manager.process_message(user_id, message, product_id)
-    else:
-        response = order_manager.process_message(user_id, message)
-    
+    response = handle_order(user_id, message, product_id)
     client.send_message(to=user_id, text=response)
     
+    order = order_manager.get_or_create_order(user_id)
     if order['state'] == OrderState.COMPLETED:
         # Reset the order state
         order_manager.orders.pop(user_id, None)

@@ -1,25 +1,36 @@
-#urun numarasi,isim soyisim, adresi ve telefon numarasi degiskenlerini aliyor olacak.
-#Bu alinan degerlerle  airtable de record olustur.
-#Record olusturduktan sonra airtable  record icin bir siparis numarasi atar bu siparis numarasini al.
-#Siparis numarasini  ve olusturan bilgileri return et.
-
-from pyairtable import Table
+import requests
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
-AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
-AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME")
+API_KEY = os.getenv("AIRTABLE_API_KEY")
+BASE_ID = os.getenv("AIRTABLE_BASE_ID")
+TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME")
 
-table = Table(AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
+BASE_URL = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_NAME}"
+
+headers = {
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json"
+}
 
 def create_airtable_record(product_id: str, name: str, address: str, phone: str) -> str:
-    record = table.create({
-        "Ürün Numarası": product_id,
-        "İsim Soyisim": name,
-        "Adres": address,
-        "Telefon Numarası": phone
-    })
-    return record['id']  # Airtable'ın oluşturduğu benzersiz ID'yi sipariş numarası olarak kullanıyoruz
+    data = {
+        "records": [
+            {
+                "fields": {
+                    "Ürün Numarası": product_id,
+                    "İsim Soyisim": name,
+                    "Adres": address,
+                    "Telefon Numarası": phone
+                }
+            }
+        ]
+    }
+    
+    response = requests.post(BASE_URL, headers=headers, json=data)
+    if response.status_code == 200:
+        return response.json()['records'][0]['id']
+    else:
+        raise Exception(f"Failed to create Airtable record: {response.text}")
