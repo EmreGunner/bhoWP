@@ -1,7 +1,7 @@
 import logging
 from logging.handlers import RotatingFileHandler
 from enum import Enum
-from typing import Dict, Optional
+from typing import Dict, Optional, List, Any
 from airtable_siparisler import create_airtable_record
 import re
 import json
@@ -58,47 +58,53 @@ class OrderManager:
     def validate_address(self, address: str) -> bool:
         return len(address) >= 5
 
-    def process_message(self, user_id: str, message: str, product_id: Optional[str] = None) -> str:
+    def process_message(self, user_id: str, message: str, product_id: Optional[str] = None) -> Dict[str, Any]:
         order = self.get_or_create_order(user_id)
         ai_siparis_logger.info(f"Processing message for user {user_id}, current state: {order['state']}, message: {message}, product_id: {product_id}")
+
+        response = {"text": "", "buttons": []}
 
         if product_id:
             order["product_id"] = product_id
             order["state"] = OrderState.COLLECTING_NAME
-            return f"Ürün {product_id} için siparişinizi almaya başlıyoruz. Lütfen adınızı ve soyadınızı girin."
+            response["text"] = f"Ürün {product_id} için siparişinizi almaya başlıyoruz. Lütfen adınızı ve soyadınızı girin."
 
-        if order["state"] == OrderState.COLLECTING_NAME:
+        elif order["state"] == OrderState.COLLECTING_NAME:
             if self.validate_name(message):
                 order["name"] = message
                 order["state"] = OrderState.COLLECTING_ADDRESS
-                return "Teşekkürler. Şimdi lütfen adresinizi girin."
+                response["text"] = "Teşekkürler. Şimdi lütfen adresinizi girin."
             else:
-                return "Geçersiz isim. Lütfen adınızı ve soyadınızı tekrar girin."
+                response["text"] = "Geçersiz isim. Lütfen adınızı ve soyadınızı tekrar girin."
 
         elif order["state"] == OrderState.COLLECTING_ADDRESS:
             if self.validate_address(message):
                 order["address"] = message
                 order["state"] = OrderState.COLLECTING_PHONE
-                return "Adresinizi aldık. Son olarak, telefon numaranızı girer misiniz? (Örnek: 05551234567)"
+                response["text"] = "Adresinizi aldık. Son olarak, telefon numaranızı girer misiniz? (Örnek: 05551234567)"
             else:
-                return "Geçersiz adres. Lütfen en az 5 karakterden oluşan bir adres girin."
+                response["text"] = "Geçersiz adres. Lütfen en az 5 karakterden oluşan bir adres girin."
 
         elif order["state"] == OrderState.COLLECTING_PHONE:
             if self.validate_phone(message):
                 order["phone"] = message
                 order["state"] = OrderState.COLLECTING_TEXT
-                return "Teşekkürler. Ürün üzerine yazdırmak istediğiniz metni girin. Eğer istemiyorsanız 'Yok' yazabilirsiniz."
+                response["text"] = "Teşekkürler. Ürün üzerine yazdırmak istediğiniz metni girin. Eğer istemiyorsanız 'Yok' yazabilirsiniz."
             else:
-                return "Geçersiz telefon numarası. Lütfen 5551234567 formatında bir numara girin."
+                response["text"] = "Geçersiz telefon numarası. Lütfen 5551234567 formatında bir numara girin."
 
         elif order["state"] == OrderState.COLLECTING_TEXT:
             order["text"] = message if message.lower() != "yok" else ""
             order["state"] = OrderState.CONFIRMING
-            return f"Bilgilerinizi özetliyorum:\nİsim: {order['name']}\nAdres: {order['address']}\nTelefon: {order['phone']}\nÜrün Metni: {order['text'] or 'Yok'}\nBu bilgiler doğru mu? (Evet/Hayır)"
+            response["text"] = f"Bilgilerinizi özetliyorum:\nİsim: {order['name']}\nAdres: {order['address']}\nTelefon: {order['phone']}\nÜrün Metni: {order['text'] or 'Yok'}\nBu bilgiler doğru mu?"
+            response["buttons"] = [
+                {"title": "Evet", "callback_data": "confirm_order_yes"},
+                {"title": "Hayır", "callback_data": "confirm_order_no"}
+            ]
 
         elif order["state"] == OrderState.CONFIRMING:
-            if message.lower() in ["evet", "hayır", "hayir"]:
-                if "evet" in message.lower():
+            if message.lower() in ["evet", "hayır", "hayir"] or message in ["confirm_order_yes", "confirm_order_no"]:
+                if message.lower() == "evet" or message == "confirm_order_yes":
                     try:
                         order_number = create_airtable_record(
                             order["product_id"],
@@ -110,33 +116,40 @@ class OrderManager:
                         if order_number and order_number != "ERROR":
                             order["order_number"] = order_number
                             order["state"] = OrderState.COMPLETED
-                            return f"Siparişiniz alındı. Sipariş numaranız: {order_number}. Teşekkür ederiz!"
+                            response["text"] = f"Siparişiniz alındı. Sipariş numaranız: {order_number}. Teşekkür ederiz!"
                         else:
-                            ai_siparis_logger.warning(f"Failed to create Airtable record for user {user_id}")
-                            return "Üzgünüz, siparişinizi kaydederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+                            ai_siparis_logger.error(f"Failed to create Airtable record for user {user_id}. Returned order_number: {order_number}")
+                            response["text"] = "Üzgünüz, siparişinizi kaydederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
                     except Exception as e:
-                        ai_siparis_logger.error(f"Error creating Airtable record: {e}", exc_info=True)
-                        return "Üzgünüz, siparişinizi kaydederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+                        ai_siparis_logger.error(f"Error creating Airtable record for user {user_id}: {str(e)}", exc_info=True)
+                        response["text"] = "Üzgünüz, siparişinizi kaydederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
                 else:
                     order["state"] = OrderState.COLLECTING_NAME
-                    return "Özür dileriz. Bilgilerinizi tekrar alalım. Lütfen adınızı ve soyadınızı girin."
+                    response["text"] = "Özür dileriz. Bilgilerinizi tekrar alalım. Lütfen adınızı ve soyadınızı girin."
             else:
-                return "Lütfen 'Evet' veya 'Hayır' şeklinde yanıt verin."
+                response["text"] = "Lütfen 'Evet' veya 'Hayır' şeklinde yanıt verin."
+                response["buttons"] = [
+                    {"title": "Evet", "callback_data": "confirm_order_yes"},
+                    {"title": "Hayır", "callback_data": "confirm_order_no"}
+                ]
 
-        ai_siparis_logger.error(f"Unexpected state: {order['state']} for user {user_id}")
-        return "Bir hata oluştu. Lütfen tekrar deneyin."
+        else:
+            ai_siparis_logger.error(f"Unexpected state: {order['state']} for user {user_id}")
+            response["text"] = "Bir hata oluştu. Lütfen tekrar deneyin."
+
+        return response
 
 order_manager = OrderManager()
 
-def handle_order(user_id: str, message: str, product_id: Optional[str] = None) -> str:
+def handle_order(user_id: str, message: str, product_id: Optional[str] = None) -> Dict[str, Any]:
     ai_siparis_logger.info(f"Handling order for user {user_id}, message: {message}, product_id: {product_id}")
     try:
         response = order_manager.process_message(user_id, message, product_id)
         ai_siparis_logger.info(f"Order response: {response}")
         return response
     except Exception as e:
-        ai_siparis_logger.error(f"Error in handle_order: {e}", exc_info=True)
-        return "Bir hata oluştu. Lütfen tekrar deneyin."
+        ai_siparis_logger.error(f"Error in handle_order: {str(e)}", exc_info=True)
+        return {"text": "Bir hata oluştu. Lütfen tekrar deneyin.", "buttons": []}
 
 def create_airtable_record(product_id, name, address, phone, text):
     try:

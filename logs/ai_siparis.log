@@ -1,0 +1,10 @@
+2024-10-08 21:21:44,159 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.IDLE, message: , product_id: 3 copy 3.jpeg
+2024-10-08 21:21:50,458 - ai_siparis - INFO - Handling order for user 905330475085, message: Asd, product_id: None
+2024-10-08 21:21:50,458 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.IDLE, message: Asd, product_id: None
+2024-10-08 21:21:50,458 - ai_siparis - ERROR - Unexpected state: OrderState.IDLE for user 905330475085
+2024-10-08 21:21:50,458 - ai_siparis - INFO - Order response: {'text': 'Bir hata oluştu. Lütfen tekrar deneyin.', 'buttons': []}
+2024-10-08 21:21:59,570 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_NAME, message: , product_id: 3 copy 2.jpeg
+2024-10-08 21:22:03,407 - ai_siparis - INFO - Handling order for user 905330475085, message: Dfghggh, product_id: None
+2024-10-08 21:22:03,407 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.IDLE, message: Dfghggh, product_id: None
+2024-10-08 21:22:03,407 - ai_siparis - ERROR - Unexpected state: OrderState.IDLE for user 905330475085
+2024-10-08 21:22:03,408 - ai_siparis - INFO - Order response: {'text': 'Bir hata oluştu. Lütfen tekrar deneyin.', 'buttons': []}
