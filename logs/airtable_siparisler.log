@@ -1,0 +1,2 @@
+2024-10-09 06:44:07,393 - airtable_siparisler - INFO - create_airtable_record called with: product_id=3 copy.jpeg, name=asdef, address=testest, phone=5330485005, text=test
+2024-10-09 06:44:10,766 - airtable_siparisler - INFO - Successfully created and updated Airtable record with ID: recoSxWieM7LEYSEm
