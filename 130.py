@@ -496,25 +496,18 @@ async def send_image(to: str = Form(...), image: UploadFile = File(...)):
 
 async def send_image_button(client: WhatsApp, to: str, image_file: str, caption: str):
     try:
-        image_path = f"uploads/products/{image_file}"
-        if os.path.exists(image_path):
-            with open(image_path, "rb") as image:
-                client.send_image(
-                    to=to,
-                    image=image,
-                    caption=caption,
-                    mime_type="image/jpeg",
-                    buttons=[
-                        Button(title="Ürünü Seç", callback_data=ButtonAction(action="choose_product", value=image_file))
-                    ]
-                )
-            wa_logger.info(f"Image sent successfully: {image_file}")
-        else:
-            wa_logger.error(f"Image file not found: {image_path}")
-            client.send_message(to=to, text="Sorry, the requested image is not available.")
+        with open(f"uploads/products/{image_file}", "rb") as image:
+            await client.send_image(
+                to=to,
+                image=image,
+                caption=caption,
+                buttons=[
+                    Button(title="Ürünü Seç", callback_data=ButtonAction(action="choose_product", value=image_file))
+                ]
+            )
+        wa_logger.info(f"Image sent successfully: {image_file}")
     except Exception as e:
         wa_logger.error(f"Error sending image: {str(e)}", exc_info=True)
-        client.send_message(to=to, text="Sorry, there was an error sending the image.")
 
 
 @wa.on_message()
@@ -604,13 +597,13 @@ async def send_response(client: WhatsApp, to: str, response: Dict[str, Any]):
         await client.send_message(to=to, text="Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.")
 
 
-def send_menu_buttons(client: WhatsApp, to: str):
+async def send_menu_buttons(client: WhatsApp, to: str):
     buttons = [
         Button(title="Ürünleri Göster", callback_data=ButtonAction(action="option", value="1", image="1.jpeg")),
         Button(title="Musteri temsilcisi", callback_data=ButtonAction(action="option", value="2")),
         Button(title="Kargo Sorgula", callback_data=ButtonAction(action="help", value="general"))
     ]
-    client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)
+    await client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)
 
 
 # Error handler
