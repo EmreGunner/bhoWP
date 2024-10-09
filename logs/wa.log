@@ -44,3 +44,385 @@
 2024-10-08 22:13:34,107 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRjM4QTgwM0UzNDM3OTI2OEI3AA==', 'status': 'read', 'timestamp': '1728425612', 'recipient_id': '905330475085'}
 2024-10-08 22:13:34,107 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRjM4QTgwM0UzNDM3OTI2OEI3AA==", "status": "read", "timestamp": "2024-10-08T22:13:32"}}
 2024-10-08 22:13:34,108 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRjM4QTgwM0UzNDM3OTI2OEI3AA==", "status": "read", "timestamp": "1728425612", "recipient_id": "905330475085"}}
+2024-10-08 22:13:38,359 - wa - INFO - Düğmeye basıldı: option
+2024-10-08 22:13:38,360 - wa - ERROR - Düğme işleme hatası: name 'send_product_images' is not defined
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 159, in handle_button_press
+    handle_menu_selection(client, btn)
+  File "/home/runner/noodWP/wa.py", line 174, in handle_menu_selection
+    send_product_images(client, user_id)
+NameError: name 'send_product_images' is not defined
+2024-10-08 22:13:39,555 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'contacts': [{'profile': {'name': 'G'}, 'wa_id': '905330475085'}], 'messages': [{'context': {'from': '905058247090', 'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMDYwRDQ1RDNGQTFDN0U2QjQxAA=='}, 'from': '905330475085', 'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAEhgUM0E2M0ZFOEEwRkM5ODY2OUFFODAA', 'timestamp': '1728425616', 'type': 'interactive', 'interactive': {'type': 'button_reply', 'button_reply': {'id': '1~option~1~1.jpeg', 'title': 'Ürünleri Göster'}}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:40,528 - wa - INFO - Message status update: sent for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==
+2024-10-08 22:13:40,528 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==', 'status': 'sent', 'timestamp': '1728425619', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'expiration_timestamp': '1728487140', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:40,528 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==', 'status': 'sent', 'timestamp': '1728425619', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'expiration_timestamp': '1728487140', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:40,529 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==", "status": "sent", "timestamp": "2024-10-08T22:13:39"}}
+2024-10-08 22:13:40,529 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==", "status": "sent", "timestamp": "1728425619", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "expiration_timestamp": "1728487140", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:40,716 - wa - INFO - Message status update: delivered for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==
+2024-10-08 22:13:40,716 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==', 'status': 'delivered', 'timestamp': '1728425619', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:40,716 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==', 'status': 'delivered', 'timestamp': '1728425619', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:40,717 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==", "status": "delivered", "timestamp": "2024-10-08T22:13:39"}}
+2024-10-08 22:13:40,717 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==", "status": "delivered", "timestamp": "1728425619", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:40,812 - wa - INFO - Message status update: read for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==
+2024-10-08 22:13:40,812 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==', 'status': 'read', 'timestamp': '1728425619', 'recipient_id': '905330475085'}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:40,812 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==', 'status': 'read', 'timestamp': '1728425619', 'recipient_id': '905330475085'}
+2024-10-08 22:13:40,813 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==", "status": "read", "timestamp": "2024-10-08T22:13:39"}}
+2024-10-08 22:13:40,813 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==", "status": "read", "timestamp": "1728425619", "recipient_id": "905330475085"}}
+2024-10-08 22:13:40,884 - wa - INFO - Message status update: delivered for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==
+2024-10-08 22:13:40,884 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==', 'status': 'delivered', 'timestamp': '1728425619', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:40,884 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==', 'status': 'delivered', 'timestamp': '1728425619', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:40,885 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==", "status": "delivered", "timestamp": "2024-10-08T22:13:39"}}
+2024-10-08 22:13:40,885 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSODE0QUE5QzMyRTIzMTAwNUM5AA==", "status": "delivered", "timestamp": "1728425619", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:41,095 - wa - INFO - Message status update: sent for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==
+2024-10-08 22:13:41,095 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==', 'status': 'sent', 'timestamp': '1728425619', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'expiration_timestamp': '1728487140', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:41,095 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==', 'status': 'sent', 'timestamp': '1728425619', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'expiration_timestamp': '1728487140', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:41,096 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==", "status": "sent", "timestamp": "2024-10-08T22:13:39"}}
+2024-10-08 22:13:41,096 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==", "status": "sent", "timestamp": "1728425619", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "expiration_timestamp": "1728487140", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:41,398 - wa - INFO - Message status update: delivered for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==
+2024-10-08 22:13:41,398 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==', 'status': 'delivered', 'timestamp': '1728425620', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:41,398 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==', 'status': 'delivered', 'timestamp': '1728425620', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:41,399 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==", "status": "delivered", "timestamp": "2024-10-08T22:13:40"}}
+2024-10-08 22:13:41,399 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==", "status": "delivered", "timestamp": "1728425620", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:41,425 - wa - INFO - Message status update: read for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==
+2024-10-08 22:13:41,425 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==', 'status': 'read', 'timestamp': '1728425620', 'recipient_id': '905330475085'}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:41,425 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==', 'status': 'read', 'timestamp': '1728425620', 'recipient_id': '905330475085'}
+2024-10-08 22:13:41,426 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==", "status": "read", "timestamp": "2024-10-08T22:13:40"}}
+2024-10-08 22:13:41,426 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==", "status": "read", "timestamp": "1728425620", "recipient_id": "905330475085"}}
+2024-10-08 22:13:41,452 - wa - INFO - Message status update: delivered for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==
+2024-10-08 22:13:41,452 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==', 'status': 'delivered', 'timestamp': '1728425620', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:41,453 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==', 'status': 'delivered', 'timestamp': '1728425620', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:41,453 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==", "status": "delivered", "timestamp": "2024-10-08T22:13:40"}}
+2024-10-08 22:13:41,453 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA==", "status": "delivered", "timestamp": "1728425620", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:46,371 - wa - INFO - Düğmeye basıldı: option
+2024-10-08 22:13:46,371 - wa - ERROR - Düğme işleme hatası: name 'send_product_images' is not defined
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 159, in handle_button_press
+    handle_menu_selection(client, btn)
+  File "/home/runner/noodWP/wa.py", line 174, in handle_menu_selection
+    send_product_images(client, user_id)
+NameError: name 'send_product_images' is not defined
+2024-10-08 22:13:47,516 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'contacts': [{'profile': {'name': 'G'}, 'wa_id': '905330475085'}], 'messages': [{'context': {'from': '905058247090', 'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSM0E3RkQ0REFGODA0M0MyNDczAA=='}, 'from': '905330475085', 'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAEhgUM0E4MkM4RTBFNEEzMURFRTc1Q0QA', 'timestamp': '1728425624', 'type': 'interactive', 'interactive': {'type': 'button_reply', 'button_reply': {'id': '1~option~1~1.jpeg', 'title': 'Ürünleri Göster'}}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:48,380 - wa - INFO - Message status update: sent for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==
+2024-10-08 22:13:48,380 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==', 'status': 'sent', 'timestamp': '1728425627', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'expiration_timestamp': '1728487140', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:48,380 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==', 'status': 'sent', 'timestamp': '1728425627', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'expiration_timestamp': '1728487140', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:48,380 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==", "status": "sent", "timestamp": "2024-10-08T22:13:47"}}
+2024-10-08 22:13:48,381 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==", "status": "sent", "timestamp": "1728425627", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "expiration_timestamp": "1728487140", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:48,759 - wa - INFO - Message status update: delivered for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==
+2024-10-08 22:13:48,759 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==', 'status': 'delivered', 'timestamp': '1728425627', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:48,759 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==', 'status': 'delivered', 'timestamp': '1728425627', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:48,760 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==", "status": "delivered", "timestamp": "2024-10-08T22:13:47"}}
+2024-10-08 22:13:48,760 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==", "status": "delivered", "timestamp": "1728425627", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:48,784 - wa - INFO - Message status update: delivered for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==
+2024-10-08 22:13:48,785 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==', 'status': 'delivered', 'timestamp': '1728425627', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:48,785 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==', 'status': 'delivered', 'timestamp': '1728425627', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:48,785 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==", "status": "delivered", "timestamp": "2024-10-08T22:13:47"}}
+2024-10-08 22:13:48,785 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==", "status": "delivered", "timestamp": "1728425627", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:48,830 - wa - INFO - Message status update: read for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==
+2024-10-08 22:13:48,831 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==', 'status': 'read', 'timestamp': '1728425627', 'recipient_id': '905330475085'}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:48,831 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==', 'status': 'read', 'timestamp': '1728425627', 'recipient_id': '905330475085'}
+2024-10-08 22:13:48,831 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==", "status": "read", "timestamp": "2024-10-08T22:13:47"}}
+2024-10-08 22:13:48,831 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSOThGRDdDNERBMDgzOTEwQzhDAA==", "status": "read", "timestamp": "1728425627", "recipient_id": "905330475085"}}
+2024-10-08 22:13:48,948 - wa - INFO - Message status update: sent for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==
+2024-10-08 22:13:48,948 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==', 'status': 'sent', 'timestamp': '1728425627', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'expiration_timestamp': '1728487140', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:48,948 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==', 'status': 'sent', 'timestamp': '1728425627', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'expiration_timestamp': '1728487140', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:48,949 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==", "status": "sent", "timestamp": "2024-10-08T22:13:47"}}
+2024-10-08 22:13:48,949 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==", "status": "sent", "timestamp": "1728425627", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "expiration_timestamp": "1728487140", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:49,314 - wa - INFO - Message status update: delivered for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==
+2024-10-08 22:13:49,314 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==', 'status': 'delivered', 'timestamp': '1728425628', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:49,315 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==', 'status': 'delivered', 'timestamp': '1728425628', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:49,315 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==", "status": "delivered", "timestamp": "2024-10-08T22:13:48"}}
+2024-10-08 22:13:49,315 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==", "status": "delivered", "timestamp": "1728425628", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:49,324 - wa - INFO - Message status update: delivered for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==
+2024-10-08 22:13:49,324 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==', 'status': 'delivered', 'timestamp': '1728425628', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:49,324 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==', 'status': 'delivered', 'timestamp': '1728425628', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:49,325 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==", "status": "delivered", "timestamp": "2024-10-08T22:13:48"}}
+2024-10-08 22:13:49,325 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==", "status": "delivered", "timestamp": "1728425628", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:49,715 - wa - INFO - Message status update: read for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==
+2024-10-08 22:13:49,716 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==', 'status': 'read', 'timestamp': '1728425628', 'recipient_id': '905330475085'}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:49,716 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==', 'status': 'read', 'timestamp': '1728425628', 'recipient_id': '905330475085'}
+2024-10-08 22:13:49,716 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==", "status": "read", "timestamp": "2024-10-08T22:13:48"}}
+2024-10-08 22:13:49,716 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA==", "status": "read", "timestamp": "1728425628", "recipient_id": "905330475085"}}
+2024-10-08 22:13:51,133 - wa - INFO - Düğmeye basıldı: option
+2024-10-08 22:13:51,133 - wa - ERROR - Düğme işleme hatası: name 'send_product_images' is not defined
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 159, in handle_button_press
+    handle_menu_selection(client, btn)
+  File "/home/runner/noodWP/wa.py", line 174, in handle_menu_selection
+    send_product_images(client, user_id)
+NameError: name 'send_product_images' is not defined
+2024-10-08 22:13:52,209 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'contacts': [{'profile': {'name': 'G'}, 'wa_id': '905330475085'}], 'messages': [{'context': {'from': '905058247090', 'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSRThFQUYzODIwMDEyNjkxQjJEAA=='}, 'from': '905330475085', 'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAEhgUM0FBMzY0NEFGNDY3MDZFMEVBRTAA', 'timestamp': '1728425629', 'type': 'interactive', 'interactive': {'type': 'button_reply', 'button_reply': {'id': '1~option~1~1.jpeg', 'title': 'Ürünleri Göster'}}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:53,099 - wa - INFO - Message status update: sent for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==
+2024-10-08 22:13:53,099 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==', 'status': 'sent', 'timestamp': '1728425631', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'expiration_timestamp': '1728487140', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:53,099 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==', 'status': 'sent', 'timestamp': '1728425631', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'expiration_timestamp': '1728487140', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:53,100 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==", "status": "sent", "timestamp": "2024-10-08T22:13:51"}}
+2024-10-08 22:13:53,100 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==", "status": "sent", "timestamp": "1728425631", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "expiration_timestamp": "1728487140", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:53,465 - wa - INFO - Message status update: delivered for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==
+2024-10-08 22:13:53,465 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==', 'status': 'delivered', 'timestamp': '1728425632', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:53,465 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==', 'status': 'delivered', 'timestamp': '1728425632', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:53,465 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==", "status": "delivered", "timestamp": "2024-10-08T22:13:52"}}
+2024-10-08 22:13:53,466 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==", "status": "delivered", "timestamp": "1728425632", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:53,528 - wa - INFO - Message status update: read for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==
+2024-10-08 22:13:53,528 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==', 'status': 'read', 'timestamp': '1728425632', 'recipient_id': '905330475085'}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:53,528 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==', 'status': 'read', 'timestamp': '1728425632', 'recipient_id': '905330475085'}
+2024-10-08 22:13:53,529 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==", "status": "read", "timestamp": "2024-10-08T22:13:52"}}
+2024-10-08 22:13:53,529 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==", "status": "read", "timestamp": "1728425632", "recipient_id": "905330475085"}}
+2024-10-08 22:13:53,606 - wa - INFO - Message status update: delivered for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==
+2024-10-08 22:13:53,606 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==', 'status': 'delivered', 'timestamp': '1728425632', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:53,606 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==', 'status': 'delivered', 'timestamp': '1728425632', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:53,607 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==", "status": "delivered", "timestamp": "2024-10-08T22:13:52"}}
+2024-10-08 22:13:53,607 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMEVBQzIwQTQ2QzlDQkNDMEFCAA==", "status": "delivered", "timestamp": "1728425632", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:53,755 - wa - INFO - Message status update: sent for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA==
+2024-10-08 22:13:53,756 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA==', 'status': 'sent', 'timestamp': '1728425632', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'expiration_timestamp': '1728487140', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:53,756 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA==', 'status': 'sent', 'timestamp': '1728425632', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'expiration_timestamp': '1728487140', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:53,756 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA==", "status": "sent", "timestamp": "2024-10-08T22:13:52"}}
+2024-10-08 22:13:53,756 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA==", "status": "sent", "timestamp": "1728425632", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "expiration_timestamp": "1728487140", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:53,859 - wa - INFO - Message status update: delivered for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA==
+2024-10-08 22:13:53,860 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA==', 'status': 'delivered', 'timestamp': '1728425632', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:53,860 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA==', 'status': 'delivered', 'timestamp': '1728425632', 'recipient_id': '905330475085', 'conversation': {'id': 'e1ac7779cc12f1c625043a05ec2f8ff1', 'origin': {'type': 'service'}}, 'pricing': {'billable': True, 'pricing_model': 'CBP', 'category': 'service'}}
+2024-10-08 22:13:53,860 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA==", "status": "delivered", "timestamp": "2024-10-08T22:13:52"}}
+2024-10-08 22:13:53,860 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA==", "status": "delivered", "timestamp": "1728425632", "recipient_id": "905330475085", "conversation": {"id": "e1ac7779cc12f1c625043a05ec2f8ff1", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}}
+2024-10-08 22:13:54,005 - wa - INFO - Message status update: read for message wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA==
+2024-10-08 22:13:54,006 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'statuses': [{'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA==', 'status': 'read', 'timestamp': '1728425632', 'recipient_id': '905330475085'}]}, 'field': 'messages'}]}]}
+2024-10-08 22:13:54,006 - wa - INFO - Received status update: {'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA==', 'status': 'read', 'timestamp': '1728425632', 'recipient_id': '905330475085'}
+2024-10-08 22:13:54,006 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA==", "status": "read", "timestamp": "2024-10-08T22:13:52"}}
+2024-10-08 22:13:54,006 - wa - INFO - Broadcasting message: {"type": "status_update", "status": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA==", "status": "read", "timestamp": "1728425632", "recipient_id": "905330475085"}}
+2024-10-08 22:15:40,024 - wa - INFO - Düğmeye basıldı: option
+2024-10-08 22:15:40,025 - wa - WARNING - Unexpected button press in state ConversationState.IDLE
+2024-10-08 22:15:40,446 - wa - ERROR - Düğme işleme hatası: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 167, in handle_button_press
+    send_menu_buttons(client, user_id)
+  File "/home/runner/noodWP/wa.py", line 638, in send_menu_buttons
+    client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)
+  File "/home/runner/noodWP/pywa/client.py", line 536, in send_message
+    return self.api.send_message(
+  File "/home/runner/noodWP/pywa/api.py", line 430, in send_message
+    return self._make_request(
+  File "/home/runner/noodWP/pywa/api.py", line 80, in _make_request
+    raise WhatsAppError.from_dict(error=res.json()["error"], response=res)
+pywa.errors.PermissionDenied: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+2024-10-08 22:15:40,789 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'contacts': [{'profile': {'name': 'G'}, 'wa_id': '905330475085'}], 'messages': [{'context': {'from': '905058247090', 'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA=='}, 'from': '905330475085', 'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAEhgUM0FCNDgzQjc1RjE0NTQzQURBNTgA', 'timestamp': '1728425738', 'type': 'interactive', 'interactive': {'type': 'button_reply', 'button_reply': {'id': '1~option~1~1.jpeg', 'title': 'Ürünleri Göster'}}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:16:07,578 - wa - INFO - Düğmeye basıldı: help
+2024-10-08 22:16:07,578 - wa - WARNING - Unexpected button press in state ConversationState.IDLE
+2024-10-08 22:16:07,954 - wa - ERROR - Düğme işleme hatası: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 167, in handle_button_press
+    send_menu_buttons(client, user_id)
+  File "/home/runner/noodWP/wa.py", line 638, in send_menu_buttons
+    client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)
+  File "/home/runner/noodWP/pywa/client.py", line 536, in send_message
+    return self.api.send_message(
+  File "/home/runner/noodWP/pywa/api.py", line 430, in send_message
+    return self._make_request(
+  File "/home/runner/noodWP/pywa/api.py", line 80, in _make_request
+    raise WhatsAppError.from_dict(error=res.json()["error"], response=res)
+pywa.errors.PermissionDenied: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+2024-10-08 22:16:08,286 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'contacts': [{'profile': {'name': 'G'}, 'wa_id': '905330475085'}], 'messages': [{'context': {'from': '905058247090', 'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAERgSMjhEQzg1MUUxRUYyRTVGRjhCAA=='}, 'from': '905330475085', 'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAEhgUM0ExRTAzNkFDNzRBNzg4NUJDRTAA', 'timestamp': '1728425766', 'type': 'interactive', 'interactive': {'type': 'button_reply', 'button_reply': {'id': '1~help~general~¤', 'title': 'Kargo Sorgula'}}}]}, 'field': 'messages'}]}]}
+2024-10-08 22:16:18,704 - wa - DEBUG - Received message: /menu from 905330475085
+2024-10-08 22:16:18,704 - wa - INFO - Mesaj işleniyor - Kullanıcı: 905330475085, Mesaj: /menu
+2024-10-08 22:16:19,061 - wa - ERROR - Mesaj işleme hatası: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 597, in handle_message
+    handle_general_message(client, from_id, text)
+  File "/home/runner/noodWP/wa.py", line 620, in handle_general_message
+    send_menu_buttons(client, from_id)
+  File "/home/runner/noodWP/wa.py", line 638, in send_menu_buttons
+    client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)
+  File "/home/runner/noodWP/pywa/client.py", line 536, in send_message
+    return self.api.send_message(
+  File "/home/runner/noodWP/pywa/api.py", line 430, in send_message
+    return self._make_request(
+  File "/home/runner/noodWP/pywa/api.py", line 80, in _make_request
+    raise WhatsAppError.from_dict(error=res.json()["error"], response=res)
+pywa.errors.PermissionDenied: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+2024-10-08 22:16:19,423 - wa - ERROR - Error in on_message handler: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 597, in handle_message
+    handle_general_message(client, from_id, text)
+  File "/home/runner/noodWP/wa.py", line 620, in handle_general_message
+    send_menu_buttons(client, from_id)
+  File "/home/runner/noodWP/wa.py", line 638, in send_menu_buttons
+    client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)
+  File "/home/runner/noodWP/pywa/client.py", line 536, in send_message
+    return self.api.send_message(
+  File "/home/runner/noodWP/pywa/api.py", line 430, in send_message
+    return self._make_request(
+  File "/home/runner/noodWP/pywa/api.py", line 80, in _make_request
+    raise WhatsAppError.from_dict(error=res.json()["error"], response=res)
+pywa.errors.PermissionDenied: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 580, in on_message
+    handle_message(client, message.from_user.wa_id, message.text)
+  File "/home/runner/noodWP/wa.py", line 600, in handle_message
+    send_error_message(client, from_id)
+  File "/home/runner/noodWP/wa.py", line 643, in send_error_message
+    send_response_with_menu(client, to, error_message)
+  File "/home/runner/noodWP/wa.py", line 628, in send_response_with_menu
+    client.send_message(to=to, text=text)
+  File "/home/runner/noodWP/pywa/client.py", line 527, in send_message
+    return self.api.send_message(
+  File "/home/runner/noodWP/pywa/api.py", line 430, in send_message
+    return self._make_request(
+  File "/home/runner/noodWP/pywa/api.py", line 80, in _make_request
+    raise WhatsAppError.from_dict(error=res.json()["error"], response=res)
+pywa.errors.PermissionDenied: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+2024-10-08 22:16:19,764 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'contacts': [{'profile': {'name': 'G'}, 'wa_id': '905330475085'}], 'messages': [{'from': '905330475085', 'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAEhgUM0EyNTlENUVEMjAzMUYwMEYyOEQA', 'timestamp': '1728425777', 'text': {'body': '/menu'}, 'type': 'text'}]}, 'field': 'messages'}]}]}
+2024-10-08 22:16:19,764 - wa - INFO - Received message: '/menu' from 905330475085
+2024-10-08 22:16:19,765 - wa - INFO - Mesaj işleniyor - Kullanıcı: 905330475085, Mesaj: /menu
+2024-10-08 22:16:22,336 - wa - ERROR - Mesaj işleme hatası: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 597, in handle_message
+    handle_general_message(client, from_id, text)
+  File "/home/runner/noodWP/wa.py", line 620, in handle_general_message
+    send_menu_buttons(client, from_id)
+  File "/home/runner/noodWP/wa.py", line 638, in send_menu_buttons
+    client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)
+  File "/home/runner/noodWP/pywa/client.py", line 536, in send_message
+    return self.api.send_message(
+  File "/home/runner/noodWP/pywa/api.py", line 430, in send_message
+    return self._make_request(
+  File "/home/runner/noodWP/pywa/api.py", line 80, in _make_request
+    raise WhatsAppError.from_dict(error=res.json()["error"], response=res)
+pywa.errors.PermissionDenied: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+2024-10-08 22:16:22,676 - wa - ERROR - Unexpected error in handle_raw_update: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 597, in handle_message
+    handle_general_message(client, from_id, text)
+  File "/home/runner/noodWP/wa.py", line 620, in handle_general_message
+    send_menu_buttons(client, from_id)
+  File "/home/runner/noodWP/wa.py", line 638, in send_menu_buttons
+    client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)
+  File "/home/runner/noodWP/pywa/client.py", line 536, in send_message
+    return self.api.send_message(
+  File "/home/runner/noodWP/pywa/api.py", line 430, in send_message
+    return self._make_request(
+  File "/home/runner/noodWP/pywa/api.py", line 80, in _make_request
+    raise WhatsAppError.from_dict(error=res.json()["error"], response=res)
+pywa.errors.PermissionDenied: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 459, in handle_raw_update
+    handle_message(client, from_id, text)
+  File "/home/runner/noodWP/wa.py", line 600, in handle_message
+    send_error_message(client, from_id)
+  File "/home/runner/noodWP/wa.py", line 643, in send_error_message
+    send_response_with_menu(client, to, error_message)
+  File "/home/runner/noodWP/wa.py", line 628, in send_response_with_menu
+    client.send_message(to=to, text=text)
+  File "/home/runner/noodWP/pywa/client.py", line 527, in send_message
+    return self.api.send_message(
+  File "/home/runner/noodWP/pywa/api.py", line 430, in send_message
+    return self._make_request(
+  File "/home/runner/noodWP/pywa/api.py", line 80, in _make_request
+    raise WhatsAppError.from_dict(error=res.json()["error"], response=res)
+pywa.errors.PermissionDenied: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+2024-10-08 22:16:22,677 - wa - INFO - Broadcasting message: {"type": "new_message", "message": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAEhgUM0EyNTlENUVEMjAzMUYwMEYyOEQA", "from": "905330475085", "to": "347058841835061", "text": "/menu", "timestamp": "2024-10-08T22:16:19.764965", "status": "received"}}
+2024-10-08 22:16:45,395 - wa - DEBUG - Received message: /menu from 905330475085
+2024-10-08 22:16:45,396 - wa - INFO - Mesaj işleniyor - Kullanıcı: 905330475085, Mesaj: /menu
+2024-10-08 22:16:45,725 - wa - ERROR - Mesaj işleme hatası: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 597, in handle_message
+    handle_general_message(client, from_id, text)
+  File "/home/runner/noodWP/wa.py", line 620, in handle_general_message
+    send_menu_buttons(client, from_id)
+  File "/home/runner/noodWP/wa.py", line 638, in send_menu_buttons
+    client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)
+  File "/home/runner/noodWP/pywa/client.py", line 536, in send_message
+    return self.api.send_message(
+  File "/home/runner/noodWP/pywa/api.py", line 430, in send_message
+    return self._make_request(
+  File "/home/runner/noodWP/pywa/api.py", line 80, in _make_request
+    raise WhatsAppError.from_dict(error=res.json()["error"], response=res)
+pywa.errors.PermissionDenied: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+2024-10-08 22:16:46,055 - wa - ERROR - Error in on_message handler: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 597, in handle_message
+    handle_general_message(client, from_id, text)
+  File "/home/runner/noodWP/wa.py", line 620, in handle_general_message
+    send_menu_buttons(client, from_id)
+  File "/home/runner/noodWP/wa.py", line 638, in send_menu_buttons
+    client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)
+  File "/home/runner/noodWP/pywa/client.py", line 536, in send_message
+    return self.api.send_message(
+  File "/home/runner/noodWP/pywa/api.py", line 430, in send_message
+    return self._make_request(
+  File "/home/runner/noodWP/pywa/api.py", line 80, in _make_request
+    raise WhatsAppError.from_dict(error=res.json()["error"], response=res)
+pywa.errors.PermissionDenied: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 580, in on_message
+    handle_message(client, message.from_user.wa_id, message.text)
+  File "/home/runner/noodWP/wa.py", line 600, in handle_message
+    send_error_message(client, from_id)
+  File "/home/runner/noodWP/wa.py", line 643, in send_error_message
+    send_response_with_menu(client, to, error_message)
+  File "/home/runner/noodWP/wa.py", line 628, in send_response_with_menu
+    client.send_message(to=to, text=text)
+  File "/home/runner/noodWP/pywa/client.py", line 527, in send_message
+    return self.api.send_message(
+  File "/home/runner/noodWP/pywa/api.py", line 430, in send_message
+    return self._make_request(
+  File "/home/runner/noodWP/pywa/api.py", line 80, in _make_request
+    raise WhatsAppError.from_dict(error=res.json()["error"], response=res)
+pywa.errors.PermissionDenied: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+2024-10-08 22:16:46,412 - wa - INFO - Received raw update: {'object': 'whatsapp_business_account', 'entry': [{'id': '401099046422459', 'changes': [{'value': {'messaging_product': 'whatsapp', 'metadata': {'display_phone_number': '905058247090', 'phone_number_id': '347058841835061'}, 'contacts': [{'profile': {'name': 'G'}, 'wa_id': '905330475085'}], 'messages': [{'from': '905330475085', 'id': 'wamid.HBgMOTA1MzMwNDc1MDg1FQIAEhgUM0FENzJEQ0Y2NzFFRTEzMzM4RjAA', 'timestamp': '1728425804', 'text': {'body': '/menu'}, 'type': 'text'}]}, 'field': 'messages'}]}]}
+2024-10-08 22:16:46,412 - wa - INFO - Received message: '/menu' from 905330475085
+2024-10-08 22:16:46,413 - wa - INFO - Mesaj işleniyor - Kullanıcı: 905330475085, Mesaj: /menu
+2024-10-08 22:16:46,731 - wa - ERROR - Mesaj işleme hatası: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 597, in handle_message
+    handle_general_message(client, from_id, text)
+  File "/home/runner/noodWP/wa.py", line 620, in handle_general_message
+    send_menu_buttons(client, from_id)
+  File "/home/runner/noodWP/wa.py", line 638, in send_menu_buttons
+    client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)
+  File "/home/runner/noodWP/pywa/client.py", line 536, in send_message
+    return self.api.send_message(
+  File "/home/runner/noodWP/pywa/api.py", line 430, in send_message
+    return self._make_request(
+  File "/home/runner/noodWP/pywa/api.py", line 80, in _make_request
+    raise WhatsAppError.from_dict(error=res.json()["error"], response=res)
+pywa.errors.PermissionDenied: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+2024-10-08 22:16:47,060 - wa - ERROR - Unexpected error in handle_raw_update: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 597, in handle_message
+    handle_general_message(client, from_id, text)
+  File "/home/runner/noodWP/wa.py", line 620, in handle_general_message
+    send_menu_buttons(client, from_id)
+  File "/home/runner/noodWP/wa.py", line 638, in send_menu_buttons
+    client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)
+  File "/home/runner/noodWP/pywa/client.py", line 536, in send_message
+    return self.api.send_message(
+  File "/home/runner/noodWP/pywa/api.py", line 430, in send_message
+    return self._make_request(
+  File "/home/runner/noodWP/pywa/api.py", line 80, in _make_request
+    raise WhatsAppError.from_dict(error=res.json()["error"], response=res)
+pywa.errors.PermissionDenied: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/runner/noodWP/wa.py", line 459, in handle_raw_update
+    handle_message(client, from_id, text)
+  File "/home/runner/noodWP/wa.py", line 600, in handle_message
+    send_error_message(client, from_id)
+  File "/home/runner/noodWP/wa.py", line 643, in send_error_message
+    send_response_with_menu(client, to, error_message)
+  File "/home/runner/noodWP/wa.py", line 628, in send_response_with_menu
+    client.send_message(to=to, text=text)
+  File "/home/runner/noodWP/pywa/client.py", line 527, in send_message
+    return self.api.send_message(
+  File "/home/runner/noodWP/pywa/api.py", line 430, in send_message
+    return self._make_request(
+  File "/home/runner/noodWP/pywa/api.py", line 80, in _make_request
+    raise WhatsAppError.from_dict(error=res.json()["error"], response=res)
+pywa.errors.PermissionDenied: PermissionDenied(message='(#10) Application does not have permission for this action', details='There was a problem with the access token or permissions you are using for the API call.', code=10)
+2024-10-08 22:16:47,061 - wa - INFO - Broadcasting message: {"type": "new_message", "message": {"id": "wamid.HBgMOTA1MzMwNDc1MDg1FQIAEhgUM0FENzJEQ0Y2NzFFRTEzMzM4RjAA", "from": "905330475085", "to": "347058841835061", "text": "/menu", "timestamp": "2024-10-08T22:16:46.413142", "status": "received"}}

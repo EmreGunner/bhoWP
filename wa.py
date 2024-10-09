@@ -19,6 +19,7 @@ from ai_siparis import OrderManager, OrderState
 from typing import List, Dict, Any
 from enum import Enum
 import re
+from product_manager import get_product_images, get_product_details
 
 # Ensure the logs directory exists
 os.makedirs('logs', exist_ok=True)
@@ -172,8 +173,6 @@ def handle_menu_selection(client: WhatsApp, btn: CallbackButton[ButtonAction]):
     user_id = btn.from_user.wa_id
     if btn.data.action == "option" and btn.data.value == "1":
         send_product_images(client, user_id)
-    elif btn.data.action == "option" and btn.data.value == "2":
-        send_customer_service_message(client, user_id)
     elif btn.data.action == "help" and btn.data.value == "general":
         handle_cargo_tracking_menu(client, user_id)
     else:
@@ -200,6 +199,25 @@ def handle_cargo_tracking_action(client: WhatsApp, btn: CallbackButton[ButtonAct
     else:
         wa_logger.warning(f"Unknown cargo tracking action: {btn.data.action}")
         send_menu_buttons(client, user_id)
+
+def send_product_images(client: WhatsApp, user_id: str):
+    product_images = get_product_images()
+    if not product_images:
+        client.send_message(user_id, "Üzgünüm, şu anda ürün görseli bulunmamaktadır.")
+        return
+
+    for image_url in product_images:
+        client.send_image(
+            image=image_url,
+            recipient_id=user_id,
+            caption="Ürün görseli"
+        )
+    
+    product_details = get_product_details()
+    if product_details:
+        client.send_message(user_id, product_details)
+    
+    send_menu_buttons(client, user_id)
 
 # Update the webhook verification endpoint
 @fastapi_app.get("/")
