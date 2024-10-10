@@ -476,10 +476,12 @@ async def handle_message(client: WhatsApp, message: Union[dict, Message]):
         user_id = message.from_user.wa_id
         message_type = message.type
         message_id = message.id
+        text = message.text if message_type == 'text' else None
     else:
         user_id = message['from']
         message_type = message['type']
         message_id = message['id']
+        text = message.get('text', {}).get('body') if message_type == 'text' else None
 
     wa_logger.info(f"Processing message from {user_id} - Type: {message_type}, ID: {message_id}")
 
@@ -497,9 +499,18 @@ async def handle_message(client: WhatsApp, message: Union[dict, Message]):
         return
 
     elif message_type == 'text':
-        text = message['text'] if isinstance(message, dict) else message.text
         wa_logger.info(f"Processing text message from user {user_id}: {text}")
-        # ... (rest of the existing code for handling text messages)
+        if text.lower() == '/menu':
+            await send_menu_buttons(client, user_id)
+        elif user_id in conversations and conversations[user_id].get("waiting_for") == "tracking_number":
+            wa_logger.info(f"Received tracking number from user {user_id}: {text}")
+            conversations[user_id]["tracking_number"] = text
+            conversations[user_id]["waiting_for"] = "cargo_image"
+            client.send_message(to=user_id, text="Takip numarası alındı. Şimdi lütfen kargo resmini gönderin.")
+        else:
+            # Handle other text messages or send a default response
+            client.send_message(to=user_id, text="Mesajınızı aldım. Size nasıl yardımcı olabilirim?")
+            await send_menu_buttons(client, user_id)
 
     elif message_type == 'interactive':
         wa_logger.info(f"Processing interactive message from user {user_id}")
