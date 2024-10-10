@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 from aiTools import get_ai_response
 from ai_siparis import OrderManager, OrderState
 from typing import List, Dict, Any, Optional, Union
-from airtable_cargo import check_tracking_number
+from airtable_cargo import check_tracking_number, upload_image_to_airtable
 
 # Ensure the logs directory exists
 os.makedirs('logs', exist_ok=True)
@@ -78,7 +78,7 @@ BUSINESS_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_ID")
 # Update the contacts list with a default contact
 contacts = [{"number": "+905330475085", "name": "Default Contact"}]
 
-# Create a dictionary to store conversations
+# Initialize conversations as a dictionary
 conversations = {}
 
 # Create a separate log file for conversation logs
@@ -144,7 +144,15 @@ async def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction
     user_id = btn.from_user.wa_id
     
     try:
-        if btn.data.action == "choose_product":
+        if btn.data.action == "more_options" and btn.data.value == "more":
+            wa_logger.info(f"User {user_id} requested more options")
+            await send_more_options(client, user_id)
+            return
+        elif btn.data.action == "main_menu" and btn.data.value == "main":
+            wa_logger.info(f"User {user_id} requested main menu")
+            await send_menu_buttons(client, user_id)
+            return
+        elif btn.data.action == "choose_product":
             wa_logger.info(f"User {user_id} selected product: {btn.data.value}")
             order = order_manager.get_or_create_order(user_id)
             order['product_id'] = btn.data.value
@@ -174,6 +182,11 @@ async def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction
             if btn.data.action == "confirm_order_yes":
                 # Reset the order state after successful completion
                 order_manager.reset_order(user_id)
+        elif btn.data.action == "upload_image" and btn.data.value == "cargo":
+            wa_logger.info(f"User {user_id} requested to upload an image for cargo")
+            response = "Lütfen kargo için bir resim gönderin. Resmi aldıktan sonra takip numarasını soracağım."
+            # Set a flag or state to indicate we're waiting for an image
+            conversations[user_id] = {"waiting_for": "cargo_image"}
         else:
             wa_logger.warning(f"Unknown button action from user {user_id}: {btn.data.action}")
             response = "Bilinmeyen işlem"
@@ -381,16 +394,18 @@ async def get_messages_for_contact(contact_id: str):
 processed_message_ids = set()
 
 
-# Update the handle_message function signature
+# Update the handle_message function
 @wa.on_message()
 async def handle_message(client: WhatsApp, message: Union[Message, dict]):
     if isinstance(message, dict):
         user_id = message.get('from_user', {}).get('wa_id') or message.get('from')
-        text = message.get('text', {}).get('body') if isinstance(message.get('text'), dict) else message.get('text', '')
+        text = message.get('text')
+        message_type = message.get('type')
         message_id = message.get('id')
     else:
         user_id = message.from_user.wa_id
         text = message.text
+        message_type = 'text'
         message_id = message.id
 
     wa_logger.info(f"Received message from {user_id}: {text}")
@@ -401,64 +416,86 @@ async def handle_message(client: WhatsApp, message: Union[Message, dict]):
         return
     
     processed_messages.add(message_id)
-    
-    lower_text = text.lower()
 
     try:
-        # Check if order process is ongoing
-        order = order_manager.get_or_create_order(user_id)
-        wa_logger.debug(f"Current order state for user {user_id}: {order['state']}")
-        if order['state'] != OrderState.IDLE:
-            wa_logger.info(f"Continuing order process for user {user_id}, current state: {order['state']}")
-            response = order_manager.process_message(user_id, text)
-            wa_logger.info(f"Order response for ongoing order: {response}")
-            await send_response(client, user_id, response)
-            return
-
-        # Handle new users
-        if user_id not in users_greeted:
-            wa_logger.info(f"Sending welcome message to new user: {user_id}")
-            await send_welcome_message(client, user_id)
-            users_greeted.add(user_id)
-            return
-
-        # Handle menu request
-        if lower_text == '/menu':
-            wa_logger.info(f"Sending menu buttons to user: {user_id}")
+        # Handle image messages
+        if message_type == 'image':
+            wa_logger.info(f"Received image message from user {user_id}")
+            image_url = message.get('image', {}).get('url')
+            if image_url:
+                if user_id in conversations and conversations[user_id].get("waiting_for") == "cargo_image":
+                    client.send_message(to=user_id, text="Resim alındı. Lütfen kargo takip numarasını girin.")
+                    conversations[user_id] = {"waiting_for": "tracking_number", "image_url": image_url}
+                else:
+                    client.send_message(to=user_id, text="Resim alındı. Teşekkür ederiz.")
+            else:
+                client.send_message(to=user_id, text="Resim alınamadı. Lütfen tekrar deneyin.")
             await send_menu_buttons(client, user_id)
             return
 
-        # Handle cargo tracking
-        if text.startswith(('YK-', 'MG-', 'AK-')):
-            wa_logger.info(f"User {user_id} entered cargo tracking number: {text}")
-            tracking_result = check_tracking_number(text)
-            client.send_message(to=user_id, text=tracking_result)
+        # Handle text messages
+        if text:
+            lower_text = text.lower()
+
+            # Check if order process is ongoing
+            order = order_manager.get_or_create_order(user_id)
+            wa_logger.debug(f"Current order state for user {user_id}: {order['state']}")
+            if order['state'] != OrderState.IDLE:
+                wa_logger.info(f"Continuing order process for user {user_id}, current state: {order['state']}")
+                response = order_manager.process_message(user_id, text)
+                wa_logger.info(f"Order response for ongoing order: {response}")
+                await send_response(client, user_id, response)
+                return
+
+            # Handle new users
+            if user_id not in users_greeted:
+                wa_logger.info(f"Sending welcome message to new user: {user_id}")
+                await send_welcome_message(client, user_id)
+                users_greeted.add(user_id)
+                return
+
+            # Handle menu request
+            if lower_text == '/menu':
+                wa_logger.info(f"Sending menu buttons to user: {user_id}")
+                await send_menu_buttons(client, user_id)
+                return
+
+            # Handle cargo tracking
+            if text.startswith(('YK-', 'MG-', 'AK-')):
+                wa_logger.info(f"User {user_id} entered cargo tracking number: {text}")
+                tracking_result = check_tracking_number(text)
+                client.send_message(to=user_id, text=tracking_result)
+                await send_menu_buttons(client, user_id)
+                return
+
+            # Handle automated responses
+            automated_responses = {
+                "test": "test1",
+                "merhaba": "Merhaba! Nasıl yardımcı olabilirim?",
+                "yardim": "Musteri temsilcisi yonlendiriyorum",
+            }
+
+            if lower_text in automated_responses:
+                wa_logger.info(f"Sending automated response for '{lower_text}' to user: {user_id}")
+                client.send_message(to=user_id, text=automated_responses[lower_text])
+            elif lower_text in ["fiyat nedir?", "fiyat nedir"]:
+                wa_logger.info(f"Sending catalog link to user: {user_id}")
+                catalog_link = "ornekcataloglink.wp.com"
+                response = f"Ürünlerimizin fiyatları hakkında detaylı bilgi için lütfen kataloğumuzu inceleyin: {catalog_link}"
+                client.send_message(to=user_id, text=response)
+            else:
+                # If the message doesn't match any predefined conditions, send it to AI
+                wa_logger.info(f"Getting AI response for user: {user_id}")
+                ai_response = get_ai_response(user_id, text)
+                client.send_message(to=user_id, text=ai_response)
+
+            wa_logger.info(f"Sending menu buttons after response to user: {user_id}")
             await send_menu_buttons(client, user_id)
-            return
-
-        # Handle automated responses
-        automated_responses = {
-            "test": "test1",
-            "merhaba": "Merhaba! Nasıl yardımcı olabilirim?",
-            "yardim": "Musteri temsilcisi yonlendiriyorum",
-        }
-
-        if lower_text in automated_responses:
-            wa_logger.info(f"Sending automated response for '{lower_text}' to user: {user_id}")
-            client.send_message(to=user_id, text=automated_responses[lower_text])
-        elif lower_text in ["fiyat nedir?", "fiyat nedir"]:
-            wa_logger.info(f"Sending catalog link to user: {user_id}")
-            catalog_link = "ornekcataloglink.wp.com"
-            response = f"Ürünlerimizin fiyatları hakkında detaylı bilgi için lütfen kataloğumuzu inceleyin: {catalog_link}"
-            client.send_message(to=user_id, text=response)
         else:
-            # If the message doesn't match any predefined conditions, send it to AI
-            wa_logger.info(f"Getting AI response for user: {user_id}")
-            ai_response = get_ai_response(user_id, text)
-            client.send_message(to=user_id, text=ai_response)
+            wa_logger.info(f"Received non-text message from user {user_id}")
+            client.send_message(to=user_id, text="Üzgünüm, bu mesaj türünü işleyemiyorum.")
+            await send_menu_buttons(client, user_id)
 
-        wa_logger.info(f"Sending menu buttons after response to user: {user_id}")
-        await send_menu_buttons(client, user_id)
     except Exception as e:
         wa_logger.error(f"Error in handle_message for user {user_id}: {str(e)}", exc_info=True)
         error_message = "Üzgünüm, mesajınızı işlerken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
@@ -477,41 +514,60 @@ def handle_raw_update(client: WhatsApp, update: dict):
                     value = change['value']
                     if 'messages' in value:
                         for message in value['messages']:
+                            message_id = message['id']
+                            if message_id in processed_message_ids:
+                                wa_logger.info(f"Skipping already processed message: {message_id}")
+                                continue
+                            processed_message_ids.add(message_id)
+
+                            from_id = message['from']
+                            wa_logger.info(f"Received message from {from_id}")
+                            
+                            if from_id not in conversations:
+                                conversations[from_id] = []
+                            
+                            new_message = {
+                                "id": message_id,
+                                "from": from_id,
+                                "to": BUSINESS_PHONE_NUMBER_ID,
+                                "timestamp": datetime.datetime.now().isoformat(),
+                                "status": "received"
+                            }
+
                             if message['type'] == 'text':
-                                message_id = message['id']
-                                if message_id in processed_message_ids:
-                                    wa_logger.info(f"Skipping already processed message: {message_id}")
-                                    continue
-                                processed_message_ids.add(message_id)
-
                                 text = message['text']['body']
-                                from_id = message['from']
-                                wa_logger.info(f"Received message: '{text}' from {from_id}")
-                                new_message = {
-                                    "id": message_id,
-                                    "from": from_id,
-                                    "to": BUSINESS_PHONE_NUMBER_ID,
-                                    "text": text,
-                                    "timestamp": datetime.datetime.now().isoformat(),
-                                    "status": "received"
-                                }
-                                if from_id not in conversations:
-                                    conversations[from_id] = []
-                                conversations[from_id].append(new_message)
-                                asyncio.create_task(
-                                    broadcast_message(
-                                        json.dumps({
-                                            "type": "new_message",
-                                            "message": new_message
-                                        })))
+                                new_message["text"] = text
+                                wa_logger.info(f"Received text message: '{text}' from {from_id}")
+                            elif message['type'] == 'image':
+                                new_message["type"] = "image"
+                                new_message["url"] = message['image'].get('url', '')
+                                wa_logger.info(f"Received image message from {from_id}")
+                            elif message['type'] == 'interactive':
+                                new_message["type"] = "interactive"
+                                new_message["interactive"] = message['interactive']
+                                wa_logger.info(f"Received interactive message from {from_id}")
+                            else:
+                                new_message["type"] = message['type']
+                                wa_logger.info(f"Received {message['type']} message from {from_id}")
 
-                                # Create a custom message object instead of using the Message class
-                                message_obj = {
-                                    "id": message_id,
-                                    "from_user": {"wa_id": from_id},
-                                    "text": text
-                                }
-                                asyncio.create_task(handle_message(client, message_obj))
+                            conversations[from_id].append(new_message)
+                            asyncio.create_task(
+                                broadcast_message(
+                                    json.dumps({
+                                        "type": "new_message",
+                                        "message": new_message
+                                    })))
+
+                            # Create a custom message object
+                            message_obj = {
+                                "id": message_id,
+                                "from_user": {"wa_id": from_id},
+                                "text": text if message['type'] == 'text' else None,
+                                "type": message['type'],
+                                "image": message.get('image', {}),
+                                "interactive": message.get('interactive', {})
+                            }
+                            asyncio.create_task(handle_message(client, message_obj))
 
                     elif 'statuses' in value:
                         for status in value['statuses']:
@@ -646,9 +702,19 @@ async def send_menu_buttons(client: WhatsApp, to: str):
     buttons = [
         Button(title="Ürünleri Göster", callback_data=ButtonAction(action="option", value="1")),
         Button(title="Musteri temsilcisi", callback_data=ButtonAction(action="option", value="2")),
-        Button(title="Kargo Sorgula", callback_data=ButtonAction(action="help", value="general"))
+        Button(title="Diğer İşlemler", callback_data=ButtonAction(action="more_options", value="more"))
     ]
     client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)
+
+
+# Add a new function to handle the "Diğer İşlemler" button
+async def send_more_options(client: WhatsApp, to: str):
+    buttons = [
+        Button(title="Kargo Sorgula", callback_data=ButtonAction(action="help", value="general")),
+        Button(title="Resim Yükle", callback_data=ButtonAction(action="upload_image", value="cargo")),
+        Button(title="Ana Menü", callback_data=ButtonAction(action="main_menu", value="main"))
+    ]
+    client.send_message(to=to, text="Diğer işlemler:", buttons=buttons)
 
 
 # Error handler

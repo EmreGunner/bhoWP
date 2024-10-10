@@ -70,6 +70,54 @@ def check_tracking_number(tracking_number):
         cargo_logger.error(f"API request failed with status code: {response.status_code}")
         return "Kargo bilgilerini kontrol ederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
 
+def upload_image_to_airtable(tracking_number, image_url):
+    cargo_logger.info(f"Uploading image for tracking number: {tracking_number}")
+    
+    # Construct the filter formula
+    filter_formula = f"{{Takip Numarası}} = '{tracking_number}'"
+    
+    # First, find the record with the given tracking number
+    response = requests.get(
+        BASE_URL,
+        headers=headers,
+        params={
+            "filterByFormula": filter_formula
+        }
+    )
+    
+    if response.status_code == 200:
+        data = response.json()
+        records = data.get('records', [])
+        
+        if records:
+            record_id = records[0]['id']
+            
+            # Now, update the record with the image URL
+            update_data = {
+                "fields": {
+                    "Image": [{"url": image_url}]
+                }
+            }
+            
+            update_response = requests.patch(
+                f"{BASE_URL}/{record_id}",
+                headers=headers,
+                json=update_data
+            )
+            
+            if update_response.status_code == 200:
+                cargo_logger.info(f"Image uploaded successfully for tracking number: {tracking_number}")
+                return f"Resim başarıyla yüklendi ve {tracking_number} numaralı kargo kaydına eklendi."
+            else:
+                cargo_logger.error(f"Failed to upload image for tracking number: {tracking_number}. Status code: {update_response.status_code}")
+                return "Resim yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+        else:
+            cargo_logger.warning(f"Tracking number not found: {tracking_number}")
+            return "Bu takip numarasına ait kargo bulunamadı. Lütfen müşteri temsilcisi ile iletişime geçin."
+    else:
+        cargo_logger.error(f"API request failed with status code: {response.status_code}")
+        return "Kargo bilgilerini kontrol ederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+
 # Example usage
 if __name__ == "__main__":
     test_tracking_numbers = ["YK-987654321", "MG-123456789", "AK-112233445", "INVALID-NUMBER"]

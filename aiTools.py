@@ -11,7 +11,7 @@ load_dotenv()
 
 # Set up OpenAI client
 
-client = OpenAI(api_key=api_key)
+client = OpenAI()
 
 # Assistant ID
 ASSISTANT_ID = "asst_c0fmvtw3HZfUYXooiPim6WBF"
