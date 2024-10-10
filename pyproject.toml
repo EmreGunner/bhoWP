@@ -38,6 +38,13 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Software Development :: Libraries :: Application Frameworks"
 ]
+dependencies = [
+    "fastapi",
+    "openai",
+    "python-dotenv",
+    "requests",
+    "uvicorn",
+]
 
 [project.optional-dependencies]
 flask = ["flask[async]"]
