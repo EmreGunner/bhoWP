@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 import logging
 from logging.handlers import RotatingFileHandler
+import base64
 
 # Load environment variables
 load_dotenv()
@@ -70,7 +71,7 @@ def check_tracking_number(tracking_number):
         cargo_logger.error(f"API request failed with status code: {response.status_code}")
         return "Kargo bilgilerini kontrol ederken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
 
-def upload_image_to_airtable(tracking_number, image_url):
+def upload_image_to_airtable(tracking_number, image_data):
     cargo_logger.info(f"Uploading image for tracking number: {tracking_number}")
     
     # Construct the filter formula
@@ -92,10 +93,16 @@ def upload_image_to_airtable(tracking_number, image_url):
         if records:
             record_id = records[0]['id']
             
-            # Now, update the record with the image URL
+            # Encode the image data
+            encoded_image = base64.b64encode(image_data).decode('utf-8')
+            
+            # Now, update the record with the image
             update_data = {
                 "fields": {
-                    "Image": [{"url": image_url}]
+                    "Image": [{
+                        "filename": f"{tracking_number}_image.jpg",
+                        "content": encoded_image
+                    }]
                 }
             }
             

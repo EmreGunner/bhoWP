@@ -68,5 +68,3 @@ def get_ai_response(user_id: str, question: str) -> str:
     except Exception as e:
         print(f"Error in get_ai_response: {e}")
         return "Üzgünüm, sorunuzu şu anda işleyemiyorum. Lütfen daha sonra tekrar deneyin veya müşteri hizmetleriyle iletişime geçin."
-
-print(f"API Key: {os.getenv('OPENAI_API_KEY')}")

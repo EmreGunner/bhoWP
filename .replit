@@ -1,5 +1,5 @@
 modules = ["python-3.10"]
-run = "fastapi dev wa.py  "
+run = "fastapi dev wa140.py  "
 
 [nix]
 channel = "stable-24_05"

@@ -1,0 +1,14 @@
+2024-10-10 12:34:39,804 - checker - INFO - Received text message from user 905330475085
+2024-10-10 12:34:39,804 - checker - INFO - Text message received: '/menu'
+2024-10-10 12:35:09,504 - checker - INFO - Received text message from user 905330475085
+2024-10-10 12:35:09,504 - checker - INFO - Text message received: '/menu'
+2024-10-10 12:45:43,630 - checker - INFO - Received interactive message from user 905330475085
+2024-10-10 12:45:43,630 - checker - INFO - Interactive message received: {'type': 'button_reply', 'button_reply': {'id': '1~more_options~more~¤', 'title': 'Diğer İşlemler'}}
+2024-10-10 12:45:48,355 - checker - INFO - Received interactive message from user 905330475085
+2024-10-10 12:45:48,355 - checker - INFO - Interactive message received: {'type': 'button_reply', 'button_reply': {'id': '1~upload_image~cargo~¤', 'title': 'Resim Yükle'}}
+2024-10-10 12:46:03,875 - checker - INFO - Received image message from user 905330475085
+2024-10-10 12:46:03,876 - checker - INFO - Image received - ID: 27087089117604821, MIME type: image/jpeg
+2024-10-10 12:59:50,284 - checker - INFO - Received text message from user 905330475085
+2024-10-10 12:59:50,284 - checker - INFO - Text message received: '/menu'
+2024-10-10 13:00:22,715 - checker - INFO - Received text message from user 905330475085
+2024-10-10 13:00:22,715 - checker - INFO - Text message received: '/menu'
