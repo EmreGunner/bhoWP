@@ -10,7 +10,7 @@ import time
 load_dotenv()
 
 # Set up OpenAI client
-api_key = "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"
+
 client = OpenAI(api_key=api_key)
 
 # Assistant ID
