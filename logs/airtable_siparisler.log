@@ -1,0 +1,4 @@
+2024-10-10 08:47:04,268 - airtable_siparisler - INFO - create_airtable_record called with: product_id=3 copy 2, name=emre, address=asdasdasda, phone=5330475976, text=vaasda
+2024-10-10 08:47:07,747 - airtable_siparisler - INFO - Successfully created and updated Airtable record with ID: recUvSFXRLj539yCu
+2024-10-10 08:50:03,534 - airtable_siparisler - INFO - create_airtable_record called with: product_id=3 copy 3, name=emre, address=asdef, phone=5330475085, text=asd
+2024-10-10 08:50:07,063 - airtable_siparisler - INFO - Successfully created and updated Airtable record with ID: recHZxnZ9ulbJbMOV

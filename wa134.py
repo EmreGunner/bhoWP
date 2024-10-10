@@ -14,7 +14,6 @@ from dataclasses import dataclass
 import os
 from ai_siparis import OrderManager, OrderState
 import re
-from typing import Optional
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -32,16 +31,16 @@ templates = Jinja2Templates(directory="templates")
 # Update the WhatsApp client initialization
 wa = WhatsApp(
     phone_id="347058841835061",
-    token="EAAOxaNntzsEBO16xncaV6XC4UPLvKbT56okNPHnsJMxYGhZC1lldcgC1eIuAxwYlkgglX9ZClypXd4KNVGpS6cgD7jS0GiQX3m0a8E8tAgzowwHdQwit0pcX7VogBTLBzCbw2TCwnba6mAjRRW8nPEUynVRsfZCWb9PVk9l7f7xsUbAfYXL3I6eksEGzo8w2oRtbA5nkaxCBBtj6ipLbBjZBglIZD",
+    token=
+    "EAAOxaNntzsEBOZCeXexy3sq2GXcUrYCyIz7usSbfkqUZC3vg7i80EYkZAhSVuZCxmkG2El5zQZC8xrgrVa5G1EBe43bUBGuN4pWvnDQlMxRvhdhAimYgzmLOMtlM79lv47ncllNt07RuRPPKKCzWzkZAqPvHWqyuamXZAr3ihRKi7oA39Cqu9eHgMZCkN0PCwz4QKwgMZAewIydPNpP10imJwHs9SbOEZD",
     server=fastapi_app,
-    callback_url="https://49ae544d-ebdc-4b20-9445-aa092113c69a-00-1cr1zoiat6wtd.sisko.replit.dev",
+    callback_url=
+    "https://49ae544d-ebdc-4b20-9445-aa092113c69a-00-1cr1zoiat6wtd.sisko.replit.dev",
     verify_token="randomstring",
     app_id=1039488821087937,
     app_secret="eda6cba58fa6404a8198b205face33aa",
     validate_updates=True,
-    continue_handling=True,
-    webhook_challenge_delay=60  # Increase this value to 60 seconds or more
-)
+    continue_handling=True)
 
 # Add this line near the top of the file, after the imports
 BUSINESS_PHONE_NUMBER_ID = "347058841835061"
@@ -696,69 +695,6 @@ async def send_image(to: str = Form(...), image: UploadFile = File(...)):
 # Or, if you prefer a more general approach:
 @wa.on_message()
 def handle_message(client: WhatsApp, message: Message):
-    wa_logger.info(f"Received message from {message.from_user.wa_id}: {message.text}")
-    
-    # Check if this message has already been processed
-    if message.id in processed_messages:
-        wa_logger.info(f"Skipping already processed message: {message.id}")
-        return
-    
-    processed_messages.add(message.id)
-    
-    user_id = message.from_user.wa_id
-    text = message.text
-    lower_text = text.lower()
-
-    try:
-        # Sipariş süreci devam ediyorsa
-        order = order_manager.get_or_create_order(user_id)
-        wa_logger.debug(f"Current order state for user {user_id}: {order['state']}")
-        if order['state'] != OrderState.IDLE:
-            wa_logger.info(f"Continuing order process for user {user_id}, current state: {order['state']}")
-            response = order_manager.process_message(user_id, text)
-            wa_logger.info(f"Order response for ongoing order: {response}")
-            await send_response(client, user_id, response)
-            return
-
-        if user_id not in users_greeted:
-            wa_logger.info(f"Sending welcome message to new user: {user_id}")
-            await send_welcome_message(client, user_id)
-            users_greeted.add(user_id)
-            return
-
-        if lower_text == '/menu':
-            wa_logger.info(f"Sending menu buttons to user: {user_id}")
-            await send_menu_buttons(client, user_id)
-            return
-
-        # Reset menu_sent flag when a new conversation starts
-        menu_sent[user_id] = False
-
-        automated_responses = {
-            "test": "test1",
-            "merhaba": "Merhaba! Nasıl yardımcı olabilirim?",
-            "yardim": "Musteri temsilcisi yonlendiriyorum",
-        }
-
-        if lower_text in automated_responses:
-            wa_logger.info(f"Sending automated response for '{lower_text}' to user: {user_id}")
-            client.send_message(to=user_id, text=automated_responses[lower_text])
-        elif lower_text in ["fiyat nedir?", "fiyat nedir"]:
-            wa_logger.info(f"Sending catalog link to user: {user_id}")
-            catalog_link = "ornekcataloglink.wp.com"
-            response = f"Ürünlerimizin fiyatları hakkında detaylı bilgi için lütfen kataloğumuzu inceleyin: {catalog_link}"
-            client.send_message(to=user_id, text=response)
-        else:
-            wa_logger.info(f"Getting AI response for user: {user_id}")
-            ai_response = get_ai_response(text)
-            client.send_message(to=user_id, text=ai_response)
-
-        wa_logger.info(f"Sending menu buttons after response to user: {user_id}")
-        await send_menu_buttons(client, user_id)
-    except Exception as e:
-        wa_logger.error(f"Error in handle_message: {str(e)}", exc_info=True)
-
-def send_image_button(client: WhatsApp, to: str, image_file: str, image_caption: str):
     automated_responses = {
         "test": "test1",
         "Merhaba": "Merhaba! ,  nasıl yardımcı olabilirim?",
@@ -820,17 +756,3 @@ def handle_order_workflow(client: WhatsApp, user_id: str, message: str, product_
     if order['state'] == OrderState.COMPLETED:
         # Reset the order state
         order_manager.orders.pop(user_id, None)
-
-async def send_welcome_message(client: WhatsApp, to: str):
-    wa_logger.info(f"Sending welcome message to {to}")
-    welcome_text = "Merhaba! Hoş geldiniz. Size nasıl yardımcı olabilirim?"
-    client.send_message(to=to, text=welcome_text)
-    await send_menu_buttons(client, to)
-
-async def send_menu_buttons(client: WhatsApp, to: str):
-    buttons = [
-        Button(title="Ürünleri Göster", callback_data=ButtonAction(action="option", value="1")),
-        Button(title="Musteri temsilcisi", callback_data=ButtonAction(action="option", value="2")),
-        Button(title="Kargo Sorgula", callback_data=ButtonAction(action="help", value="general"))
-    ]
-    client.send_message(to=to, text="Lütfen bir seçenek belirleyin:", buttons=buttons)

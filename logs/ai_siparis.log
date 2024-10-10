@@ -1,1 +1,40 @@
 2024-10-10 07:45:29,962 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.IDLE, message: , product_id: 3 copy 3.jpeg
+2024-10-10 08:07:06,824 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.IDLE, message: , product_id: 3 copy 3.jpeg
+2024-10-10 08:15:27,265 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.IDLE, message: , product_id: 3 copy 3.jpeg
+2024-10-10 08:17:30,957 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_NAME, message: /menu, product_id: None
+2024-10-10 08:17:31,251 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_NAME, message: /menu, product_id: None
+2024-10-10 08:37:04,555 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.IDLE, message: start_order, product_id: None
+2024-10-10 08:37:22,259 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.IDLE, message: start_order, product_id: None
+2024-10-10 08:38:23,033 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.IDLE, message: start_order, product_id: None
+2024-10-10 08:41:13,663 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.IDLE, message: start_order, product_id: None
+2024-10-10 08:41:22,007 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.IDLE, message: start_order, product_id: None
+2024-10-10 08:45:40,027 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_NAME, message: Anakin Skywalker, product_id: None
+2024-10-10 08:45:44,789 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_ADDRESS, message: test, product_id: None
+2024-10-10 08:45:49,026 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_ADDRESS, message: asedesad, product_id: None
+2024-10-10 08:45:55,219 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_PHONE, message: 533048, product_id: None
+2024-10-10 08:46:02,610 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_PHONE, message: 5330475085, product_id: None
+2024-10-10 08:46:08,455 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_TEXT, message: Var, product_id: None
+2024-10-10 08:46:15,867 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CONFIRMING, message: confirm_order_no, product_id: None
+2024-10-10 08:46:20,601 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CORRECTING, message: confirm_order_yes, product_id: None
+2024-10-10 08:46:38,544 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_NAME, message: emre, product_id: None
+2024-10-10 08:46:41,889 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_ADDRESS, message: asdasdasda, product_id: None
+2024-10-10 08:46:46,671 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_PHONE, message: 523304858, product_id: None
+2024-10-10 08:46:54,932 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_PHONE, message: 5330475976, product_id: None
+2024-10-10 08:47:00,476 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_TEXT, message: vaasda, product_id: None
+2024-10-10 08:47:04,268 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CONFIRMING, message: confirm_order_yes, product_id: None
+2024-10-10 08:47:04,268 - ai_siparis - INFO - Calling Airtable create record function with: product_id=3 copy 2, name=emre, address=asdasdasda, phone=5330475976, text=vaasda
+2024-10-10 08:47:07,749 - ai_siparis - INFO - Airtable record created successfully with ID: recUvSFXRLj539yCu
+2024-10-10 08:49:24,666 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.IDLE, message: confirm_order_no, product_id: None
+2024-10-10 08:49:43,294 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_NAME, message: emre, product_id: None
+2024-10-10 08:49:46,300 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_ADDRESS, message: asdef, product_id: None
+2024-10-10 08:49:52,871 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_PHONE, message: 5330475085, product_id: None
+2024-10-10 08:49:57,502 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_TEXT, message: asd, product_id: None
+2024-10-10 08:50:03,533 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CONFIRMING, message: confirm_order_yes, product_id: None
+2024-10-10 08:50:03,534 - ai_siparis - INFO - Calling Airtable create record function with: product_id=3 copy 3, name=emre, address=asdef, phone=5330475085, text=asd
+2024-10-10 08:50:07,066 - ai_siparis - INFO - Airtable record created successfully with ID: recHZxnZ9ulbJbMOV
+2024-10-10 08:50:31,412 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COMPLETED, message: merhaba, product_id: None
+2024-10-10 08:50:31,412 - ai_siparis - ERROR - Unexpected state: OrderState.COMPLETED
+2024-10-10 08:50:36,816 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COMPLETED, message: merhaba, product_id: None
+2024-10-10 08:50:36,816 - ai_siparis - ERROR - Unexpected state: OrderState.COMPLETED
+2024-10-10 08:50:44,987 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COMPLETED, message: /menu, product_id: None
+2024-10-10 08:50:44,987 - ai_siparis - ERROR - Unexpected state: OrderState.COMPLETED
