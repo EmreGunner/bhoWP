@@ -10,6 +10,7 @@ import time
 load_dotenv()
 
 # Set up OpenAI client
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Assistant ID
 ASSISTANT_ID = "asst_c0fmvtw3HZfUYXooiPim6WBF"
@@ -17,12 +18,10 @@ ASSISTANT_ID = "asst_c0fmvtw3HZfUYXooiPim6WBF"
 # Dictionary to store user threads
 user_threads = {}
 
-
 def get_or_create_thread(user_id: str):
     if user_id not in user_threads:
         user_threads[user_id] = client.beta.threads.create()
     return user_threads[user_id]
-
 
 def get_ai_response(user_id: str, question: str) -> str:
     try:
@@ -30,21 +29,26 @@ def get_ai_response(user_id: str, question: str) -> str:
         thread = get_or_create_thread(user_id)
 
         # Add a message to the thread
-        client.beta.threads.messages.create(thread_id=thread.id,
-                                            role="user",
-                                            content=question)
+        client.beta.threads.messages.create(
+            thread_id=thread.id,
+            role="user",
+            content=question
+        )
 
         # Create a run
-        run = client.beta.threads.runs.create(thread_id=thread.id,
-                                              assistant_id=ASSISTANT_ID)
+        run = client.beta.threads.runs.create(
+            thread_id=thread.id,
+            assistant_id=ASSISTANT_ID
+        )
 
         # Wait for the run to complete
         max_retries = 5
         retry_count = 0
-        while run.status in ["queued", "in_progress"
-                             ] and retry_count < max_retries:
-            run = client.beta.threads.runs.retrieve(thread_id=thread.id,
-                                                    run_id=run.id)
+        while run.status in ["queued", "in_progress"] and retry_count < max_retries:
+            run = client.beta.threads.runs.retrieve(
+                thread_id=thread.id,
+                run_id=run.id
+            )
             time.sleep(1)
             retry_count += 1
 
@@ -64,6 +68,5 @@ def get_ai_response(user_id: str, question: str) -> str:
     except Exception as e:
         print(f"Error in get_ai_response: {e}")
         return "Üzgünüm, sorunuzu şu anda işleyemiyorum. Lütfen daha sonra tekrar deneyin veya müşteri hizmetleriyle iletişime geçin."
-
 
 print(f"API Key: {os.getenv('OPENAI_API_KEY')}")
