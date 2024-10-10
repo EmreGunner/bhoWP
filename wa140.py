@@ -16,7 +16,8 @@ from dataclasses import dataclass
 from dotenv import load_dotenv
 from aiTools import get_ai_response
 from ai_siparis import OrderManager, OrderState
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
+from airtable_cargo import check_tracking_number
 
 # Ensure the logs directory exists
 os.makedirs('logs', exist_ok=True)
@@ -160,9 +161,19 @@ async def handle_button_press(client: WhatsApp, btn: CallbackButton[ButtonAction
             else:
                 wa_logger.warning(f"Unknown option selected by user {user_id}: {btn.data.value}")
                 response = "Bilinmeyen seçenek"
+        elif btn.data.action == "help":
+            if btn.data.value == "general":
+                wa_logger.info(f"User {user_id} requested cargo tracking")
+                response = "Lütfen kargo takip numaranızı girin."
+            else:
+                wa_logger.warning(f"Unknown help option selected by user {user_id}: {btn.data.value}")
+                response = "Bilinmeyen yardım seçeneği"
         elif btn.data.action in ["confirm_order_yes", "confirm_order_no"] or btn.data.action.startswith("correct_"):
             wa_logger.info(f"Processing order action for user {user_id}: {btn.data.action}")
             response = order_manager.process_message(user_id, btn.data.action)
+            if btn.data.action == "confirm_order_yes":
+                # Reset the order state after successful completion
+                order_manager.reset_order(user_id)
         else:
             wa_logger.warning(f"Unknown button action from user {user_id}: {btn.data.action}")
             response = "Bilinmeyen işlem"
@@ -372,18 +383,25 @@ processed_message_ids = set()
 
 # Update the handle_message function signature
 @wa.on_message()
-async def handle_message(client: WhatsApp, message: Message):
-    wa_logger.info(f"Received message from {message.from_user.wa_id}: {message.text}")
+async def handle_message(client: WhatsApp, message: Union[Message, dict]):
+    if isinstance(message, dict):
+        user_id = message.get('from_user', {}).get('wa_id') or message.get('from')
+        text = message.get('text', {}).get('body') if isinstance(message.get('text'), dict) else message.get('text', '')
+        message_id = message.get('id')
+    else:
+        user_id = message.from_user.wa_id
+        text = message.text
+        message_id = message.id
+
+    wa_logger.info(f"Received message from {user_id}: {text}")
     
     # Check if this message has already been processed
-    if message.id in processed_messages:
-        wa_logger.info(f"Skipping already processed message: {message.id}")
+    if message_id in processed_messages:
+        wa_logger.info(f"Skipping already processed message: {message_id}")
         return
     
-    processed_messages.add(message.id)
+    processed_messages.add(message_id)
     
-    user_id = message.from_user.wa_id
-    text = message.text
     lower_text = text.lower()
 
     try:
@@ -410,6 +428,14 @@ async def handle_message(client: WhatsApp, message: Message):
             await send_menu_buttons(client, user_id)
             return
 
+        # Handle cargo tracking
+        if text.startswith(('YK-', 'MG-', 'AK-')):
+            wa_logger.info(f"User {user_id} entered cargo tracking number: {text}")
+            tracking_result = check_tracking_number(text)
+            client.send_message(to=user_id, text=tracking_result)
+            await send_menu_buttons(client, user_id)
+            return
+
         # Handle automated responses
         automated_responses = {
             "test": "test1",
@@ -426,14 +452,17 @@ async def handle_message(client: WhatsApp, message: Message):
             response = f"Ürünlerimizin fiyatları hakkında detaylı bilgi için lütfen kataloğumuzu inceleyin: {catalog_link}"
             client.send_message(to=user_id, text=response)
         else:
+            # If the message doesn't match any predefined conditions, send it to AI
             wa_logger.info(f"Getting AI response for user: {user_id}")
-            ai_response = get_ai_response(text)
+            ai_response = get_ai_response(user_id, text)
             client.send_message(to=user_id, text=ai_response)
 
         wa_logger.info(f"Sending menu buttons after response to user: {user_id}")
         await send_menu_buttons(client, user_id)
     except Exception as e:
         wa_logger.error(f"Error in handle_message for user {user_id}: {str(e)}", exc_info=True)
+        error_message = "Üzgünüm, mesajınızı işlerken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+        client.send_message(to=user_id, text=error_message)
 
 
 # Update the handle_raw_update function

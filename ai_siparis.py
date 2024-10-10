@@ -206,6 +206,11 @@ class OrderManager:
         ai_siparis_logger.error(f"Unexpected state: {order['state']}")
         return {"text": "Bir hata oluştu. Lütfen tekrar deneyin."}
 
+    def reset_order(self, user_id: str):
+        if user_id in self.orders:
+            self.orders[user_id] = self._create_new_order()
+        ai_siparis_logger.info(f"Order reset for user {user_id}")
+
 order_manager = OrderManager()
 
 def handle_order(user_id: str, message: str, product_id: Optional[str] = None) -> Dict[str, Any]:

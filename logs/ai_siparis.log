@@ -38,3 +38,56 @@
 2024-10-10 08:50:36,816 - ai_siparis - ERROR - Unexpected state: OrderState.COMPLETED
 2024-10-10 08:50:44,987 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COMPLETED, message: /menu, product_id: None
 2024-10-10 08:50:44,987 - ai_siparis - ERROR - Unexpected state: OrderState.COMPLETED
+2024-10-10 09:56:00,432 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_NAME, message: asdef, product_id: None
+2024-10-10 09:56:05,251 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_ADDRESS, message: asdasdas, product_id: None
+2024-10-10 09:56:14,470 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_PHONE, message: 5330475096, product_id: None
+2024-10-10 09:56:19,642 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_TEXT, message: ASDasda, product_id: None
+2024-10-10 09:56:25,022 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CONFIRMING, message: confirm_order_yes, product_id: None
+2024-10-10 09:56:25,022 - ai_siparis - INFO - Calling Airtable create record function with: product_id=1, name=asdef, address=asdasdas, phone=5330475096, text=ASDasda
+2024-10-10 09:56:29,178 - ai_siparis - INFO - Airtable record created successfully with ID: reckqyMltOubzJ8cR
+2024-10-10 09:56:33,822 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COMPLETED, message: confirm_order_no, product_id: None
+2024-10-10 09:56:33,822 - ai_siparis - ERROR - Unexpected state: OrderState.COMPLETED
+2024-10-10 09:56:42,304 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COMPLETED, message: merhaba, product_id: None
+2024-10-10 09:56:42,304 - ai_siparis - ERROR - Unexpected state: OrderState.COMPLETED
+2024-10-10 09:56:48,127 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COMPLETED, message: /menu, product_id: None
+2024-10-10 09:56:48,127 - ai_siparis - ERROR - Unexpected state: OrderState.COMPLETED
+2024-10-10 10:00:09,668 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_NAME, message: asdef, product_id: None
+2024-10-10 10:00:12,198 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_ADDRESS, message: defasdfas, product_id: None
+2024-10-10 10:00:19,422 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_PHONE, message: 5330485795, product_id: None
+2024-10-10 10:00:24,691 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_TEXT, message: des, product_id: None
+2024-10-10 10:00:29,323 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CONFIRMING, message: confirm_order_yes, product_id: None
+2024-10-10 10:00:29,323 - ai_siparis - INFO - Calling Airtable create record function with: product_id=1, name=asdef, address=defasdfas, phone=5330485795, text=des
+2024-10-10 10:00:31,705 - ai_siparis - INFO - Airtable record created successfully with ID: reccIr8tQiLQX2Wc6
+2024-10-10 10:04:04,096 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_NAME, message: asdef, product_id: None
+2024-10-10 10:04:08,230 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_ADDRESS, message: testsg, product_id: None
+2024-10-10 10:04:14,323 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_PHONE, message: 5330423132, product_id: None
+2024-10-10 10:04:19,372 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_TEXT, message: efasfsadfas, product_id: None
+2024-10-10 10:04:26,346 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CONFIRMING, message: confirm_order_yes, product_id: None
+2024-10-10 10:04:26,346 - ai_siparis - INFO - Calling Airtable create record function with: product_id=1, name=asdef, address=testsg, phone=5330423132, text=efasfsadfas
+2024-10-10 10:04:28,688 - ai_siparis - INFO - Airtable record created successfully with ID: recbk88itClsAn0ma
+2024-10-10 10:04:35,562 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COMPLETED, message: asdef, product_id: None
+2024-10-10 10:04:35,562 - ai_siparis - ERROR - Unexpected state: OrderState.COMPLETED
+2024-10-10 10:10:25,500 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_NAME, message: asdefasfa, product_id: None
+2024-10-10 10:10:30,629 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_ADDRESS, message: asdasdfasf, product_id: None
+2024-10-10 10:10:40,503 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_PHONE, message: 5330475086, product_id: None
+2024-10-10 10:10:45,392 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_TEXT, message: asdas, product_id: None
+2024-10-10 10:10:50,443 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CONFIRMING, message: confirm_order_no, product_id: None
+2024-10-10 10:10:56,930 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CORRECTING, message: correct_name, product_id: None
+2024-10-10 10:11:19,064 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CORRECTING, message: emre, product_id: None
+2024-10-10 10:11:27,779 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CONFIRMING, message: confirm_order_yes, product_id: None
+2024-10-10 10:11:27,779 - ai_siparis - INFO - Calling Airtable create record function with: product_id=2, name=emre, address=asdasdfasf, phone=5330475086, text=asdas
+2024-10-10 10:11:31,196 - ai_siparis - INFO - Airtable record created successfully with ID: recpUBtTGUXWLdKLI
+2024-10-10 10:11:31,196 - ai_siparis - INFO - Order reset for user 905330475085
+2024-10-10 10:55:39,212 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_NAME, message: Emre Gunner, product_id: None
+2024-10-10 10:55:44,771 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_ADDRESS, message: adres1, product_id: None
+2024-10-10 10:55:50,499 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_PHONE, message: 4231231, product_id: None
+2024-10-10 10:55:56,541 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_PHONE, message: 533o475075, product_id: None
+2024-10-10 10:56:05,414 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_PHONE, message: 5330475087, product_id: None
+2024-10-10 10:56:11,393 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.COLLECTING_TEXT, message: Metin1, product_id: None
+2024-10-10 10:56:16,494 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CONFIRMING, message: confirm_order_no, product_id: None
+2024-10-10 10:56:20,871 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CORRECTING, message: correct_name, product_id: None
+2024-10-10 10:56:27,516 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CORRECTING, message: Mehmet Yildirim, product_id: None
+2024-10-10 10:56:32,478 - ai_siparis - INFO - Processing message for user 905330475085, current state: OrderState.CONFIRMING, message: confirm_order_yes, product_id: None
+2024-10-10 10:56:32,478 - ai_siparis - INFO - Calling Airtable create record function with: product_id=3 copy 3, name=Mehmet Yildirim, address=adres1, phone=5330475087, text=Metin1
+2024-10-10 10:56:35,721 - ai_siparis - INFO - Airtable record created successfully with ID: recYc7gAhZDBBRnxe
+2024-10-10 10:56:35,721 - ai_siparis - INFO - Order reset for user 905330475085
