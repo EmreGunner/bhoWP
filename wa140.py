@@ -487,14 +487,18 @@ async def handle_message(client: WhatsApp, message: Union[dict, Message]):
 
     if message_type == 'image':
         wa_logger.info(f"Processing image message from user {user_id}")
-        image_id = message['image']['id'] if isinstance(message, dict) else message.image.id
-        if image_id:
-            wa_logger.info(f"Image ID: {image_id}")
-            result = handle_image_upload(client, user_id, image_id, conversations)
-            client.send_message(to=user_id, text=result)
+        image = message.image if isinstance(message, Message) else message['image']
+        if image:
+            wa_logger.info(f"Image ID: {image.id}")
+            try:
+                result = await handle_image_upload(client, user_id, image.id, conversations)
+                await client.send_message(to=user_id, text=result)
+            except Exception as e:
+                wa_logger.exception(f"Error processing image: {str(e)}")
+                await client.send_message(to=user_id, text="An error occurred while processing your image. Please try again.")
         else:
-            wa_logger.warning(f"Received image message without image ID from user {user_id}")
-            client.send_message(to=user_id, text="Resim alınamadı. Lütfen tekrar deneyin.")
+            wa_logger.warning(f"Received image message without image data from user {user_id}")
+            await client.send_message(to=user_id, text="Resim alınamadı. Lütfen tekrar deneyin.")
         await send_menu_buttons(client, user_id)
         return
 
@@ -506,10 +510,10 @@ async def handle_message(client: WhatsApp, message: Union[dict, Message]):
             wa_logger.info(f"Received tracking number from user {user_id}: {text}")
             conversations[user_id]["tracking_number"] = text
             conversations[user_id]["waiting_for"] = "cargo_image"
-            client.send_message(to=user_id, text="Takip numarası alındı. Şimdi lütfen kargo resmini gönderin.")
+            await client.send_message(to=user_id, text="Takip numarası alındı. Şimdi lütfen kargo resmini gönderin.")
         else:
             # Handle other text messages or send a default response
-            client.send_message(to=user_id, text="Mesajınızı aldım. Size nasıl yardımcı olabilirim?")
+            await client.send_message(to=user_id, text="Mesajınızı aldım. Size nasıl yardımcı olabilirim?")
             await send_menu_buttons(client, user_id)
 
     elif message_type == 'interactive':
@@ -522,12 +526,12 @@ async def handle_message(client: WhatsApp, message: Union[dict, Message]):
             if button_id == '1~upload_image~cargo~¤':
                 wa_logger.info(f"User {user_id} requested to upload an image for cargo")
                 conversations[user_id]["waiting_for"] = "cargo_image"
-                client.send_message(to=user_id, text="Lütfen kargo için bir resim gönderin. Resmi aldıktan sonra takip numarasını soracağım.")
+                await client.send_message(to=user_id, text="Lütfen kargo için bir resim gönderin. Resmi aldıktan sonra takip numarasını soracağım.")
             # ... (handle other button presses)
 
     else:
         wa_logger.info(f"Received unsupported message type from user {user_id}: {message_type}")
-        client.send_message(to=user_id, text="Üzgünüm, bu mesaj türünü işleyemiyorum.")
+        await client.send_message(to=user_id, text="Üzgünüm, bu mesaj türünü işleyemiyorum.")
         await send_menu_buttons(client, user_id)
 
 

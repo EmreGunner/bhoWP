@@ -1,0 +1,23 @@
+2024-10-10 16:05:29,040 - media_actions - INFO - Starting image upload process for user 905330475085 with image ID 512811654871400
+2024-10-10 16:05:29,040 - media_actions - DEBUG - Getting media URL for image ID: 512811654871400
+2024-10-10 16:05:29,586 - media_actions - INFO - Media URL Response: MediaUrlResponse(id='512811654871400', url='https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=512811654871400&ext=1728576629&hash=ATuNv8eW1iWNj7LfdxbtNClxqwIx2M2aYCxlZsNdAaixOA', mime_type='image/jpeg', sha256='e3a3739f522322515dd689d9309c40aea9cf7576b35cc5685e8c349ec06b2a3f', file_size=3287992)
+2024-10-10 16:05:29,586 - media_actions - DEBUG - Downloading image from URL: https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=512811654871400&ext=1728576629&hash=ATuNv8eW1iWNj7LfdxbtNClxqwIx2M2aYCxlZsNdAaixOA
+2024-10-10 16:05:29,586 - media_actions - ERROR - Error handling image upload: Invalid type for url.  Expected str or httpx.URL, got <class 'pywa.types.media.MediaUrlResponse'>: MediaUrlResponse(id='512811654871400', url='https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=512811654871400&ext=1728576629&hash=ATuNv8eW1iWNj7LfdxbtNClxqwIx2M2aYCxlZsNdAaixOA', mime_type='image/jpeg', sha256='e3a3739f522322515dd689d9309c40aea9cf7576b35cc5685e8c349ec06b2a3f', file_size=3287992)
+Traceback (most recent call last):
+  File "/home/runner/noodWP/mediaActions.py", line 28, in handle_image_upload
+    image = await client.download_media(media_url_response)
+  File "/home/runner/noodWP/pywa/client.py", line 1542, in download_media
+    content, mimetype = self.api.get_media_bytes(media_url=url, **kwargs)
+  File "/home/runner/noodWP/pywa/api.py", line 337, in get_media_bytes
+    res = self._session.get(media_url, headers=headers, **kwargs)
+  File "/home/runner/noodWP/.pythonlibs/lib/python3.10/site-packages/httpx/_client.py", line 1066, in get
+    return self.request(
+  File "/home/runner/noodWP/.pythonlibs/lib/python3.10/site-packages/httpx/_client.py", line 824, in request
+    request = self.build_request(
+  File "/home/runner/noodWP/.pythonlibs/lib/python3.10/site-packages/httpx/_client.py", line 346, in build_request
+    url = self._merge_url(url)
+  File "/home/runner/noodWP/.pythonlibs/lib/python3.10/site-packages/httpx/_client.py", line 376, in _merge_url
+    merge_url = URL(url)
+  File "/home/runner/noodWP/.pythonlibs/lib/python3.10/site-packages/httpx/_urls.py", line 121, in __init__
+    raise TypeError(
+TypeError: Invalid type for url.  Expected str or httpx.URL, got <class 'pywa.types.media.MediaUrlResponse'>: MediaUrlResponse(id='512811654871400', url='https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=512811654871400&ext=1728576629&hash=ATuNv8eW1iWNj7LfdxbtNClxqwIx2M2aYCxlZsNdAaixOA', mime_type='image/jpeg', sha256='e3a3739f522322515dd689d9309c40aea9cf7576b35cc5685e8c349ec06b2a3f', file_size=3287992)

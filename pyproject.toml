@@ -39,6 +39,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Application Frameworks"
 ]
 dependencies = [
+    "aiohttp",
     "fastapi",
     "openai",
     "python-dotenv",
