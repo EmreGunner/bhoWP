@@ -76,3 +76,17 @@
 2024-10-10 16:05:16,569 - checker - INFO - Interactive message received: {'type': 'button_reply', 'button_reply': {'id': '1~upload_image~cargo~¤', 'title': 'Resim Yükle'}}
 2024-10-10 16:05:30,744 - checker - INFO - Received image message from user 905330475085
 2024-10-10 16:05:30,744 - checker - INFO - Image received - ID: 512811654871400, MIME type: image/jpeg
+2024-10-11 09:07:55,428 - checker - INFO - Received text message from user 905330475085
+2024-10-11 09:07:55,428 - checker - INFO - Text message received: '/menu'
+2024-10-11 09:09:43,913 - checker - INFO - Received text message from user 905330475085
+2024-10-11 09:09:43,913 - checker - INFO - Text message received: 'hi'
+2024-10-11 09:10:02,199 - checker - INFO - Received text message from user 905330475085
+2024-10-11 09:10:02,199 - checker - INFO - Text message received: '/menu'
+2024-10-11 09:10:56,426 - checker - INFO - Received text message from user 905330475085
+2024-10-11 09:10:56,426 - checker - INFO - Text message received: '/menu'
+2024-10-11 09:11:06,406 - checker - INFO - Received interactive message from user 905330475085
+2024-10-11 09:11:06,406 - checker - INFO - Interactive message received: {'type': 'button_reply', 'button_reply': {'id': '1~more_options~more~¤', 'title': 'Diğer İşlemler'}}
+2024-10-11 09:11:10,942 - checker - INFO - Received interactive message from user 905330475085
+2024-10-11 09:11:10,942 - checker - INFO - Interactive message received: {'type': 'button_reply', 'button_reply': {'id': '1~upload_image~cargo~¤', 'title': 'Resim Yükle'}}
+2024-10-11 09:11:22,320 - checker - INFO - Received image message from user 905330475085
+2024-10-11 09:11:22,320 - checker - INFO - Image received - ID: 1093463825643192, MIME type: image/jpeg
